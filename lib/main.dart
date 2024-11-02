@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
       title: 'RcTool',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purpleAccent),
         useMaterial3: true,
       ),
       home: const MyHomePage(),
@@ -40,10 +40,42 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+          backgroundColor: Colors.pink[50],
+          leading: Column(children: [
+            const Padding(padding: EdgeInsets.only(top: 8)),
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: IconButton(
+                hoverColor: Colors.pink[100],
+                focusColor: Colors.pink[100],
+                highlightColor: Colors.pink[200],
+                alignment: Alignment.bottomCenter,
+                icon: const Icon(Icons.list),
+                color: Colors.black,
+                onPressed: () {
+                  print("侧边栏");
+                },
+              ),
+            ),
+          ]),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 15),
+              child: IconButton(
+                  hoverColor: Colors.pink[100],
+                  focusColor: Colors.pink[100],
+                  highlightColor: Colors.pink[200],
+                  onPressed: () {
+                    print("搜索栏");
+                  },
+                  icon: const Icon(Icons.search)),
+            )
+          ]),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: [
             const Text(
               'You have pushed the button this many times:',
             ),
