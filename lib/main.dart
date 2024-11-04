@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rctool/components/MusicCard.dart';
+import 'package:rctool/components/MusicPlayer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -72,25 +74,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: const Icon(Icons.search)),
             )
           ]),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      body:const Column(
+        children: [
+          MusicCard(),
+          MusicPlayer()
+        ],
+      )
     );
   }
 }
