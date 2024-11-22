@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:rctool/components/MusicCard.dart';
 import 'package:rctool/components/MusicPlayer.dart';
 
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'RcTool',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
