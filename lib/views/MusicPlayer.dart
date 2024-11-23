@@ -1,6 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rctool/views/MusicCard.dart';
 
 class MusicPlayer extends StatefulWidget {
   const MusicPlayer({super.key});
@@ -19,11 +20,7 @@ class _MusicCard extends State<MusicPlayer> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(child: Text("test"),height: 500,),
-                    SizedBox(child: Text("test"),height: 500,),
-                    SizedBox(child: Text("test"),height: 500,),
-                    SizedBox(child: Text("test"),height: 500,),
-                    Text("data")
+                    MusicCard()
                   ],
                 ),
               )
@@ -31,7 +28,7 @@ class _MusicCard extends State<MusicPlayer> {
               Stack(
                 children: [
                   Container(
-                    margin: EdgeInsets.only(top: 50),
+                    margin: const EdgeInsets.only(top: 20),
                     width: double.infinity,
                     height: 60,
                     alignment: Alignment.center,

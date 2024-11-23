@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:rctool/components/MusicCard.dart';
-import 'package:rctool/components/MusicPlayer.dart';
+import 'package:rctool/views/MusicPlayer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,13 +31,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ]),
       body:const Column(
         children: [
-          MusicCard(),
           MusicPlayer()
         ],
       )
