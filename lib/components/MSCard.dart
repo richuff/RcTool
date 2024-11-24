@@ -1,13 +1,28 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
 class MSCard extends StatefulWidget {
-  const MSCard({super.key});
+  final Source source;
+  const MSCard(this.source, {super.key});
 
   @override
   State<MSCard> createState() => _MSCard();
 }
 
 class _MSCard extends State<MSCard> {
+  final player = AudioPlayer();
+  var _count = 0;
+  playLocal() async {
+    if (_count % 2 ==0){
+      await player.play(widget.source);
+    }else{
+      player.pause();
+    }
+    setState(() {
+      _count++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -16,7 +31,7 @@ class _MSCard extends State<MSCard> {
         height: 550,
         decoration: BoxDecoration(
             image: const DecorationImage(
-                image: NetworkImage(""), fit: BoxFit.cover),
+                image: NetworkImage("https://img.meituan.net/csc/d05518606ba7064dd445508e3cf3d4c42860983.png"), fit: BoxFit.cover),
             color: Colors.pink[100],
             borderRadius: const BorderRadius.all(Radius.circular(50.0)),
             boxShadow: const [BoxShadow(color: Colors.pink, blurRadius: 4.0)]),
@@ -52,8 +67,10 @@ class _MSCard extends State<MSCard> {
                 ),
                 child: IconButton(
                     iconSize: 35,
-                    onPressed: () => {print("test")},
-                    icon: const Icon(Icons.play_arrow_sharp)),
+                    onPressed: () => {
+                      playLocal()
+                    },
+                    icon: Icon(_count % 2 ==0 ? Icons.play_arrow_sharp : Icons.stop)),
               ),
             ),
             const Positioned(
@@ -61,15 +78,7 @@ class _MSCard extends State<MSCard> {
               left: 30,
               child: Text(
                 "Song Name",
-                style: TextStyle(fontSize: 24, color: Colors.blueAccent),
-              ),
-            ),
-            const Positioned(
-              bottom: 50,
-              left: 30,
-              child: Text(
-                "Song Name",
-                style: TextStyle(fontSize: 24, color: Colors.blueAccent),
+                style: TextStyle(fontSize: 24, color: Colors.white),
               ),
             ),
             const Positioned(
@@ -77,7 +86,7 @@ class _MSCard extends State<MSCard> {
                 left: 30,
                 child: Text(
                   "Artist Name",
-                  style: TextStyle(fontSize: 18, color: Colors.blueAccent),
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ))
           ],
         ));
