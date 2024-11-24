@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 class MSCard extends StatefulWidget {
   final Source source;
-  const MSCard(this.source, {super.key});
+  final ImageProvider image;
+  const MSCard(this.source,this.image, {super.key});
 
   @override
   State<MSCard> createState() => _MSCard();
@@ -30,8 +31,8 @@ class _MSCard extends State<MSCard> {
         width: 300,
         height: 550,
         decoration: BoxDecoration(
-            image: const DecorationImage(
-                image: NetworkImage("https://img.meituan.net/csc/d05518606ba7064dd445508e3cf3d4c42860983.png"), fit: BoxFit.cover),
+            image: DecorationImage(
+                image:widget.image , fit: BoxFit.cover),
             color: Colors.pink[100],
             borderRadius: const BorderRadius.all(Radius.circular(50.0)),
             boxShadow: const [BoxShadow(color: Colors.pink, blurRadius: 4.0)]),

@@ -24,7 +24,7 @@ class _MusicPage extends State<MusicPage> {
                   focusColor: Colors.pink[100],
                   highlightColor: Colors.pink[200],
                   alignment: Alignment.bottomCenter,
-                  icon: const Icon(Icons.list),
+                  icon: const Icon(Icons.list,size: 26,),
                   color: Colors.black,
                   onPressed: () {
                     print("侧边栏");
@@ -34,7 +34,7 @@ class _MusicPage extends State<MusicPage> {
             ]),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: 15),
+                padding: const EdgeInsets.fromLTRB(0 , 8 , 15 , 0),
                 child: IconButton(
                     hoverColor: Colors.pink[100],
                     focusColor: Colors.pink[100],
@@ -42,7 +42,7 @@ class _MusicPage extends State<MusicPage> {
                     onPressed: () {
                       print("搜索栏");
                     },
-                    icon: const Icon(Icons.search)),
+                    icon: const Icon(Icons.search,size: 26)),
               )
             ]),
         body:const Column(
