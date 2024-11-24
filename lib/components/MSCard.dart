@@ -34,8 +34,8 @@ class _MSCard extends State<MSCard> {
         height: 550,
         decoration: BoxDecoration(
             image: DecorationImage(
-                image:widget.image , fit: BoxFit.cover),
-            color: Colors.pink[100],
+                image:widget.image , fit: BoxFit.cover,opacity: 0.7),
+            color: const Color.fromRGBO(255, 243, 242, 0.8),
             borderRadius: const BorderRadius.all(Radius.circular(50.0)),
             boxShadow: const [BoxShadow(color: Colors.pink, blurRadius: 4.0)]),
         child: Stack(
