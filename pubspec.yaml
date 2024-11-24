@@ -22,9 +22,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - sounds/Inside_You.flac
-    - sounds/Winged_Step.mp3
   # fonts:
   #   - family: Schyler
   #     fonts:

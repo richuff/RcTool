@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 class MSCard extends StatefulWidget {
   final Source source;
   final ImageProvider image;
-  const MSCard(this.source,this.image, {super.key});
+  final String decoration;
+  final String songName;
+  const MSCard(this.source,this.image, this.decoration,this.songName,{super.key});
 
   @override
   State<MSCard> createState() => _MSCard();
@@ -74,19 +76,19 @@ class _MSCard extends State<MSCard> {
                     icon: Icon(_count % 2 ==0 ? Icons.play_arrow_sharp : Icons.stop)),
               ),
             ),
-            const Positioned(
+            Positioned(
               bottom: 50,
               left: 30,
               child: Text(
-                "Song Name",
+                widget.songName,
                 style: TextStyle(fontSize: 24, color: Colors.white),
               ),
             ),
-            const Positioned(
+            Positioned(
                 bottom: 20,
                 left: 30,
                 child: Text(
-                  "Artist Name",
+                  widget.decoration,
                   style: TextStyle(fontSize: 18, color: Colors.white),
                 ))
           ],
