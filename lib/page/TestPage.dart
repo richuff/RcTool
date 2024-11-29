@@ -21,9 +21,6 @@ class _TestPage extends State<TestPage>{
             return Mydialog(
               title: "提示",
               content: "我是提示",
-              onTab: () {
-                //点击按钮关闭
-              },
             );
           });
       print(res);

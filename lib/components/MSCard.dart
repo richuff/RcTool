@@ -81,7 +81,7 @@ class _MSCard extends State<MSCard> {
               left: 30,
               child: Text(
                 widget.songName,
-                style: TextStyle(fontSize: 24, color: Colors.white),
+                style: const TextStyle(fontSize: 24, color: Colors.white),
               ),
             ),
             Positioned(
@@ -89,7 +89,7 @@ class _MSCard extends State<MSCard> {
                 left: 30,
                 child: Text(
                   widget.decoration,
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                  style: const TextStyle(fontSize: 18, color: Colors.white),
                 ))
           ],
         ));

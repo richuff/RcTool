@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../views/MusicPlayer.dart';
 
 class MusicPage extends StatefulWidget {
@@ -18,12 +19,12 @@ class _MusicPage extends State<MusicPage> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
-              const DrawerHeader(
+              DrawerHeader(
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: Colors.pink[400],
                 ),
-                child: Text(
-                  'Drawer Header',
+                child: const Text(
+                  '工具箱',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -31,12 +32,10 @@ class _MusicPage extends State<MusicPage> {
                 ),
               ),
               ListTile(
-                title: Text('Item 1'),
-                onTap: () {},
-              ),
-              ListTile(
-                title: Text('Item 2'),
-                onTap: () {},
+                title: const Text('关于作者'),
+                onTap: () {
+                  Get.toNamed("/about");
+                },
               ),
             ],
           ),
