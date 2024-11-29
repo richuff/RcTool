@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 class Mydialog extends Dialog {
   String title;
   String content;
-  final Function()? onTab;
-  Mydialog({required this.onTab, required this.title,required this.content,super.key});
+  Mydialog({required this.title,required this.content,super.key});
 
   @override
   Widget build(BuildContext context){
-    return Material(
+    return Opacity(opacity: 0.6,child:
+    Material(
         type: MaterialType.transparency,
         child: Center(
           child: Container(
@@ -21,8 +21,13 @@ class Mydialog extends Dialog {
                 const SizedBox(height: 20,),
                 Stack(
                   children: [
-                    Align(alignment: Alignment.centerLeft,child: Text(title),),
-                    Align(alignment: Alignment.centerRight,child: InkWell(onTap: onTab!(), child:const Icon(Icons.add)))
+                    Align(alignment: Alignment.center,child: Text(title),),
+                    Align(alignment: Alignment.centerRight,child: Container(
+                      margin: const EdgeInsets.fromLTRB(0, 0,13, 0),
+                      child: InkWell(onTap: (){
+                        Navigator.of(context).pop();
+                      }, child:const Icon(Icons.add,size: 24,)),
+                    ))
                   ],
                 ),
                 const Divider(),
@@ -37,6 +42,6 @@ class Mydialog extends Dialog {
             ),
           ),
         )
-    );
+    ));
   }
 }
