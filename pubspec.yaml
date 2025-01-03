@@ -22,6 +22,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: RcIcon
+      fonts:
+        - asset: fonts/iconfont.ttf
   # fonts:
   #   - family: Schyler
   #     fonts:
