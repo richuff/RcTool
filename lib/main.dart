@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:rctool/routers/index.dart';
-import '../widget/Mydialog.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,14 +53,14 @@ class _MyApp extends State<MyApp> {
                   ),
                 ),
                 ListTile(
-                  title: const Text('听音乐'),
+                  title: const Text('msc'),
                   onTap: () {
                     scaffoldKey.currentState?.closeDrawer();
                     Get.toNamed("/music");
                   },
                 ),
                 ListTile(
-                  title: const Text('关于作者'),
+                  title: const Text('tst'),
                   onTap: () {
                     scaffoldKey.currentState?.closeDrawer();
                     Get.toNamed("/about");
@@ -107,13 +106,15 @@ class _MyApp extends State<MyApp> {
           body: Column(
             children: [
               ElevatedButton(
-                  onPressed: () => {Get.toNamed("/music")},
-                  child: const Text("to music")),
+                  onPressed: () => {
+                    Get.toNamed("/")
+                  },
+                  child: const Text("s")),
               ElevatedButton(
                   onPressed: () {
                     Get.toNamed("/test");
                   },
-                  child: const Text("to test"))
+                  child: const Text("e"))
             ],
           )),
     );

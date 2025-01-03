@@ -24,6 +24,11 @@ class _MSCard extends State<MSCard> {
     setState(() {
       _count++;
     });
+    player.onPlayerComplete.listen((event) {
+      setState(() {
+        _count = 0;
+      });
+    });
   }
 
   @override
