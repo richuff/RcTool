@@ -13,11 +13,11 @@ class MusicController extends GetxController {
   },
     {
       "url":
-      "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250103/a1563905111d66f5033927df2f544f83/e2e58620858c4826bbe5f125e519d72a.mp3",
+      "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250103/a1563905111d66f5033927df2f544f83/d4df9b040cc14f49b2945ba31f1b87b7.flac",
       "imageUrl":
       "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250103/a1563905111d66f5033927df2f544f83/9608781f5f46425c8becdfa4ad7e1070.jpg",
-      "songName": "TruE",
-      "decoration": "黄龄"
+      "songName": "Matter of Time",
+      "decoration": "Shannon Hurley"
     },
     {
       "url":

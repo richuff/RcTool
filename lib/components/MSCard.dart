@@ -60,7 +60,7 @@ class _MSCard extends State<MSCard> {
                     child: IconButton(
                         iconSize: 32,
                         onPressed: () => {print("test")},
-                        icon: const Icon(Icons.heart_broken)),
+                        icon: const Icon(Icons.insert_emoticon)),
                   ),
                 )),
             Positioned(
