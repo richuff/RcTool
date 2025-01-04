@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:rctool/widget/SearchWidget.dart';
 
 class AboutAuthor extends StatefulWidget {
   const AboutAuthor({super.key});
@@ -68,17 +69,7 @@ class _AboutAuthor extends State<AboutAuthor> {
               ]);
             }),
             actions: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 8, 15, 0),
-                child: IconButton(
-                    hoverColor: Colors.pink[100],
-                    focusColor: Colors.pink[100],
-                    highlightColor: Colors.pink[200],
-                    onPressed: () {
-                      print("搜索栏");
-                    },
-                    icon: const Icon(Icons.search, size: 26)),
-              )
+              SearchWidget()
             ]),
         body: Container(
           decoration:const BoxDecoration(

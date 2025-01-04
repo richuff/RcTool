@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/widget/SearchWidget.dart';
 import '../views/MusicPlayer.dart';
 
 class MusicPage extends StatefulWidget {
@@ -12,6 +13,7 @@ class MusicPage extends StatefulWidget {
 
 class _MusicPage extends State<MusicPage> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,17 +70,7 @@ class _MusicPage extends State<MusicPage> {
             ]);
           }),
           actions: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 8, 15, 0),
-              child: IconButton(
-                  hoverColor: Colors.pink[100],
-                  focusColor: Colors.pink[100],
-                  highlightColor: Colors.pink[200],
-                  onPressed: () {
-                    print("搜索栏");
-                  },
-                  icon: const Icon(Icons.search, size: 26)),
-            )
+            SearchWidget()
           ]),
       body: Container(
           decoration: const BoxDecoration(

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:rctool/routers/index.dart';
+import 'package:rctool/widget/SearchWidget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -91,24 +92,14 @@ class _MyApp extends State<MyApp> {
                 ]);
               }),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 15),
-                  child: IconButton(
-                      hoverColor: Colors.pink[100],
-                      focusColor: Colors.pink[100],
-                      highlightColor: Colors.pink[200],
-                      onPressed: () {
-                        print("搜索栏");
-                      },
-                      icon: const Icon(Icons.search)),
-                )
+                  SearchWidget()
               ]),
           body: Column(
             children: [
               ElevatedButton(
                   onPressed: () => {
-                    Get.toNamed("/")
-                  },
+
+                      },
                   child: const Text("s")),
               ElevatedButton(
                   onPressed: () {
