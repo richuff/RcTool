@@ -1,7 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../iconfont/RcIcon.dart';
 
 class Mydialog extends Dialog {
   String title;
@@ -28,7 +26,7 @@ class Mydialog extends Dialog {
                       margin: const EdgeInsets.fromLTRB(0, 0,13, 0),
                       child: InkWell(onTap: (){
                         Navigator.of(context).pop();
-                      }, child:const Icon(RcIcon.close,size: 24,)),
+                      }, child:const Icon(Icons.close,size: 24,)),
                     ))
                   ],
                 ),

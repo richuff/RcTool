@@ -37,31 +37,41 @@ class _MyApp extends State<MyApp> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: <Widget>[
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.pink[200],
-                  ),
-                  child: Container(
-                    height: 40.0, // 设置高度
-                    alignment: Alignment.center,
-                    child: const Text(
-                      '主页',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                      ),
+                SizedBox(
+                  height: 100.0,
+                  child: DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Colors.pink[200],
                     ),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 40.0, // 设置高度
+                          alignment: Alignment.center,
+                          child: const Text(
+                            '主页',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
                   ),
                 ),
                 ListTile(
-                  title: const Text('msc'),
+                  leading: const Icon(Icons.music_note),
+                  title: const Text('听音乐'),
                   onTap: () {
                     scaffoldKey.currentState?.closeDrawer();
                     Get.toNamed("/music");
                   },
                 ),
+
                 ListTile(
-                  title: const Text('tst'),
+                  leading: const Icon(Icons.account_box_rounded),
+                  title: const Text('关于作者'),
                   onTap: () {
                     scaffoldKey.currentState?.closeDrawer();
                     Get.toNamed("/about");

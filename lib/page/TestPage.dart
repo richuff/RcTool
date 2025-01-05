@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../widget/Mydialog.dart';
@@ -23,7 +22,6 @@ class _TestPage extends State<TestPage>{
               content: "我是提示",
             );
           });
-      print(res);
     }
 
     return ListView(

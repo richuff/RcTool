@@ -1,7 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:rctool/widget/SearchWidget.dart';
 
 class AboutAuthor extends StatefulWidget {
@@ -22,19 +20,31 @@ class _AboutAuthor extends State<AboutAuthor> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.pink[400],
-                ),
-                child:const Text(
-                  '工具箱',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
+              SizedBox(
+                height: 100.0,
+                child: DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Colors.pink[200],
+                    ),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 40.0, // 设置高度
+                          alignment: Alignment.center,
+                          child: const Text(
+                            '工具箱',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
                 ),
               ),
               ListTile(
+                leading: const Icon(Icons.music_note),
                 title: const Text('听音乐'),
                 onTap: () {
                   scaffoldKey.currentState?.closeDrawer();

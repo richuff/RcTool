@@ -1,14 +1,10 @@
 import 'dart:ui';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:rctool/components/MusicList.dart';
-import 'package:rctool/controller/MusicController.dart';
 
 import '../components/MSCard.dart';
+import '../components/MusicList.dart';
 import '../entity/MusicList.dart';
 
 class MusicPlayer extends StatefulWidget {
@@ -32,11 +28,11 @@ class _MusicCard extends State<MusicPlayer> {
           PointerDeviceKind.mouse,
         }),
         child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Column(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Column(
+                Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: allmusiclist.map((element) {

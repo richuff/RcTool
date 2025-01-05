@@ -1,7 +1,5 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../controller/MusicController.dart';
 
@@ -10,7 +8,7 @@ class MSCard extends StatefulWidget {
   final String image;
   final String decoration;
   final String songName;
-  const MSCard(this.url, this.image, this.decoration, this.songName,
+  const MSCard(this.url, this.image, this.songName, this.decoration,
       {super.key});
 
   @override
@@ -25,9 +23,9 @@ class _MSCard extends State<MSCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        margin: const EdgeInsets.only(top: 30),
+        margin: const EdgeInsets.only(top: 20,right: 15,left: 15),
         width: 300,
-        height: 550,
+        height: 530,
         decoration: BoxDecoration(
             image: DecorationImage(
                 image: NetworkImage(widget.image), fit: BoxFit.cover, opacity: 0.7),
@@ -91,7 +89,7 @@ class _MSCard extends State<MSCard> {
                 child: Text(
                   widget.decoration,
                   style: const TextStyle(fontSize: 18, color: Colors.white),
-                ))
+                )),
           ],
         ));
   }

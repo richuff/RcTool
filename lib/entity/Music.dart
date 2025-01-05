@@ -13,8 +13,7 @@ class Music{
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other) ||
-        other is Music && other.url == url && other.imageUrl == imageUrl && other.songName == songName && other.decoration == decoration){
+    if (other is Music && other.url == url && other.imageUrl == imageUrl && other.songName == songName && other.decoration == decoration){
       return true;
     }
     return false;

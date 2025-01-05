@@ -1,5 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../controller/MusicController.dart';
 
 class MusicList extends StatefulWidget {
   const MusicList({super.key});
@@ -9,6 +11,28 @@ class MusicList extends StatefulWidget {
 }
 
 class _MusicList extends State<MusicList> {
+  MusicController musicController = Get.put(MusicController());
+
+  String title = "您还未选择播放的歌曲";
+
+  @override
+  void initState() {
+    setState(() {
+      title = musicController.musiclist.length >
+          musicController.position.value
+          ? "${musicController.musiclist[musicController.position.value].songName}  -----  ${musicController.musiclist[musicController.position.value].decoration}"
+          : title;
+    });
+    super.initState();
+    musicController.addListener(() {
+      setState(() {
+        title = musicController.musiclist.length >
+                musicController.position.value
+            ? "${musicController.musiclist[musicController.position.value].songName}  -----  ${musicController.musiclist[musicController.position.value].decoration}"
+            : title;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,16 +78,16 @@ class _MusicList extends State<MusicList> {
                 borderRadius: const BorderRadius.all(Radius.circular(10)),
               ),
             )),
-        const Positioned(
+        Positioned(
           left: 100,
           bottom: 20,
-          child: Text("致无暇之人 --- True"),
+          child: Text(title),
         ),
         Positioned(
             right: 45,
             bottom: 8,
             child: IconButton(
-                onPressed: () => {},
+                onPressed: () => {musicController.playLocal()},
                 icon: const Icon(
                   Icons.play_arrow_sharp,
                   color: Colors.white,
@@ -72,11 +96,15 @@ class _MusicList extends State<MusicList> {
             right: 2,
             bottom: 8,
             child: IconButton(
-                onPressed: () => {},
+                onPressed: () => {
+                      setState(() {
+                        Get.toNamed("/musicchoose");
+                      })
+                    },
                 icon: const Icon(
                   Icons.queue_music_sharp,
                   color: Colors.white,
-                )))
+                ))),
       ],
     );
   }
