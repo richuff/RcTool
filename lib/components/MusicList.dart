@@ -14,13 +14,13 @@ class _MusicList extends State<MusicList> {
   MusicController musicController = Get.put(MusicController());
 
   String title = "您还未选择播放的歌曲";
-
+  bool isplay = false;
   @override
   void initState() {
     setState(() {
       title = musicController.musiclist.length >
           musicController.position.value
-          ? "${musicController.musiclist[musicController.position.value].songName}  -----  ${musicController.musiclist[musicController.position.value].decoration}"
+          ? musicController.musiclist[musicController.position.value].songName
           : title;
     });
     super.initState();
@@ -28,8 +28,9 @@ class _MusicList extends State<MusicList> {
       setState(() {
         title = musicController.musiclist.length >
                 musicController.position.value
-            ? "${musicController.musiclist[musicController.position.value].songName}  -----  ${musicController.musiclist[musicController.position.value].decoration}"
+            ? musicController.musiclist[musicController.position.value].songName
             : title;
+        isplay = musicController.isplay.value;
       });
     });
   }
@@ -79,22 +80,40 @@ class _MusicList extends State<MusicList> {
               ),
             )),
         Positioned(
-          left: 100,
-          bottom: 20,
+          left: 90,
+          bottom: 25,
           child: Text(title),
         ),
         Positioned(
-            right: 45,
-            bottom: 8,
+            right: 80,
+            bottom: 12,
+            child: IconButton(
+                onPressed: () => {musicController.skipPrevious()},
+                icon: const Icon(
+                  Icons.skip_previous,
+                  color: Colors.white,
+                ))),
+        Positioned(
+            right: 30,
+            bottom: 12,
+            child: IconButton(
+                onPressed: () => {musicController.skipNext()},
+                icon: const Icon(
+                  Icons.skip_next,
+                  color: Colors.white,
+                ))),
+        Positioned(
+            right: 55,
+            bottom: 12,
             child: IconButton(
                 onPressed: () => {musicController.playLocal()},
-                icon: const Icon(
-                  Icons.play_arrow_sharp,
+                icon: Icon(
+                  isplay?Icons.pause:Icons.play_arrow_sharp,
                   color: Colors.white,
                 ))),
         Positioned(
             right: 2,
-            bottom: 8,
+            bottom: 12,
             child: IconButton(
                 onPressed: () => {
                       setState(() {

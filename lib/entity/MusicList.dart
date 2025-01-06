@@ -5,7 +5,8 @@ var allmusiclist = [
     "imageUrl":
         "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250104/a1563905111d66f5033927df2f544f83/d10bae2286324987ba835f7d2247c26a.jpg",
     "songName": "TruE",
-    "decoration": "黄龄"
+    "decoration": "黄龄",
+    "isFavorite":"false"
   },
   {
     "url":
@@ -13,7 +14,8 @@ var allmusiclist = [
     "imageUrl":
         "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250103/a1563905111d66f5033927df2f544f83/9608781f5f46425c8becdfa4ad7e1070.jpg",
     "songName": "Matter of Time",
-    "decoration": "Shannon Hurley"
+    "decoration": "Shannon Hurley",
+    "isFavorite":"false"
   },
   {
     "url":
@@ -21,7 +23,8 @@ var allmusiclist = [
     "imageUrl":
         "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250103/a1563905111d66f5033927df2f544f83/7f426ff5e4294a698470e3a9ebd9b2e1.jpg",
     "songName": "Inside you",
-    "decoration": "milet"
+    "decoration": "milet",
+    "isFavorite":"false"
   },
   {
     "url":
@@ -29,6 +32,7 @@ var allmusiclist = [
     "imageUrl":
     "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250104/a1563905111d66f5033927df2f544f83/1d05d0f0d4cc4949876f0054cae47970.jpg",
     "songName": "Tell me",
-    "decoration": "milet"
+    "decoration": "milet",
+    "isFavorite":"false"
   }
 ];

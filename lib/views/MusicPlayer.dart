@@ -2,9 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rctool/utils/CommUtil.dart';
 
 import '../components/MSCard.dart';
 import '../components/MusicList.dart';
+import '../components/Recommend.dart';
 import '../entity/MusicList.dart';
 
 class MusicPlayer extends StatefulWidget {
@@ -19,7 +21,31 @@ class _MusicCard extends State<MusicPlayer> {
   Widget build(BuildContext context) {
     return Expanded(
         child: Column(children: [
+          Flexible(
+            flex: 20,
+              child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context)
+                    .copyWith(scrollbars: false, dragDevices: {
+                  //必须设置此事件，不然无法滚动
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.mouse,
+                }),
+                child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Recommend()
+                              ])
+                      ],
+                    )),
+              )),
       Flexible(
+        flex: 19,
           child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context)
             .copyWith(scrollbars: false, dragDevices: {
@@ -37,7 +63,7 @@ class _MusicCard extends State<MusicPlayer> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: allmusiclist.map((element) {
                       return MSCard(element["url"]!, element["imageUrl"]!,
-                          element["songName"]!, element["decoration"]!);
+                          element["songName"]!, element["decoration"]!,CommUtil.parseBool(element["isFavorite"]));
                     }).toList())
               ],
             )),

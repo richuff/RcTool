@@ -19,7 +19,7 @@ class _MusicChooseList extends State<MusicChooseList> {
   void initState() {
     super.initState();
     setState(() {
-      chooselist = musicController.musiclist.value;
+      chooselist = musicController.musiclist;
     });
   }
 

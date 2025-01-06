@@ -9,8 +9,8 @@ class MusicController extends GetxController {
 
   final player = AudioPlayer();
 
-  inc(String url,String imageUrl,String songName,String decoration) async {
-    Music music = Music(url, imageUrl, songName, decoration);
+  inc(String url,String imageUrl,String songName,String decoration,bool isFavorite) async {
+    Music music = Music(url, imageUrl, songName, decoration,isFavorite);
     for (Music lmusic in musiclist){
       if (music == lmusic){
         return;
@@ -34,28 +34,23 @@ class MusicController extends GetxController {
 
 
   playLocal() async {
-    if (isplay.isFalse) {
-      isplay.value = true;
-      await player.play(UrlSource(musiclist[position.value].url));
-      update();
-    } else {
-      isplay.value = false;
-      player.pause();
-      update();
-    }
-    player.onPlayerComplete.listen((event) async {
-      position.value = position.value + 1;
-      isplay.value = false;
-      update();
-
-      if (position.value < musiclist.length){
-        playLocal();
-      }else {
+    if (musiclist.isNotEmpty){
+      if (isplay.isFalse) {
+        isplay.value = true;
+        update();
+        await player.play(UrlSource(musiclist[position.value].url));
+      } else {
         isplay.value = false;
-        position.value = 0;
+        player.pause();
         update();
       }
-    });
+
+      player.onPlayerComplete.listen((event) async {
+        isplay.value = false;
+        position.value = (position.value + 1) % musiclist.length;
+        playLocal();
+      });
+    }
   }
 
   playAt(Music music) async {
@@ -69,28 +64,27 @@ class MusicController extends GetxController {
         update();
       }
     }
+    playLocal();
+  }
 
-    if (isplay.isFalse) {
-      isplay.value = true;
-      await player.play(UrlSource(musiclist[position.value].url));
-      update();
-    } else {
+  skipPrevious() async{
+    if (musiclist.isNotEmpty) {
+      position.value =
+          (position.value - 1 + musiclist.length) % musiclist.length;
       isplay.value = false;
-      player.pause();
       update();
+
+      playLocal();
     }
-    player.onPlayerComplete.listen((event) async {
-      position.value = position.value + 1;
+  }
+
+  skipNext() async{
+    if (musiclist.isNotEmpty) {
+      position.value = (position.value + 1) % musiclist.length;
       isplay.value = false;
       update();
 
-      if (position.value < musiclist.length){
-        playLocal();
-      }else {
-        isplay.value = false;
-        position.value = 0;
-        update();
-      }
-    });
+      playLocal();
+    }
   }
 }

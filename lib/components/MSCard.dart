@@ -8,7 +8,9 @@ class MSCard extends StatefulWidget {
   final String image;
   final String decoration;
   final String songName;
-  const MSCard(this.url, this.image, this.songName, this.decoration,
+  final bool isFavorite;
+
+  const MSCard(this.url, this.image, this.songName, this.decoration,this.isFavorite,
       {super.key});
 
   @override
@@ -18,8 +20,8 @@ class MSCard extends StatefulWidget {
 class _MSCard extends State<MSCard> {
 
   MusicController musicController = Get.put(MusicController());
-
   bool isFavorite = false;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -50,7 +52,7 @@ class _MSCard extends State<MSCard> {
                         iconSize: 32,
                         onPressed: () => {
                               setState(() {
-                                isFavorite = isFavorite ? false : true;
+                                isFavorite = !isFavorite;
                               })
                             },
                         icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border)),
@@ -69,7 +71,7 @@ class _MSCard extends State<MSCard> {
                 child: IconButton(
                     iconSize: 35,
                     onPressed: () => {
-                      musicController.inc(widget.url,widget.image,widget.songName,widget.decoration)
+                      musicController.inc(widget.url,widget.image,widget.songName,widget.decoration,isFavorite)
                     },
                     icon: const Icon(
                         Icons.play_arrow_sharp )),
