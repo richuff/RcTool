@@ -34,5 +34,41 @@ var allmusiclist = [
     "songName": "Tell me",
     "decoration": "milet",
     "isFavorite":"false"
-  }
+  },
+  {
+    "url":
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/c1e4173ffcc643d495296b0d6cf2abb3.flac",
+    "imageUrl":
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/3ba6d6892c2140a7a0da5e20b64a1c52.jpg",
+    "songName": "ただ声一つ",
+    "decoration": "ロクデナシ",
+    "isFavorite":"true"
+  },
+  {
+    "url":
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/c4653979e67b41d3860e4ba818380dfe.flac",
+    "imageUrl":
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/e3885e249a8747abad53b62bb56e9f6d.jpg",
+    "songName": "Rubia",
+    "decoration": "周深、HOYO-MiX",
+    "isFavorite":"true"
+  },
+  {
+    "url":
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/c4653979e67b41d3860e4ba818380dfe.flac",
+    "imageUrl":
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/a5ec2d631dd3446c8b773c9a050af2ed.jpg",
+    "songName": "風を食む",
+    "decoration": "ヨルシカ",
+    "isFavorite":"true"
+  },
+  {
+    "url":
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/d6eceb151dd14a2d8ab0c2b35d8f8ffb.flac",
+    "imageUrl":
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/6a0ca3bb8b3f44f8b5bba02f33fd1bed.png",
+    "songName": "パレード",
+    "decoration": "ヨルシカ",
+    "isFavorite":"true"
+  },
 ];
