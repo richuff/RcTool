@@ -8,6 +8,7 @@ class MusicController extends GetxController {
   var position = 0.obs;
 
   final player = AudioPlayer();
+  Duration? totalDuration;
 
   inc(String url,String imageUrl,String songName,String decoration,bool isFavorite) async {
     Music music = Music(url, imageUrl, songName, decoration,isFavorite);
@@ -45,9 +46,15 @@ class MusicController extends GetxController {
         update();
       }
 
+      player.onDurationChanged.listen((Duration duration) {
+        totalDuration = duration;
+      });
+
       player.onPlayerComplete.listen((event) async {
         isplay.value = false;
         position.value = (position.value + 1) % musiclist.length;
+        update();
+
         playLocal();
       });
     }
@@ -62,6 +69,7 @@ class MusicController extends GetxController {
         position.value = i;
         isplay.value = false;
         update();
+        break;
       }
     }
     playLocal();
@@ -85,6 +93,23 @@ class MusicController extends GetxController {
       update();
 
       playLocal();
+    }
+  }
+
+  changeLike(Music music) {
+    for (int i=0;i<musiclist.length;i++){
+      if (musiclist[i] == music){
+        musiclist[i].isFavorite = false;
+        update();
+      }
+    }
+  }
+
+  void setPostion(double sliderValue) {
+    double proportion = (sliderValue - 1) / 99;
+    if (totalDuration != null) {
+      Duration newPosition = Duration(seconds: (proportion * totalDuration!.inSeconds).round());
+      player.seek(newPosition);
     }
   }
 }

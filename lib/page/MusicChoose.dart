@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/components/MusicChooseList.dart';
+import '../components/ListPage/MusicChooseList.dart';
 import '../widget/SearchWidget.dart';
 
 class MusicChoose extends StatefulWidget {

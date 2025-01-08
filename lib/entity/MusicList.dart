@@ -1,12 +1,12 @@
 var allmusiclist = [
   {
     "url":
-        "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250103/a1563905111d66f5033927df2f544f83/e2e58620858c4826bbe5f125e519d72a.mp3",
+        "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250106/a1563905111d66f5033927df2f544f83/b754c5d87ee347e1a0826459c13de262.flac",
     "imageUrl":
         "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250104/a1563905111d66f5033927df2f544f83/d10bae2286324987ba835f7d2247c26a.jpg",
-    "songName": "TruE",
-    "decoration": "黄龄",
-    "isFavorite":"false"
+    "songName": "Cry For Me(feat.Ami)",
+    "decoration": "Michita",
+    "isFavorite":"true"
   },
   {
     "url":

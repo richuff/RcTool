@@ -2,11 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rctool/components/ListPage/HotList.dart';
 import 'package:rctool/utils/CommUtil.dart';
 
 import '../components/MSCard.dart';
 import '../components/MusicList.dart';
-import '../components/Recommend.dart';
+import '../components/ListPage/Recommend.dart';
 import '../entity/MusicList.dart';
 
 class MusicPlayer extends StatefulWidget {
@@ -22,16 +23,13 @@ class _MusicCard extends State<MusicPlayer> {
     return Expanded(
         child: Column(children: [
           Flexible(
-            flex: 20,
+            flex: 1,
               child: ScrollConfiguration(
                 behavior: ScrollConfiguration.of(context)
-                    .copyWith(scrollbars: false, dragDevices: {
-                  //必须设置此事件，不然无法滚动
-                  PointerDeviceKind.touch,
-                  PointerDeviceKind.mouse,
-                }),
+                    .copyWith(),
                 child: SingleChildScrollView(
                     scrollDirection: Axis.vertical,
+                    physics: NeverScrollableScrollPhysics(),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -44,8 +42,28 @@ class _MusicCard extends State<MusicPlayer> {
                       ],
                     )),
               )),
+          Flexible(
+              flex: 2,
+              child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context)
+                    .copyWith(),
+                child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    physics: NeverScrollableScrollPhysics(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Hotlist()
+                            ])
+                      ],
+                    )),
+              )),
       Flexible(
-        flex: 19,
+        flex: 6,
           child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context)
             .copyWith(scrollbars: false, dragDevices: {
@@ -68,7 +86,7 @@ class _MusicCard extends State<MusicPlayer> {
               ],
             )),
       )),
-      const MusicList()
+        const MusicList()
     ]));
   }
 }

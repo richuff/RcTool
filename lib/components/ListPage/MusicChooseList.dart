@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controller/MusicController.dart';
+import '../../controller/MusicController.dart';
 
 class MusicChooseList extends StatefulWidget {
   const MusicChooseList({super.key});

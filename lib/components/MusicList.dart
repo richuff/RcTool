@@ -12,14 +12,13 @@ class MusicList extends StatefulWidget {
 
 class _MusicList extends State<MusicList> {
   MusicController musicController = Get.put(MusicController());
-
+  double _sliderValue = 0.0;
   String title = "您还未选择播放的歌曲";
   bool isplay = false;
   @override
   void initState() {
     setState(() {
-      title = musicController.musiclist.length >
-          musicController.position.value
+      title = musicController.musiclist.length > musicController.position.value
           ? musicController.musiclist[musicController.position.value].songName
           : title;
     });
@@ -33,6 +32,15 @@ class _MusicList extends State<MusicList> {
         isplay = musicController.isplay.value;
       });
     });
+    musicController.player.onPositionChanged.listen((Duration position) {
+      if (musicController.totalDuration != null) {
+        double proportion = position.inSeconds / musicController.totalDuration!.inSeconds;
+        double sliderValue = proportion * 100; // 转换为1到100的范围
+        setState(() {
+          _sliderValue = sliderValue;
+        });
+      }
+    });
   }
 
   @override
@@ -42,7 +50,7 @@ class _MusicList extends State<MusicList> {
         Container(
           margin: const EdgeInsets.fromLTRB(8, 20, 0, 12),
           width: double.infinity,
-          height: 40,
+          height: 50,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
@@ -80,13 +88,13 @@ class _MusicList extends State<MusicList> {
               ),
             )),
         Positioned(
-          left: 90,
-          bottom: 25,
+          left: 100,
+          bottom: 30,
           child: Text(title),
         ),
         Positioned(
-            right: 80,
-            bottom: 12,
+            right: 95,
+            bottom: 18,
             child: IconButton(
                 onPressed: () => {musicController.skipPrevious()},
                 icon: const Icon(
@@ -94,8 +102,27 @@ class _MusicList extends State<MusicList> {
                   color: Colors.white,
                 ))),
         Positioned(
-            right: 30,
-            bottom: 12,
+          left: 70,
+          bottom: -3,
+          child: Container(
+            width: 300,
+            child: Slider(
+              min: 0.0,
+              max: 100.0,
+              divisions: 100, // 刻度数量
+              value: _sliderValue, // 滑动条当前值
+              onChanged: (value) {
+                setState(() {
+                  _sliderValue = value; // 更新状态变量
+                });
+                musicController.setPostion(_sliderValue);
+              },
+            ),
+          )
+        ),
+        Positioned(
+            right: 35,
+            bottom: 18,
             child: IconButton(
                 onPressed: () => {musicController.skipNext()},
                 icon: const Icon(
@@ -103,17 +130,17 @@ class _MusicList extends State<MusicList> {
                   color: Colors.white,
                 ))),
         Positioned(
-            right: 55,
-            bottom: 12,
+            right: 65,
+            bottom: 18,
             child: IconButton(
                 onPressed: () => {musicController.playLocal()},
                 icon: Icon(
-                  isplay?Icons.pause:Icons.play_arrow_sharp,
+                  isplay ? Icons.pause : Icons.play_arrow_sharp,
                   color: Colors.white,
                 ))),
         Positioned(
             right: 2,
-            bottom: 12,
+            bottom: 18,
             child: IconButton(
                 onPressed: () => {
                       setState(() {
