@@ -40,25 +40,24 @@ class _MyApp extends State<MyApp> {
                 SizedBox(
                   height: 100.0,
                   child: DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Colors.pink[200],
-                    ),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 40.0, // 设置高度
-                          alignment: Alignment.center,
-                          child: const Text(
-                            '主页',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.pink[200],
+                      ),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 40.0, // 设置高度
+                            alignment: Alignment.center,
+                            child: const Text(
+                              '主页',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  ),
+                        ],
+                      )),
                 ),
                 ListTile(
                   leading: const Icon(Icons.music_note),
@@ -68,7 +67,6 @@ class _MyApp extends State<MyApp> {
                     Get.toNamed("/music");
                   },
                 ),
-
                 ListTile(
                   leading: const Icon(Icons.account_box_rounded),
                   title: const Text('关于作者'),
@@ -101,19 +99,15 @@ class _MyApp extends State<MyApp> {
                   ),
                 ]);
               }),
-              actions: [
-                  SearchWidget()
-              ]),
+              actions: [SearchWidget()]),
           body: Column(
             children: [
               ElevatedButton(
-                  onPressed: () => {
-
-                      },
+                  onPressed: () => {Get.toNamed("/about")},
                   child: const Text("s")),
               ElevatedButton(
                   onPressed: () {
-                    Get.toNamed("/test");
+                    Get.toNamed("/music");
                   },
                   child: const Text("e"))
             ],
