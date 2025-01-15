@@ -37,6 +37,7 @@ class MusicController extends GetxController {
   playLocal() async {
     if (musiclist.isNotEmpty){
       if (isplay.isFalse) {
+        player.stop();
         isplay.value = true;
         update();
         await player.play(UrlSource(musiclist[position.value].url));
@@ -45,12 +46,14 @@ class MusicController extends GetxController {
         player.pause();
         update();
       }
-
+      totalDuration = await player.getDuration();
       player.onDurationChanged.listen((Duration duration) {
         totalDuration = duration;
       });
 
       player.onPlayerComplete.listen((event) async {
+        player.stop();
+
         isplay.value = false;
         position.value = (position.value + 1) % musiclist.length;
         update();
@@ -81,7 +84,6 @@ class MusicController extends GetxController {
           (position.value - 1 + musiclist.length) % musiclist.length;
       isplay.value = false;
       update();
-
       playLocal();
     }
   }

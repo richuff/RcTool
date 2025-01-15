@@ -15,12 +15,14 @@ class _MusicList extends State<MusicList> {
   double _sliderValue = 0.0;
   String title = "您还未选择播放的歌曲";
   bool isplay = false;
+  int _mlength = 0;
   @override
   void initState() {
     setState(() {
       title = musicController.musiclist.length > musicController.position.value
           ? musicController.musiclist[musicController.position.value].songName
           : title;
+      _mlength = musicController.musiclist.length;
     });
     super.initState();
     musicController.addListener(() {
@@ -30,6 +32,7 @@ class _MusicList extends State<MusicList> {
             ? musicController.musiclist[musicController.position.value].songName
             : title;
         isplay = musicController.isplay.value;
+        _mlength = musicController.musiclist.length;
       });
     });
     musicController.player.onPositionChanged.listen((Duration position) {
@@ -89,12 +92,12 @@ class _MusicList extends State<MusicList> {
             )),
         Positioned(
           left: 100,
-          bottom: 30,
+          bottom: 32,
           child: Text(title),
         ),
         Positioned(
             right: 95,
-            bottom: 18,
+            bottom: 20,
             child: IconButton(
                 onPressed: () => {musicController.skipPrevious()},
                 icon: const Icon(
@@ -122,7 +125,7 @@ class _MusicList extends State<MusicList> {
         ),
         Positioned(
             right: 35,
-            bottom: 18,
+            bottom: 20,
             child: IconButton(
                 onPressed: () => {musicController.skipNext()},
                 icon: const Icon(
@@ -131,7 +134,7 @@ class _MusicList extends State<MusicList> {
                 ))),
         Positioned(
             right: 65,
-            bottom: 18,
+            bottom: 20,
             child: IconButton(
                 onPressed: () => {musicController.playLocal()},
                 icon: Icon(
@@ -140,7 +143,7 @@ class _MusicList extends State<MusicList> {
                 ))),
         Positioned(
             right: 2,
-            bottom: 18,
+            bottom: 20,
             child: IconButton(
                 onPressed: () => {
                       setState(() {
@@ -151,6 +154,20 @@ class _MusicList extends State<MusicList> {
                   Icons.queue_music_sharp,
                   color: Colors.white,
                 ))),
+        Positioned(
+            right: 6,
+            bottom: 42,
+            child: Container(
+          width: 16,
+          height: 16,
+          decoration: const BoxDecoration(
+            color: Colors.redAccent,
+            borderRadius: BorderRadius.all(Radius.circular(50))
+          ),
+              child: Center(
+                child: Text(_mlength <= 99 ? "$_mlength" : "99+", style: const TextStyle(fontSize: 10), textAlign: TextAlign.center,),
+              ),
+        ))
       ],
     );
   }
