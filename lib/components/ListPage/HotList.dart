@@ -15,7 +15,7 @@ class _Hotlist extends State<Hotlist> {
             Row(
               children: [
                 Container(
-                    margin: const EdgeInsets.only(top: 10),
+                    margin: const EdgeInsets.fromLTRB(10, 10,0,0),
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
