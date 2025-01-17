@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 
 class Mydialog extends Dialog {
-  String title;
-  String content;
+
+  final String title;
+  final String content;
+
   Mydialog({required this.title,required this.content,super.key});
 
   @override
