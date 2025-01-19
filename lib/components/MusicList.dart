@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/MusicController.dart';
+import '../utils/NotificationHelper.dart';
 
 class MusicList extends StatefulWidget {
   const MusicList({super.key});
@@ -12,8 +13,10 @@ class MusicList extends StatefulWidget {
 
 class _MusicList extends State<MusicList> {
   MusicController musicController = Get.put(MusicController());
+
   double _sliderValue = 0.0;
   String title = "您还未选择播放的歌曲";
+  String decoration = "未知歌手";
   bool isplay = false;
   int _mlength = 0;
   @override
@@ -23,6 +26,9 @@ class _MusicList extends State<MusicList> {
           ? musicController.musiclist[musicController.position.value].songName
           : title;
       _mlength = musicController.musiclist.length;
+      decoration = musicController.musiclist.length > musicController.position.value
+          ? musicController.musiclist[musicController.position.value].decoration
+          : decoration;
     });
     super.initState();
     musicController.addListener(() {
@@ -33,8 +39,12 @@ class _MusicList extends State<MusicList> {
             : title;
         isplay = musicController.isplay.value;
         _mlength = musicController.musiclist.length;
+        decoration = musicController.musiclist.length > musicController.position.value
+            ? musicController.musiclist[musicController.position.value].decoration
+            : decoration;
       });
     });
+
     musicController.player.onPositionChanged.listen((Duration position) {
       if (musicController.totalDuration != null) {
         double proportion = position.inSeconds / musicController.totalDuration!.inSeconds;
@@ -45,6 +55,8 @@ class _MusicList extends State<MusicList> {
       }
     });
   }
+
+  final NotificationHelper notificationHelper = NotificationHelper();
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +105,7 @@ class _MusicList extends State<MusicList> {
         Positioned(
           left: 100,
           bottom: 32,
-          child: Text(title),
+          child: Text(title.tr),
         ),
         Positioned(
             right: 95,
@@ -136,7 +148,10 @@ class _MusicList extends State<MusicList> {
             right: 65,
             bottom: 20,
             child: IconButton(
-                onPressed: () => {musicController.playLocal()},
+                onPressed: () => {
+                  musicController.playLocal(),
+                  notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "$title  -----  $decoration")
+                },
                 icon: Icon(
                   isplay ? Icons.pause : Icons.play_arrow_sharp,
                   color: Colors.white,

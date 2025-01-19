@@ -64,7 +64,7 @@ var allmusiclist = [
   },
   {
     "url":
-    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/d6eceb151dd14a2d8ab0c2b35d8f8ffb.flac",
+    "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250116/a1563905111d66f5033927df2f544f83/6aa6aebabd9a4d8dae712403bdd1440b.flac",
     "imageUrl":
     "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250108/a1563905111d66f5033927df2f544f83/6a0ca3bb8b3f44f8b5bba02f33fd1bed.png",
     "songName": "パレード",

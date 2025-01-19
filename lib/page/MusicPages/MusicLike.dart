@@ -1,16 +1,19 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/widget/SearchWidget.dart';
-import '../views/MusicPlayer.dart';
+import '../../components/MusicListCP/MusicLikeList.dart';
+import '../../iconfont/RcIcon.dart';
+import '../../widget/SearchWidget.dart';
 
-class MusicPage extends StatefulWidget {
-  const MusicPage({super.key});
+class MusicLike extends StatefulWidget {
+  const MusicLike({super.key});
 
   @override
-  State<MusicPage> createState() => _MusicPage();
+  State<MusicLike> createState() => _MusicLike();
 }
 
-class _MusicPage extends State<MusicPage> {
+class _MusicLike extends State<MusicLike> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -33,21 +36,28 @@ class _MusicPage extends State<MusicPage> {
                       Container(
                         height: 40.0, // 设置高度
                         alignment: Alignment.center,
-                        child: const Text(
-                          '工具箱',
-                          style: TextStyle(
+                        child: Text(
+                          '工具箱'.tr,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
                           ),
                         ),
                       ),
                     ],
-                  )
-              ),
+                  )),
+            ),
+            ListTile(
+              leading: const Icon(RcIcon.livetod),
+              title: Text('live2d'.tr),
+              onTap: () {
+                scaffoldKey.currentState?.closeDrawer();
+                Get.toNamed("/livetod");
+              },
             ),
             ListTile(
               leading: const Icon(Icons.account_box_rounded),
-              title: const Text('关于作者'),
+              title: Text('关于作者'.tr),
               onTap: () {
                 scaffoldKey.currentState?.closeDrawer();
                 Get.toNamed("/about");
@@ -58,6 +68,13 @@ class _MusicPage extends State<MusicPage> {
       ),
       appBar: AppBar(
           backgroundColor: Colors.pink[50],
+          title: Container(
+            margin: const EdgeInsets.only(left: 60),
+            child:Text(
+              "喜欢列表",
+              style: TextStyle(color: Colors.pink[100]),
+            ),
+          ),
           leading: Builder(builder: (context) {
             return Column(children: [
               const Padding(padding: EdgeInsets.only(top: 8)),
@@ -80,10 +97,9 @@ class _MusicPage extends State<MusicPage> {
               ),
             ]);
           }),
-          actions: [
-            SearchWidget()
-          ]),
+          actions: [SearchWidget()]),
       body: Container(
+          width: double.infinity,
           decoration: const BoxDecoration(
             image: DecorationImage(
                 opacity: 0.1,
@@ -91,9 +107,17 @@ class _MusicPage extends State<MusicPage> {
                     "https://p0.meituan.net/csc/ac442b7297cabb92da0ad4f114b22660667771.jpg"),
                 fit: BoxFit.cover),
           ),
-          child: const Column(
-            children: [MusicPlayer()],
-          )),
+          child: Column(children: [
+            Flexible(
+                child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context)
+                        .copyWith(scrollbars: false, dragDevices: {
+                      //必须设置此事件，不然无法滚动
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                    }),
+                    child: const MusicLikeList())),
+          ])),
     );
   }
 }
