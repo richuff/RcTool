@@ -2,13 +2,13 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:rctool/components/ListPage/HotList.dart';
 import 'package:rctool/utils/CommUtil.dart';
 
 import '../components/MSCard.dart';
 import '../components/MusicList.dart';
-import '../components/ListPage/Recommend.dart';
-import '../entity/MusicList.dart';
+import '../components/MusicListCP/HotList.dart';
+import '../components/MusicListCP/Recommend.dart';
+import '../entity/MusicEntity/MusicList.dart';
 
 class MusicPlayer extends StatefulWidget {
   const MusicPlayer({super.key});

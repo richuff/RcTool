@@ -1,14 +1,38 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
 import 'package:rctool/entity/Music.dart';
+
+import '../utils/NotificationHelper.dart';
 
 class MusicController extends GetxController {
   RxList musiclist = [].obs;
   var isplay = false.obs;
   var position = 0.obs;
-
   final player = AudioPlayer();
   Duration? totalDuration;
+
+  final cacheManager = DefaultCacheManager();
+  final NotificationHelper notificationHelper = NotificationHelper();
+
+
+  @override
+  void onReady() {
+    player.onPlayerComplete.listen((event) async {
+      isplay.value = false;
+      update();
+
+      playNextLocal();
+    });
+  }
+
+  Future<void> playCachedAudio(String url) async {
+    // 获取缓存文件
+    var file = await cacheManager.getSingleFile(url);
+
+    // 播放缓存文件
+    await player.play(UrlSource(file.path));
+  }
 
   inc(String url,String imageUrl,String songName,String decoration,bool isFavorite) async {
     Music music = Music(url, imageUrl, songName, decoration,isFavorite);
@@ -16,16 +40,6 @@ class MusicController extends GetxController {
       if (music == lmusic){
         return;
       }
-    }
-
-    if (musiclist.isEmpty){
-      player.onPlayerComplete.listen((event) async {
-
-        isplay.value = false;
-        update();
-
-        playNextLocal();
-      });
     }
 
     musiclist.add(music);
@@ -52,7 +66,7 @@ class MusicController extends GetxController {
       if (isplay.isFalse) {
         isplay.value = true;
         update();
-        await player.play(UrlSource(musiclist[position.value].url));
+        await playCachedAudio(musiclist[position.value].url);
       } else {
         isplay.value = false;
         player.pause();
@@ -123,7 +137,8 @@ class MusicController extends GetxController {
     if (musiclist.isNotEmpty){
       if (isplay.isFalse) {
         isplay.value = true;
-        await player.play(UrlSource(musiclist[(position.value + 1) % musiclist.length].url));
+        await playCachedAudio(musiclist[(position.value + 1) % musiclist.length].url);
+
         position.value = (position.value + 1) % musiclist.length;
         update();
       } else {
@@ -131,6 +146,11 @@ class MusicController extends GetxController {
         player.pause();
         update();
       }
+
+      //通知栏显示要播放的下一首歌
+      notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body: "${musiclist[position.value].songName}  -----  ${musiclist[position.value].decoration}");
+
+      //监视播放进度s
       totalDuration = await player.getDuration();
       player.onDurationChanged.listen((Duration duration) {
         totalDuration = duration;

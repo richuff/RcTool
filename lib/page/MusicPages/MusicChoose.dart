@@ -2,8 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../components/ListPage/MusicChooseList.dart';
-import '../widget/SearchWidget.dart';
+
+import '../../components/MusicListCP/MusicChooseList.dart';
+import '../../iconfont/RcIcon.dart';
+import '../../widget/SearchWidget.dart';
 
 class MusicChoose extends StatefulWidget {
   const MusicChoose({super.key});
@@ -36,9 +38,9 @@ class _MusicChoose extends State<MusicChoose> {
                       Container(
                         height: 40.0, // 设置高度
                         alignment: Alignment.center,
-                        child: const Text(
-                          '工具箱',
-                          style: TextStyle(
+                        child: Text(
+                          '工具箱'.tr ,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
                           ),
@@ -49,8 +51,16 @@ class _MusicChoose extends State<MusicChoose> {
               ),
             ),
             ListTile(
+              leading: const Icon(RcIcon.livetod),
+              title: Text('live2d'.tr),
+              onTap: () {
+                scaffoldKey.currentState?.closeDrawer();
+                Get.toNamed("/livetod");
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.account_box_rounded),
-              title: const Text('关于作者'),
+              title: Text('关于作者'.tr),
               onTap: () {
                 scaffoldKey.currentState?.closeDrawer();
                 Get.toNamed("/about");
