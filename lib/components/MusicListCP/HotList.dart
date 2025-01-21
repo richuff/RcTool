@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class Hotlist extends StatefulWidget {
   @override
@@ -17,7 +19,9 @@ class _Hotlist extends State<Hotlist> {
                 Container(
                     margin: const EdgeInsets.fromLTRB(10, 10,0,0),
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Get.toNamed("/recommend");
+                      },
                       style: ElevatedButton.styleFrom(
                         fixedSize: const Size(90, 70),
                         foregroundColor: Colors.white,
@@ -39,7 +43,7 @@ class _Hotlist extends State<Hotlist> {
                       child: const Text("每日推荐"),
                     )),
                 const SizedBox(
-                  width: 45,
+                  width: 40,
                 ),
                 Container(
                     margin: const EdgeInsets.only(top: 10),
@@ -66,7 +70,7 @@ class _Hotlist extends State<Hotlist> {
                       child: const Text("top20"),
                     )),
                 const SizedBox(
-                  width: 45,
+                  width: 35,
                 ),
                 Container(
                     margin: const EdgeInsets.only(top: 10),
