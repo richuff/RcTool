@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/iconfont/RcIcon.dart';
 import 'package:rctool/widget/SearchWidget.dart';
 
 class AboutAuthor extends StatefulWidget {
@@ -31,9 +32,9 @@ class _AboutAuthor extends State<AboutAuthor> {
                         Container(
                           height: 40.0, // 设置高度
                           alignment: Alignment.center,
-                          child: const Text(
-                            '工具箱',
-                            style: TextStyle(
+                          child: Text(
+                            '工具箱'.tr ,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
                             ),
@@ -45,10 +46,18 @@ class _AboutAuthor extends State<AboutAuthor> {
               ),
               ListTile(
                 leading: const Icon(Icons.music_note),
-                title: const Text('听音乐'),
+                title: Text('听音乐'.tr),
                 onTap: () {
                   scaffoldKey.currentState?.closeDrawer();
                   Get.toNamed("/music");
+                },
+              ),
+              ListTile(
+                leading: const Icon(RcIcon.livetod),
+                title: Text('live2d'.tr),
+                onTap: () {
+                  scaffoldKey.currentState?.closeDrawer();
+                  Get.toNamed("/livetod");
                 },
               ),
             ],
@@ -92,20 +101,20 @@ class _AboutAuthor extends State<AboutAuthor> {
           child: ListView(
             children:[
               Text(
-                "关于作者or作者的话",
+                "${"关于作者".tr} or ${"作者的话".tr}",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.pink[400],
-                  fontSize: 30,
+                  fontSize: 25,
                 ),
               ),
               const SizedBox(
                 height: 20,
               ),
               ListTile(
-                title: const Text("关于作者", style: TextStyle(color: Colors.black,fontSize: 18)),
-                subtitle: const Text(
-                  "我是一个什么都学的建模动画编程爱好者,会给大家分享前端后端以及android开发unity开发的笔记和心得体会，大家可以去的我的博客逛逛:richuff.top",
+                title: Text("关于作者".tr, style: TextStyle(color: Colors.black,fontSize: 18)),
+                subtitle: Text(
+                  "一".tr,
                   style: TextStyle(color: Colors.black,fontSize: 14),
                 ),
                 leading: ClipOval(
@@ -121,12 +130,12 @@ class _AboutAuthor extends State<AboutAuthor> {
                 height: 20,
               ),
               ListTile(
-                title: const Text(
-                  "作者的话",
+                title: Text(
+                  "作者的话".tr,
                   style: TextStyle(color: Colors.black,fontSize: 18),
                 ),
-                subtitle: const Text(
-                  "这是我用flutter构建的第一个作品,主要用于听音乐和live2d的展示和图片的展示",
+                subtitle: Text(
+                  "二".tr,
                   style: TextStyle(color: Colors.black,fontSize: 14),
                 ),
                 leading: ClipOval(

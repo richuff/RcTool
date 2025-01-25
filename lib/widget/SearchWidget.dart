@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/iconfont/RcIcon.dart';
 
 class SearchWidget extends StatefulWidget{
   @override
@@ -18,11 +19,14 @@ class _SearchWidget extends State<SearchWidget>{
             onPressed: () {
               Get.bottomSheet(Container(
                 color: Colors.white,
-                height: 200,
+                height: 400,
                 child: Column(
                   children: [
+                    const ListTile(
+                      title:Text( "选择主题"),
+                    ),
                     ListTile(
-                      leading: Icon(Icons.sunny),
+                      leading: const Icon(Icons.sunny),
                       onTap: () {
                         Get.changeTheme(ThemeData.light());
                         Get.back();
@@ -33,7 +37,7 @@ class _SearchWidget extends State<SearchWidget>{
                       ),
                     ),
                     ListTile(
-                      leading: Icon(Icons.nightlight),
+                      leading: const Icon(Icons.nightlight),
                       onTap: () {
                         Get.changeTheme(ThemeData.dark());
                         Get.back();
@@ -42,7 +46,46 @@ class _SearchWidget extends State<SearchWidget>{
                         "暗色",
                         style: TextStyle(color: Colors.black),
                       ),
-                    )
+                    ),
+                    const ListTile(
+                      title:Text( "选择语言"),
+                    ),
+                    ListTile(
+                      leading: const Icon(RcIcon.chinese),
+                      onTap: () {
+                        var locale = const Locale("zh",'CN');
+                        Get.updateLocale(locale);
+                        Get.back();
+                      },
+                      title: const Text(
+                        "简体中文",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(RcIcon.english),
+                      onTap: () {
+                        var locale = const Locale("en",'US');
+                        Get.updateLocale(locale);
+                        Get.back();
+                      },
+                      title: const Text(
+                        "English",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(RcIcon.japanese),
+                      onTap: () {
+                        var locale = const Locale("ja",'JP');
+                        Get.updateLocale(locale);
+                        Get.back();
+                      },
+                      title: const Text(
+                        "日本語",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
                   ],
                 ),
               ));

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/MusicController.dart';
+import '../utils/NotificationHelper.dart';
 
 class MSCard extends StatefulWidget {
   final String url;
@@ -19,8 +20,16 @@ class MSCard extends StatefulWidget {
 
 class _MSCard extends State<MSCard> {
 
+  final NotificationHelper notificationHelper = NotificationHelper();
+
   MusicController musicController = Get.put(MusicController());
   bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isFavorite = widget.isFavorite;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +80,8 @@ class _MSCard extends State<MSCard> {
                 child: IconButton(
                     iconSize: 35,
                     onPressed: () => {
-                      musicController.inc(widget.url,widget.image,widget.songName,widget.decoration,isFavorite)
+                      musicController.inc(widget.url,widget.image,widget.songName,widget.decoration,isFavorite),
+                    notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "${widget.songName}  -----  ${widget.decoration}")
                     },
                     icon: const Icon(
                         Icons.play_arrow_sharp )),
