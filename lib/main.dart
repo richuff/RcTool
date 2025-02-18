@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:rctool/routers/index.dart';
-import 'package:rctool/utils/Message.dart';
+import 'package:rctool/utils/MyMessage.dart';
 import 'package:rctool/utils/NotificationHelper.dart';
 import 'package:rctool/widget/SearchWidget.dart';
 
@@ -38,6 +39,16 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
     );
     _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
     _controller.forward();
+
+    requestNotificationPermission();
+  }
+
+  Future<void> requestNotificationPermission() async {
+    // 请求通知权限
+    var status = await Permission.notification.status;
+    if (!status.isGranted) {
+      status = await Permission.notification.request();
+    }
   }
 
   @override
@@ -51,7 +62,7 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
           useMaterial3: true,
         ),
         initialRoute: "/",
-        translations: Message(),
+        translations: MyMessage(),
         locale: const Locale('zh', 'CN'), //指定默认的语言
         fallbackLocale: const Locale('en', 'US'), //添加一个回调语言选项
         home: Scaffold(
