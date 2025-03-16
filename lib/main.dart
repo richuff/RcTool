@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rctool/routers/RoutePath.dart';
 import 'package:rctool/routers/index.dart';
 import 'package:rctool/utils/MyMessage.dart';
 import 'package:rctool/utils/NotificationHelper.dart';
@@ -61,7 +62,7 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.purpleAccent),
           useMaterial3: true,
         ),
-        initialRoute: "/",
+        initialRoute: RoutePath.HOME,
         translations: MyMessage(),
         locale: const Locale('zh', 'CN'), //指定默认的语言
         fallbackLocale: const Locale('en', 'US'), //添加一个回调语言选项
