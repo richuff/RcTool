@@ -5,26 +5,27 @@ import 'package:rctool/page/MusicPages/MusicChoose.dart';
 import 'package:rctool/page/MusicPages/MusicLike.dart';
 import 'package:rctool/page/MusicPages/MusicPage.dart';
 import 'package:rctool/page/LiveTod.dart';
-import 'package:rctool/page/RecommendPages/EveryDayMusic.dart';
+import 'package:rctool/page/RecommendPages/RecommendMusic.dart';
+import 'package:rctool/routers/RoutePath.dart';
 
 var routes = [
   GetPage(
-      name: "/music",
+      name: RoutePath.MUSIC,
       page: () => const MusicPage(),
       transition: Transition.rightToLeft
   ),
   GetPage(
-      name: "/musicchoose",
+      name: RoutePath.MUSICCHOOSE,
       page: () => const MusicChoose(),
       transition: Transition.rightToLeft
   ),
   GetPage(
-      name: "/musiclike",
+      name: RoutePath.MUSICLIKE,
       page: () => const MusicLike(),
       transition: Transition.rightToLeft
   ),
   GetPage(
-      name: "/recommend",
+      name: RoutePath.RECOMMEND,
       page: () => const Everydaymusic(),
       transition: Transition.rightToLeft
   ),
@@ -32,14 +33,14 @@ var routes = [
 
 
   GetPage(
-      name: "/about",
+      name: RoutePath.ABOUT,
       page: () => const AboutAuthor(),
       transition: Transition.rightToLeft),
 
 
 
   GetPage(
-      name: "/livetod",
+      name: RoutePath.LIVETOD,
       page: () => const LiveTod(),
       transition: Transition.rightToLeft)
 ];

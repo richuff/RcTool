@@ -47,7 +47,7 @@ class _MusicCard extends State<MusicPlayer> {
               child: ScrollConfiguration(
                 behavior: ScrollConfiguration.of(context)
                     .copyWith(),
-                child: SingleChildScrollView(
+                child: const SingleChildScrollView(
                     scrollDirection: Axis.vertical,
                     physics: NeverScrollableScrollPhysics(),
                     child: Column(

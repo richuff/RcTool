@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+import 'package:rctool/routers/RoutePath.dart';
 
 class Hotlist extends StatefulWidget {
+  const Hotlist({super.key});
+
   @override
   State<Hotlist> createState() => _Hotlist();
 }
@@ -20,7 +22,7 @@ class _Hotlist extends State<Hotlist> {
                     margin: const EdgeInsets.fromLTRB(10, 10,0,0),
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.toNamed("/recommend");
+                        Get.toNamed(RoutePath.RECOMMEND);
                       },
                       style: ElevatedButton.styleFrom(
                         fixedSize: const Size(90, 70),

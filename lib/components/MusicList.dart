@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/routers/RoutePath.dart';
 
 import '../controller/MusicController.dart';
 import '../utils/NotificationHelper.dart';
@@ -162,7 +163,7 @@ class _MusicList extends State<MusicList> {
             child: IconButton(
                 onPressed: () => {
                       setState(() {
-                        Get.toNamed("/musicchoose");
+                        Get.toNamed(RoutePath.MUSICCHOOSE);
                       })
                     },
                 icon: const Icon(
