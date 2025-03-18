@@ -17,6 +17,13 @@ class MusicController extends GetxController {
 
 
   @override
+  void dispose() {
+    super.dispose();
+
+
+  }
+
+  @override
   void onReady() {
     player.onPlayerComplete.listen((event) async {
       isplay.value = false;
@@ -125,7 +132,7 @@ class MusicController extends GetxController {
     }
   }
 
-  void setPostion(double sliderValue) {
+  void setPosition(double sliderValue) {
     double proportion = (sliderValue - 1) / 99;
     if (totalDuration != null) {
       Duration newPosition = Duration(seconds: (proportion * totalDuration!.inSeconds).round());

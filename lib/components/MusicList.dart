@@ -131,7 +131,7 @@ class _MusicList extends State<MusicList> {
                 setState(() {
                   _sliderValue = value; // 更新状态变量
                 });
-                musicController.setPostion(_sliderValue);
+                musicController.setPosition(_sliderValue);
               },
             ),
           )
