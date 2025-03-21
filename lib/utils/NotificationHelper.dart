@@ -14,11 +14,11 @@ class NotificationHelper {
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    final AndroidInitializationSettings initializationSettingsAndroid =
+    const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
-    final DarwinInitializationSettings initializationSettingsIOS =
+    const DarwinInitializationSettings initializationSettingsIOS =
     DarwinInitializationSettings();
-    final InitializationSettings initializationSettings =
+    const InitializationSettings initializationSettings =
     InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
@@ -27,7 +27,7 @@ class NotificationHelper {
 
     // 创建新音乐发布通知通道
     await _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(
-      AndroidNotificationChannel(
+      const AndroidNotificationChannel(
         newMusicChannelId,
         newMusicChannelName,
         description: newMusicChannelDescription,
@@ -37,7 +37,7 @@ class NotificationHelper {
 
     // 创建播放控制通知通道
     await _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(
-      AndroidNotificationChannel(
+      const AndroidNotificationChannel(
         playbackControlChannelId,
         playbackControlChannelName,
         description: playbackControlChannelDescription,
@@ -47,7 +47,7 @@ class NotificationHelper {
   }
 
   Future<void> showNewMusicNotification({required String title, required String body}) async {
-    final AndroidNotificationDetails androidNotificationDetails =
+    const AndroidNotificationDetails androidNotificationDetails =
     AndroidNotificationDetails(
       newMusicChannelId,
       newMusicChannelName,
@@ -56,9 +56,9 @@ class NotificationHelper {
       priority: Priority.high,
       ticker: ticker,
     );
-    final DarwinNotificationDetails iosNotificationDetails =
+    const DarwinNotificationDetails iosNotificationDetails =
     DarwinNotificationDetails();
-    final NotificationDetails platformChannelSpecifics =
+    const NotificationDetails platformChannelSpecifics =
     NotificationDetails(
       android: androidNotificationDetails,
       iOS: iosNotificationDetails,

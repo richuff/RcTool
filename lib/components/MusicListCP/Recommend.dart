@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:rctool/routers/RoutePath.dart';
 
 class Recommend extends StatefulWidget {
   @override
@@ -21,7 +22,7 @@ class _Recommend extends State<Recommend> {
                     child: IconButton(
                       iconSize: 45,
                       onPressed: () {
-                        Get.toNamed("/musiclike");
+                        Get.toNamed(RoutePath.MUSICLIKE);
                       },
                       style: ElevatedButton.styleFrom(
                         fixedSize: const Size(75, 50),

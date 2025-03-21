@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 class RcIcon{
-  static const IconData english = const IconData(
+  static const IconData english = IconData(
       0xec6a,   //unicode编码
       fontFamily: "RcIcon",
       matchTextDirection: true
