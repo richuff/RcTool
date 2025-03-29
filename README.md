@@ -1,7 +1,7 @@
 # rctool
 
 ![Static Badge](https://img.shields.io/badge/flutter-3.24.1-blue)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/w/richuff/RcAdmin)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/richuff/RcTool)
 
 一个基于 **Flutter** 和 **Get** 的音乐播放器及 Live2D 项目。
 
