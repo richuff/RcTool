@@ -7,6 +7,8 @@ import 'package:rctool/routers/RoutePath.dart';
 import 'package:rctool/routers/index.dart';
 import 'package:rctool/utils/MyMessage.dart';
 import 'package:rctool/utils/NotificationHelper.dart';
+import 'package:rctool/utils/PermissionRequest/index.dart';
+import 'package:rctool/utils/SqlLiteConn/index.dart';
 import 'package:rctool/widget/SearchWidget.dart';
 
 import 'iconfont/RcIcon.dart';
@@ -32,7 +34,7 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
   late Animation<double> _animation;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -41,15 +43,10 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
     _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
     _controller.forward();
 
-    requestNotificationPermission();
-  }
+    WidgetsFlutterBinding.ensureInitialized();
+    SqlLiteConn.initState();
 
-  Future<void> requestNotificationPermission() async {
-    // 请求通知权限
-    var status = await Permission.notification.status;
-    if (!status.isGranted) {
-      status = await Permission.notification.request();
-    }
+    PermissionRequest.requestNotificationPermission();
   }
 
   @override
