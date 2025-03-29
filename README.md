@@ -1,4 +1,4 @@
-# rctool
+# RctTool
 
 ![Static Badge](https://img.shields.io/badge/flutter-3.24.1-blue)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/richuff/RcTool)
