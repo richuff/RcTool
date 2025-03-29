@@ -1,6 +1,55 @@
 var everydaymusiclist = [
   {
     "url":
+    "https://file.icve.com.cn/file_doc/746/943/BA8EBD291E419C2B6EA4B7CF34625D67.flac",
+    "imageUrl":
+    "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
+    "songName": "Cry For Me(feat.Ami)",
+    "decoration": "Michita",
+    "isFavorite":"true"
+  },
+  {
+    "url":
+    "https://file.icve.com.cn/file_doc/742/14/B9B03B61C5B65B297848E39D9344052D.flac",
+    "imageUrl":
+    "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
+    "songName": "Matter of Time",
+    "decoration": "Shannon Hurley",
+    "isFavorite":"false"
+  },
+  {
+    "url":
+    "https://file.icve.com.cn/file_doc/746/943/BA8EBD291E419C2B6EA4B7CF34625D67.flac",
+    "imageUrl":
+    "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
+    "songName": "Inside you",
+    "decoration": "milet",
+    "isFavorite":"false"
+  },
+  {
+    "url":
+    "https://file.icve.com.cn/file_doc/746/943/BA8EBD291E419C2B6EA4B7CF34625D67.flac",
+    "imageUrl":
+    "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
+    "songName": "Tell me",
+    "decoration": "milet",
+    "isFavorite":"false"
+  },
+  {
+    "url":
+    "https://file.icve.com.cn/file_doc/746/943/BA8EBD291E419C2B6EA4B7CF34625D67.flac",
+    "imageUrl":
+    "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
+    "songName": "ただ声一つ",
+    "decoration": "ロクデナシ",
+    "isFavorite":"true"
+  }
+];
+
+/*
+var everydaymusiclist = [
+  {
+    "url":
         "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250106/a1563905111d66f5033927df2f544f83/b754c5d87ee347e1a0826459c13de262.flac",
     "imageUrl":
         "https://img.sobot.com/56b093dec73c42dca06a96734ffa6258/chatres/56b093dec73c42dca06a96734ffa6258/msg/20250104/a1563905111d66f5033927df2f544f83/d10bae2286324987ba835f7d2247c26a.jpg",
@@ -72,3 +121,4 @@ var everydaymusiclist = [
     "isFavorite": "true"
   },
 ];
+*/
