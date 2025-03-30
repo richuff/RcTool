@@ -32,3 +32,5 @@ flutter:
     - family: RcIcon
       fonts:
         - asset: fonts/iconfont.ttf
+  assets:
+    - image/RcTool.png
