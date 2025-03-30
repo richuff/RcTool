@@ -10,7 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  fluttertoast: ^8.0.9
   get: ^4.6.1
   cupertino_icons: ^1.0.8
   audioplayers: ^6.1.0
@@ -34,3 +33,13 @@ flutter:
         - asset: fonts/iconfont.ttf
   assets:
     - image/RcTool.png
+    - image/AboutBackGround.jpg
+    - image/HomeBackGround.jpg
+    - image/LivetodBackGround.jpg
+    - image/MusicBackGround.jpg
+    - image/Love.png
+    - image/Expect.png
+    - image/BottomBackGround.jpg
+    - image/Reward.png
+    - image/Mika.gif
+    - image/ARoNa.png
