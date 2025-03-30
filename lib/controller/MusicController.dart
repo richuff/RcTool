@@ -19,8 +19,7 @@ class MusicController extends GetxController {
   @override
   void dispose() {
     super.dispose();
-
-
+    player.dispose();
   }
 
   @override
@@ -45,6 +44,7 @@ class MusicController extends GetxController {
     Music music = Music(url, imageUrl, songName, decoration,isFavorite);
     for (Music lmusic in musiclist){
       if (music == lmusic){
+        playAt(lmusic);
         return;
       }
     }
@@ -67,6 +67,11 @@ class MusicController extends GetxController {
     update();
   }
 
+  onPause(){
+    isplay.value = false;
+    player.pause();
+    update();
+  }
 
   playLocal() async {
     if (musiclist.isNotEmpty){
@@ -75,9 +80,7 @@ class MusicController extends GetxController {
         update();
         await playCachedAudio(musiclist[position.value].url);
       } else {
-        isplay.value = false;
-        player.pause();
-        update();
+        onPause();
       }
       totalDuration = await player.getDuration();
       player.onDurationChanged.listen((Duration duration) {
@@ -131,7 +134,7 @@ class MusicController extends GetxController {
       }
     }
   }
-
+  //设置播放进度条
   void setPosition(double sliderValue) {
     double proportion = (sliderValue - 1) / 99;
     if (totalDuration != null) {
