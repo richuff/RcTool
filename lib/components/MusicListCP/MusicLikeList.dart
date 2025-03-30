@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controller/MusicController.dart';
+import '../../entity/Music.dart';
+import '../../utils/SqlLiteConn/index.dart';
 
 class MusicLikeList extends StatefulWidget {
   const MusicLikeList({super.key});
@@ -13,17 +15,21 @@ class MusicLikeList extends StatefulWidget {
 class _MusicLikeList extends State<MusicLikeList> {
   MusicController musicController = Get.put(MusicController());
 
-  List chooselist = [];
+  List<Music> Likelist = [];
 
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _loadMusicList();
+    });
+  }
+
+  Future<void> _loadMusicList() async {
+    Likelist = await SqlLiteConn.queryByFavorite();
     setState(() {
-      musicController.musiclist.forEach((ele) {
-        if (ele.isFavorite){
-          chooselist.add(ele);
-        }
-      });
+
     });
   }
 
@@ -37,7 +43,7 @@ class _MusicLikeList extends State<MusicLikeList> {
             Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: chooselist.map((element) {
+                children: Likelist.map((element) {
                   return Stack(
                     children: [
                       const SizedBox(height: 80,),
@@ -89,10 +95,9 @@ class _MusicLikeList extends State<MusicLikeList> {
                           bottom: 18,
                           child: IconButton(
                               onPressed: () => {
-                                musicController.changeLike(element),
-                                setState(() {
-                                  chooselist.remove(element);
-                                })
+                                //musicController.changeLike(element),
+                                SqlLiteConn.deleteByUrl(element.url),
+                                _loadMusicList()
                               },
                               icon: const Icon(
                                 Icons.close,

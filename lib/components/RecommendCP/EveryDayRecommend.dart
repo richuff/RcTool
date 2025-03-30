@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/entity/MusicEntity/EveryDayMusicList.dart';
+import 'package:rctool/utils/SqlLiteConn/index.dart';
 
 import '../../controller/MusicController.dart';
-import '../../utils/CommUtil.dart';
+import '../../entity/Music.dart';
 
 class EverydayList extends StatefulWidget {
   const EverydayList({super.key});
@@ -14,6 +14,22 @@ class EverydayList extends StatefulWidget {
 
 class _EverydayList extends State<EverydayList> {
   MusicController musicController = Get.put(MusicController());
+  List<Music> msList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _loadMusicList();
+    });
+  }
+
+  Future<void> _loadMusicList() async {
+    msList = await SqlLiteConn.query();
+    setState(() {
+
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +41,7 @@ class _EverydayList extends State<EverydayList> {
             Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: everydaymusiclist.map((element) {
+                children: msList.map((element) {
                   return Stack(
                     children: [
                       const SizedBox(
@@ -64,7 +80,7 @@ class _EverydayList extends State<EverydayList> {
                             height: 75,
                             decoration: BoxDecoration(
                               image: DecorationImage(
-                                  image: NetworkImage(element["imageUrl"]!),
+                                  image: NetworkImage(element.imageUrl),
                                   fit: BoxFit.cover),
                               color: Colors.pink[100],
                               borderRadius:
@@ -75,7 +91,7 @@ class _EverydayList extends State<EverydayList> {
                         left: 90,
                         bottom: 30,
                         child: Text(
-                            "${element["songName"]}  -----  ${element["decoration"]}"),
+                            "${element.songName}  -----  ${element.decoration}"),
                       ),
                       Positioned(
                           right: 10,
@@ -83,12 +99,11 @@ class _EverydayList extends State<EverydayList> {
                           child: IconButton(
                               onPressed: () => {
                                     musicController.inc(
-                                        element["url"]!,
-                                        element["imageUrl"]!,
-                                        element["songName"]!,
-                                        element["decoration"]!,
-                                        CommUtil.parseBool(
-                                            element["isFavorite"]))
+                                        element.url,
+                                        element.imageUrl,
+                                        element.songName,
+                                        element.decoration,
+                                        element.isFavorite)
                                   },
                               icon: const Icon(
                                 Icons.play_arrow_sharp,
