@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/utils/SqlLiteConn/index.dart';
 
 import '../controller/MusicController.dart';
 import '../utils/NotificationHelper.dart';
@@ -79,9 +80,10 @@ class _MSCard extends State<MSCard> {
                 ),
                 child: IconButton(
                     iconSize: 35,
-                    onPressed: () => {
-                      musicController.inc(widget.url,widget.image,widget.songName,widget.decoration,isFavorite),
-                    notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "${widget.songName}  -----  ${widget.decoration}")
+                    onPressed: (){
+                      SqlLiteConn.queryByUrlAndInsert(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
+                      musicController.inc(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
+                      notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "${widget.songName}  -----  ${widget.decoration}");
                     },
                     icon: const Icon(
                         Icons.play_arrow_sharp )),

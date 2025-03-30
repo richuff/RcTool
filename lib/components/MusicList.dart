@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:headset_connection_event/headset_event.dart';
 import 'package:rctool/routers/RoutePath.dart';
 
 import '../controller/MusicController.dart';
@@ -20,8 +21,26 @@ class _MusicList extends State<MusicList> {
   String decoration = "未知歌手";
   bool isplay = false;
   int _mlength = 0;
+
+  final _headsetPlugin = HeadsetEvent();
+
   @override
   void initState() {
+    super.initState();
+
+    //请求蓝牙权限
+    _headsetPlugin.requestPermission();
+    //监听蓝牙设备
+    _headsetPlugin.setListener((val){
+      //如果蓝牙连接断开，则让播放停止
+      if (val == HeadsetState.DISCONNECT){
+        musicController.onPause();
+      }//如果蓝牙连接,则继续进行播放
+      else{
+        musicController.playLocal();
+      }
+    });
+
     setState(() {
       title = musicController.musiclist.length > musicController.position.value
           ? musicController.musiclist[musicController.position.value].songName
@@ -31,7 +50,7 @@ class _MusicList extends State<MusicList> {
           ? musicController.musiclist[musicController.position.value].decoration
           : decoration;
     });
-    super.initState();
+
     musicController.addListener(() {
       setState(() {
         title = musicController.musiclist.length >
