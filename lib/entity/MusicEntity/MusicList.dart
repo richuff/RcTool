@@ -4,44 +4,26 @@ var allmusiclist = [
         "https://cdn.waimaimingtang.com/file/images/bwc/20250329154048-912483def2.flac",
     "imageUrl":
         "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
-    "songName": "Cry For Me(feat.Ami)",
-    "decoration": "Michita",
+    "songName": "Constant Moderato",
+    "decoration": "Blue Archive",
     "isFavorite":"true"
   },
   {
     "url":
-        "https://cdn.waimaimingtang.com/file/images/bwc/20250329154048-912483def2.flac",
+        "https://file.icve.com.cn/file_doc/526/563/8388CDF6FDA4912E226F8B6D3A3951D1.flac",
     "imageUrl":
         "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
-    "songName": "Matter of Time",
-    "decoration": "Shannon Hurley",
+    "songName": "Shooting Stars",
+    "decoration": "Blue Archive",
     "isFavorite":"false"
   },
   {
     "url":
-        "https://file.icve.com.cn/file_doc/746/943/BA8EBD291E419C2B6EA4B7CF34625D67.flac",
+        "https://file.icve.com.cn/file_doc/742/14/B9B03B61C5B65B297848E39D9344052D.flac",
     "imageUrl":
       "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
-    "songName": "Inside you",
-    "decoration": "milet",
+    "songName": "Intro~Christmas, girl, piano",
+    "decoration": "Mika",
     "isFavorite":"false"
   },
-  {
-    "url":
-    "https://file.icve.com.cn/file_doc/746/943/BA8EBD291E419C2B6EA4B7CF34625D67.flac",
-    "imageUrl":
-      "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
-    "songName": "Tell me",
-    "decoration": "milet",
-    "isFavorite":"false"
-  },
-  {
-    "url":
-    "https://file.icve.com.cn/file_doc/746/943/BA8EBD291E419C2B6EA4B7CF34625D67.flac",
-    "imageUrl":
-      "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
-    "songName": "ただ声一つ",
-    "decoration": "ロクデナシ",
-    "isFavorite":"true"
-  }
 ];

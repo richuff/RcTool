@@ -20,5 +20,12 @@ class Music{
     return false;
   }
 
-
+  Map<String,Object?> toMap(){
+    return {
+    'url':url,
+    'imageUrl':imageUrl,
+    'songName':songName,
+    'decoration':decoration,
+    'isFavorite':isFavorite == true ? 1 : 0};
+  }
 }
