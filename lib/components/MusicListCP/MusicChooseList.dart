@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controller/MusicController.dart';
+import '../../utils/SqlLiteConn/index.dart';
 
 class MusicChooseList extends StatefulWidget {
   const MusicChooseList({super.key});
@@ -93,11 +94,12 @@ class _MusicChooseList extends State<MusicChooseList> {
                           right: 2,
                           bottom: 18,
                           child: IconButton(
-                              onPressed: () => {
-                                musicController.dec(element),
+                              onPressed: (){
+                                musicController.dec(element);
+                                SqlLiteConn.deleteByUrl(element.url);
                                 setState(() {
                                   chooselist.remove(element);
-                                })
+                                });
                               },
                               icon: const Icon(
                                 Icons.close,
