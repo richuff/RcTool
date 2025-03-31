@@ -1,9 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../../components/MusicListCP/MusicLikeList.dart';
-import '../../iconfont/RcIcon.dart';
+import '../../widget/BackGround/MusicBackGround.dart';
+import '../../widget/MainDrawer.dart';
 import '../../widget/SearchWidget.dart';
 
 class MusicLike extends StatefulWidget {
@@ -20,61 +20,12 @@ class _MusicLike extends State<MusicLike> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      drawer: Drawer(
-        width: 250,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            SizedBox(
-              height: 100.0,
-              child: DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.pink[200],
-                  ),
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: 40.0, // 设置高度
-                        alignment: Alignment.center,
-                        child: Text(
-                          '工具箱'.tr,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                          ),
-                        ),
-                      ),
-                    ],
-                  )),
-            ),
-            ListTile(
-              leading: const Icon(RcIcon.livetod),
-              title: Text('live2d'.tr),
-              onTap: () {
-                scaffoldKey.currentState?.closeDrawer();
-                Get.toNamed("/livetod");
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.account_box_rounded),
-              title: Text('关于作者'.tr),
-              onTap: () {
-                scaffoldKey.currentState?.closeDrawer();
-                Get.toNamed("/about");
-              },
-            ),
-          ],
-        ),
-      ),
+      drawerScrimColor: Colors.transparent,
+      drawer: MainDrawer((){
+        scaffoldKey.currentState?.closeDrawer();
+      }),
       appBar: AppBar(
           backgroundColor: Colors.pink[50],
-          title: Container(
-            margin: const EdgeInsets.only(left: 60),
-            child:Text(
-              "喜欢列表",
-              style: TextStyle(color: Colors.pink[100]),
-            ),
-          ),
           leading: Builder(builder: (context) {
             return Column(children: [
               const Padding(padding: EdgeInsets.only(top: 8)),
@@ -100,13 +51,7 @@ class _MusicLike extends State<MusicLike> {
           actions: [SearchWidget()]),
       body: Container(
           width: double.infinity,
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-                opacity: 0.1,
-                image: NetworkImage(
-                    "https://p0.meituan.net/csc/ac442b7297cabb92da0ad4f114b22660667771.jpg"),
-                fit: BoxFit.cover),
-          ),
+          decoration: musicBackGround(),
           child: Column(children: [
             Flexible(
                 child: ScrollConfiguration(

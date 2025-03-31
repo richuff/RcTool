@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_state_manager/src/simple/list_notifier.dart';
 import 'package:headset_connection_event/headset_event.dart';
 import 'package:rctool/routers/RoutePath.dart';
 
@@ -22,7 +25,22 @@ class _MusicList extends State<MusicList> {
   bool isplay = false;
   int _mlength = 0;
 
+  StreamSubscription<Duration>? _positionSubscription;
+
   final _headsetPlugin = HeadsetEvent();
+
+  void _musicControllerListener() {
+    setState(() {
+      title = musicController.musiclist.length > musicController.position.value
+          ? musicController.musiclist[musicController.position.value].songName
+          : title;
+      isplay = musicController.isplay.value;
+      _mlength = musicController.musiclist.length;
+      decoration = musicController.musiclist.length > musicController.position.value
+          ? musicController.musiclist[musicController.position.value].decoration
+          : decoration;
+    });
+  }
 
   @override
   void initState() {
@@ -51,21 +69,9 @@ class _MusicList extends State<MusicList> {
           : decoration;
     });
 
-    musicController.addListener(() {
-      setState(() {
-        title = musicController.musiclist.length >
-                musicController.position.value
-            ? musicController.musiclist[musicController.position.value].songName
-            : title;
-        isplay = musicController.isplay.value;
-        _mlength = musicController.musiclist.length;
-        decoration = musicController.musiclist.length > musicController.position.value
-            ? musicController.musiclist[musicController.position.value].decoration
-            : decoration;
-      });
-    });
+    musicController.addListener(_musicControllerListener);
 
-    musicController.player.onPositionChanged.listen((Duration position) {
+    _positionSubscription = musicController.player.onPositionChanged.listen((Duration position) {
       if (musicController.totalDuration != null) {
         double proportion = position.inSeconds / musicController.totalDuration!.inSeconds;
         double sliderValue = proportion * 100; // 转换为1到100的范围
@@ -77,6 +83,14 @@ class _MusicList extends State<MusicList> {
   }
 
   final NotificationHelper notificationHelper = NotificationHelper();
+
+
+  @override
+  void dispose() {
+    _positionSubscription?.cancel();
+    musicController.removeListener(_musicControllerListener);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,10 +195,8 @@ class _MusicList extends State<MusicList> {
             bottom: 20,
             child: IconButton(
                 onPressed: () => {
-                      setState(() {
-                        Get.toNamed(RoutePath.MUSICCHOOSE);
-                      })
-                    },
+                  Get.toNamed(RoutePath.MUSICCHOOSE)
+                },
                 icon: const Icon(
                   Icons.queue_music_sharp,
                   color: Colors.white,
