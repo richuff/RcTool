@@ -1,20 +1,108 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/routers/RoutePath.dart';
+import 'package:get/get_core/src/get_main.dart';
 
-class Hotlist extends StatefulWidget {
-  const Hotlist({super.key});
+import '../../routers/RoutePath.dart';
+
+class Lefttoolbar extends StatefulWidget {
+  const Lefttoolbar({super.key});
 
   @override
-  State<Hotlist> createState() => _Hotlist();
+  State<Lefttoolbar> createState() => _Lefttoolbar();
 }
 
-class _Hotlist extends State<Hotlist> {
+class _Lefttoolbar extends State<Lefttoolbar> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () {
+            Get.toNamed(RoutePath.RECOMMEND);
+          },
+          child: Container(
+            width: 150,
+            margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+            decoration: BoxDecoration(
+                color: Colors.yellow[100],
+                borderRadius: const BorderRadius.all(Radius.circular(6))),
+            child: Stack(
+              children: [
+                Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Image.asset(
+                      "image/Mika.gif",
+                      width: 100,
+                      height: 100,
+                    )),
+                Positioned(
+                    left: 4,
+                    top: 8,
+                    child: Text(
+                      "每日推荐".tr,
+                      style: const TextStyle(fontSize: 28, color: Colors.white),
+                    )),
+                const Positioned(
+                    left: 10,
+                    top: 41,
+                    child: Text(
+                      "blue archive",
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    )),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 10,
+        ),
+        GestureDetector(
+          onTap: () {
+            Get.toNamed(RoutePath.MUSICLIKE);
+          },
+          child: Container(
+            width: 150,
+            margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+            decoration: BoxDecoration(
+                color: Colors.blue[100],
+                borderRadius: const BorderRadius.all(Radius.circular(6))),
+            child: Stack(
+              children: [
+                Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Image.asset(
+                      "image/ARoNa.png",
+                      width: 100,
+                      height: 100,
+                    )),
+                Positioned(
+                    left: 4,
+                    top: 8,
+                    child: Text(
+                      "我的喜欢".tr,
+                      style: const TextStyle(fontSize: 28, color: Colors.white),
+                    )),
+                const Positioned(
+                    left: 10,
+                    top: 41,
+                    child: Text(
+                      "archive",
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    )),
+              ],
+            ),
+          ),
+        )
+      ],
+    );
+  }
+}
+
+/*SizedBox(
         height: 300,
-        child: Column(
+        child:Column(
           children: [
             Row(
               children: [
@@ -101,6 +189,4 @@ class _Hotlist extends State<Hotlist> {
               ],
             ),
           ],
-        ));
-  }
-}
+        ));*/
