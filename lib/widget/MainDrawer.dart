@@ -1,15 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/widget/Settingdialog.dart';
 
 import '../iconfont/RcIcon.dart';
 import '../routers/RoutePath.dart';
 
 class MainDrawer extends StatelessWidget {
-  final GlobalKey<ScaffoldState> scaffoldKey;
+  
+  final closeDrawer;
 
-  MainDrawer(this.scaffoldKey);
-
+  MainDrawer(this.closeDrawer);
+  
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -23,7 +25,6 @@ class MainDrawer extends StatelessWidget {
             leading: const Icon(Icons.home),
             title: Text('主页'.tr),
             onTap: () {
-              scaffoldKey.currentState?.closeDrawer();
               Get.toNamed(RoutePath.HOME);
             },
           ),
@@ -34,15 +35,15 @@ class MainDrawer extends StatelessWidget {
             leading: const Icon(Icons.music_note),
             title: Text('听音乐'.tr),
             onTap: () {
-              scaffoldKey.currentState?.closeDrawer();
+              closeDrawer();
               Get.toNamed(RoutePath.MUSIC);
             },
           ),
           ListTile(
             leading: const Icon(RcIcon.livetod),
-            title: Text('live2d'.tr),
+            title: const Text('Live2d'),
             onTap: () {
-              scaffoldKey.currentState?.closeDrawer();
+              closeDrawer();
               Get.toNamed(RoutePath.LIVETOD);
             },
           ),
@@ -50,7 +51,7 @@ class MainDrawer extends StatelessWidget {
             leading: const Icon(Icons.account_box_rounded),
             title: Text('关于作者'.tr),
             onTap: () {
-              scaffoldKey.currentState?.closeDrawer();
+              closeDrawer();
               Get.toNamed(RoutePath.ABOUT);
             },
           ),
@@ -61,8 +62,11 @@ class MainDrawer extends StatelessWidget {
             leading: const Icon(Icons.settings),
             title: Text('设置'.tr),
             onTap: () {
-              scaffoldKey.currentState?.closeDrawer();
+              closeDrawer();
               //Get.toNamed(RoutePath.ABOUT);
+              showDialog(context: context, builder:(context){
+                return Settingdialog();
+              });
             },
           ),
         ],
