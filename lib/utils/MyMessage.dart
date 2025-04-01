@@ -14,7 +14,12 @@ class MyMessage extends Translations {
       '主页':"主页",
       '欢迎使用Rctool':"欢迎使用Rctool",
       '你可以听音乐和使用live2d功能':"你可以听音乐和使用Live2d功能",
-      '当前正在播放':"当前正在播放"
+      '当前正在播放':"当前正在播放",
+      '设置':'设置',
+      '每日推荐':'每日推荐',
+      '排行榜':'排行榜',
+      '歌单':'歌单',
+      '我的喜欢':'我的喜欢'
     },
     'ja_JP':{
       '关于作者':"著者について",
@@ -27,7 +32,12 @@ class MyMessage extends Translations {
       '主页':"ホームページ",
       '欢迎使用Rctool':"Rctoolへようこそ",
       '你可以听音乐和使用live2d功能':"音楽を聴いたり、Live2D機能を使用したりできます",
-      '当前正在播放':"現在再生中"
+      '当前正在播放':"現在再生中",
+      '设置':'設定',
+      '每日推荐':'毎日のおすすめ',
+      '排行榜':'ランキング',
+      '歌单':'プレイリスト',
+      '我的喜欢':'私の好みです'
     },
     'en_US':{
       '关于作者':"About the author",
@@ -40,7 +50,12 @@ class MyMessage extends Translations {
       '主页':"HomePage",
       '欢迎使用Rctool':"Welcome to Rctool",
       '你可以听音乐和使用live2d功能':"You can listen to music and use the Live2D feature",
-      '当前正在播放':"The current playback in progress"
+      '当前正在播放':"The current playback in progress",
+      '设置':'Settings',
+      '每日推荐':'Recommended daily',
+      '排行榜':'Leaderboard',
+      '歌单':'Playlists',
+      '我的喜欢':'My preference'
     }
   };
 }
