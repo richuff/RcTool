@@ -21,16 +21,14 @@ class _MusicLikeList extends State<MusicLikeList> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMusicList();
     });
   }
 
   Future<void> _loadMusicList() async {
     Likelist = await SqlLiteConn.queryByFavorite();
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -46,7 +44,9 @@ class _MusicLikeList extends State<MusicLikeList> {
                 children: Likelist.map((element) {
                   return Stack(
                     children: [
-                      const SizedBox(height: 80,),
+                      const SizedBox(
+                        height: 80,
+                      ),
                       Container(
                         margin: const EdgeInsets.fromLTRB(8, 20, 0, 12),
                         width: double.infinity,
@@ -80,24 +80,33 @@ class _MusicLikeList extends State<MusicLikeList> {
                             height: 75,
                             decoration: BoxDecoration(
                               image: DecorationImage(
-                                  image: NetworkImage(element.imageUrl), fit: BoxFit.cover),
+                                  image: NetworkImage(element.imageUrl),
+                                  fit: BoxFit.cover),
                               color: Colors.pink[100],
-                              borderRadius: const BorderRadius.all(Radius.circular(10)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(10)),
                             ),
                           )),
                       Positioned(
                         left: 90,
                         bottom: 30,
-                        child: Text("${element.songName}  -----  ${element.decoration}"),
+                        child: Text(
+                            "${element.songName}  -----  ${element.decoration}"),
                       ),
                       Positioned(
                           right: 2,
                           bottom: 18,
                           child: IconButton(
-                              onPressed: () => {
-                                //musicController.changeLike(element),
-                                SqlLiteConn.deleteByUrl(element.url),
-                                _loadMusicList()
+                              onPressed: () {
+                                Music music = Music(element.url,
+                                    element.imageUrl,
+                                    element.songName,
+                                    element.decoration,
+                                    false);
+                                SqlLiteConn.updateMusicByUrl(music);
+                                //musicController.upDateFavorite(music);
+                                Likelist.remove(music);
+                                _loadMusicList();
                               },
                               icon: const Icon(
                                 Icons.close,

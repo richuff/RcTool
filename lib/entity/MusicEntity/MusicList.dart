@@ -37,6 +37,14 @@ var allmusiclist = [
     "imageUrl": "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
     "songName": "Midnight Trip",
     "decoration": "Nor",
+    "isFavorite": "false"
+  },
+  {
+    "url":
+    "https://cdn.waimaimingtang.com/file/images/bwc/20250401211933-948ca54869.flac",
+    "imageUrl": "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
+    "songName": "優しさの記憶",
+    "decoration": "鹿乃",
     "isFavorite": "true"
   },
 ];
