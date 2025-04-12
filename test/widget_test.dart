@@ -7,24 +7,32 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rctool/entity/Music.dart';
 
 import 'package:rctool/main.dart';
-
+/*ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context)
+                    .copyWith(),
+                child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    physics: const NeverScrollableScrollPhysics(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Recommend(),
+                              //const Hotlist()
+                              ])
+                      ],
+                    )),
+              )*/
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+/*  Music music = Music("url", "imageUrl", "songName", "decoration", true);
+  print(music.id);
+  Music music2 = Music("urlsasdasdsa", "imageUrl", "songName", "decoration", true);
+  print(music2.id);*/
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
 }
