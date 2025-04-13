@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/routers/RoutePath.dart';
 
-class Righttoolbar extends StatefulWidget {
+class RightToolbar extends StatefulWidget {
   @override
-  State<Righttoolbar> createState() => _Righttoolbar();
+  State<RightToolbar> createState() => _RightToolbar();
 }
 
-class _Righttoolbar extends State<Righttoolbar> {
+class _RightToolbar extends State<RightToolbar> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -15,7 +16,7 @@ class _Righttoolbar extends State<Righttoolbar> {
             flex: 1,
             child: GestureDetector(
               onTap: () {
-                //Get.toNamed(RoutePath.RECOMMEND);
+                Get.toNamed(RoutePath.RANKING);
               },
               child: Container(
                   height: double.infinity,
@@ -47,7 +48,9 @@ class _Righttoolbar extends State<Righttoolbar> {
         Flexible(
             flex: 1,
             child: GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Get.toNamed(RoutePath.ALBUM);
+                },
                 child: Container(
                     width: 75,
                     height: double.infinity,

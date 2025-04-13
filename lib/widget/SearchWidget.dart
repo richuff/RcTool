@@ -3,9 +3,12 @@ import 'package:get/get.dart';
 import 'package:rctool/controller/IsDarkController.dart';
 import 'package:rctool/iconfont/RcIcon.dart';
 
+import '../feature/design/IconButtonNoRipple.dart';
 import 'TextWidget/DarkLightText.dart';
 
 class SearchWidget extends StatefulWidget {
+  const SearchWidget({super.key});
+
   @override
   State<SearchWidget> createState() => _SearchWidget();
 }
@@ -17,7 +20,7 @@ class _SearchWidget extends State<SearchWidget> {
     final height = MediaQuery.of(context).size.height;
     return Padding(
       padding: const EdgeInsets.only(right: 15),
-      child: IconButton(
+      child: IconButtonNoRipple(
           hoverColor: Colors.pink[100],
           focusColor: Colors.pink[100],
           highlightColor: Colors.pink[200],

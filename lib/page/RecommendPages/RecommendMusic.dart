@@ -2,18 +2,19 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import '../../components/RecommendCP/EveryDayRecommend.dart';
+import '../../feature/design/IconButtonNoRipple.dart';
 import '../../widget/BackGround/MusicBackGround.dart';
 import '../../widget/MainDrawer.dart';
 import '../../widget/SearchWidget.dart';
 
-class Everydaymusic extends StatefulWidget {
-  const Everydaymusic({super.key});
+class EverydayMusic extends StatefulWidget {
+  const EverydayMusic({super.key});
 
   @override
-  State<Everydaymusic> createState() => _Everydaymusic();
+  State<EverydayMusic> createState() => _EverydayMusic();
 }
 
-class _Everydaymusic extends State<Everydaymusic> {
+class _EverydayMusic extends State<EverydayMusic> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -31,13 +32,13 @@ class _Everydaymusic extends State<Everydaymusic> {
               const Padding(padding: EdgeInsets.only(top: 8)),
               Padding(
                 padding: const EdgeInsets.only(left: 10),
-                child: IconButton(
+                child: IconButtonNoRipple(
                   hoverColor: Colors.pink[100],
                   focusColor: Colors.pink[100],
                   highlightColor: Colors.pink[200],
                   alignment: Alignment.bottomCenter,
                   icon: const Icon(
-                    Icons.list,
+                    Icons.menu,
                     size: 26,
                   ),
                   color: Colors.black,
@@ -48,7 +49,7 @@ class _Everydaymusic extends State<Everydaymusic> {
               ),
             ]);
           }),
-          actions: [SearchWidget()]),
+          actions: const [SearchWidget()]),
       body: Container(
           width: double.infinity,
           decoration: musicBackGround(),

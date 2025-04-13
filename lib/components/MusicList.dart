@@ -6,6 +6,7 @@ import 'package:headset_connection_event/headset_event.dart';
 import 'package:rctool/routers/RoutePath.dart';
 
 import '../controller/MusicController.dart';
+import '../feature/design/IconButtonNoRipple.dart';
 import '../utils/NotificationHelper.dart';
 
 class MusicList extends StatefulWidget {
@@ -143,7 +144,7 @@ class _MusicList extends State<MusicList> {
         Positioned(
             right: 95,
             bottom: 20,
-            child: IconButton(
+            child: IconButtonNoRipple(
                 onPressed: () => {musicController.skipPrevious()},
                 icon: const Icon(
                   Icons.skip_previous,
@@ -171,7 +172,7 @@ class _MusicList extends State<MusicList> {
         Positioned(
             right: 35,
             bottom: 20,
-            child: IconButton(
+            child: IconButtonNoRipple(
                 onPressed: () => {musicController.skipNext()},
                 icon: const Icon(
                   Icons.skip_next,
@@ -180,7 +181,7 @@ class _MusicList extends State<MusicList> {
         Positioned(
             right: 65,
             bottom: 20,
-            child: IconButton(
+            child: IconButtonNoRipple(
                 onPressed: () => {
                   musicController.playLocal(),
                   notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "$title  -----  $decoration")
@@ -192,7 +193,7 @@ class _MusicList extends State<MusicList> {
         Positioned(
             right: 2,
             bottom: 20,
-            child: IconButton(
+            child: IconButtonNoRipple(
                 onPressed: () => {
                   Get.toNamed(RoutePath.MUSICCHOOSE)
                 },
