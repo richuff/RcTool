@@ -12,4 +12,8 @@ class RoutePath{
   static const String ABOUT = "/about";
 
   static const String LIVETOD = "/livetod";
+
+  static const String RANKING = "/ranking";
+
+  static const String ALBUM = "/album";
 }

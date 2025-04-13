@@ -1,10 +1,12 @@
 import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:get/get_navigation/src/routes/transitions_type.dart';
 import 'package:rctool/page/AboutAuthor.dart';
+import 'package:rctool/page/AlbumPage/Album.dart';
 import 'package:rctool/page/MusicPages/MusicChoose.dart';
 import 'package:rctool/page/MusicPages/MusicLike.dart';
 import 'package:rctool/page/MusicPages/MusicPage.dart';
 import 'package:rctool/page/LiveTod.dart';
+import 'package:rctool/page/RankingPage/Ranking.dart';
 import 'package:rctool/page/RecommendPages/RecommendMusic.dart';
 import 'package:rctool/routers/RoutePath.dart';
 
@@ -26,17 +28,21 @@ var routes = [
   ),
   GetPage(
       name: RoutePath.RECOMMEND,
-      page: () => const Everydaymusic(),
+      page: () => const EverydayMusic(),
       transition: Transition.rightToLeft
   ),
-
+  GetPage(name: RoutePath.RANKING,
+      page: () => const Ranking(),
+      transition: Transition.rightToLeft),
+  GetPage(name: RoutePath.ALBUM,
+      page: () => const Album(),
+      transition: Transition.rightToLeft),
 
 
   GetPage(
       name: RoutePath.ABOUT,
       page: () => const AboutAuthor(),
       transition: Transition.rightToLeft),
-
 
 
   GetPage(
