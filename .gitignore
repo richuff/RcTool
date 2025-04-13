@@ -48,4 +48,3 @@ app.*.map.json
 /macos/*
 /windows/*
 /android/*
-rctool.iml
