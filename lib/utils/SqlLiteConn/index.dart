@@ -40,12 +40,11 @@ class SqlLiteConn{
 
     final List<Map<String, Object?>> musicList= await db.query(
       'music',
-      limit: 10,
+      limit: 30,
     );
 
     return [
       for (final {
-        'id': id as int,
         'url': url as String,
         'imageUrl': imageUrl as String,
         'songName':songName as String,
@@ -74,18 +73,30 @@ class SqlLiteConn{
     }
   }
 
+  static Future<void> queryByUrlAndUpdateFav(String url, String imageUrl, String songName, String decoration, bool isFavorite) async {
+    Music music = Music(url, imageUrl, songName, decoration,isFavorite);
+
+    final db = await database;
+
+    final List<Map<String, Object?>> musicList= await db.query(
+      'music',
+      where: 'url = ?',
+      whereArgs: [url],
+    );
+    updateMusicByFavorite(music,musicList[0]['id'] as int);
+  }
+
   static Future<List<Music>> queryByFavorite() async{
     final db = await database;
 
     final List<Map<String, Object?>> musicList= await db.query(
       'music',
       where: 'isFavorite = 1',
-      limit: 10,
+      limit: 30,
     );
 
     return [
       for (final {
-      'id': id as int,
       'url': url as String,
       'imageUrl': imageUrl as String,
       'songName':songName as String,
@@ -114,6 +125,17 @@ class SqlLiteConn{
       music.toMap(),
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  static void updateMusicByUrl(Music music) async {
+    final db = await database;
+
+    await db.update(
+      'music',
+      music.toMap(),
+      where: 'url = ?',
+      whereArgs: [music.url],
     );
   }
 }
