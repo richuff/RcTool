@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:rctool/Theme/TypeValue.dart';
+import 'package:rctool/feature/Theme/TypeValue.dart';
 
 class MainSettings extends StatefulWidget{
   const MainSettings({super.key});
