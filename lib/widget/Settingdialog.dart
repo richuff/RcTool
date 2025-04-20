@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class Settingdialog extends Dialog {
-  Settingdialog();
+import '../views/MainSettings.dart';
+
+class SettingDialog extends Dialog {
+  const SettingDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,8 @@ class Settingdialog extends Dialog {
                 Container(
                     height: 70,
                     decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.all(Radius.circular(4)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(4)),
                         border: Border.all(
                             color: const Color.fromARGB(255, 199, 223, 251),
                             width: 1.0),
@@ -85,9 +88,7 @@ class Settingdialog extends Dialog {
                         )
                       ],
                     )),
-                Radio(value: "value", groupValue: "groupValue", onChanged: (value){
-
-                })
+                const MainSettings()
               ],
             ),
           ),

@@ -5,4 +5,6 @@ class CommUtil{
     }
     return value.toLowerCase() == 'true';
   }
+
+
 }
