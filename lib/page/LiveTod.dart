@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rctool/widget/SearchWidget.dart';
 
+import '../feature/design/IconButtonNoRipple.dart';
 import '../widget/BackGround/LivetodBackGround.dart';
 import '../widget/MainDrawer.dart';
 
@@ -28,13 +29,13 @@ class _LiveTod extends State<LiveTod> {
                 const Padding(padding: EdgeInsets.only(top: 8)),
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: IconButton(
+                  child: IconButtonNoRipple(
                     hoverColor: Colors.pink[100],
                     focusColor: Colors.pink[100],
                     highlightColor: Colors.pink[200],
                     alignment: Alignment.bottomCenter,
                     icon: const Icon(
-                      Icons.list,
+                      Icons.menu,
                       size: 26,
                     ),
                     color: Colors.black,
@@ -45,7 +46,7 @@ class _LiveTod extends State<LiveTod> {
                 ),
               ]);
             }),
-            actions: [
+            actions: const [
               SearchWidget()
             ]),
         body: Container(
