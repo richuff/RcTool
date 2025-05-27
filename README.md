@@ -3,7 +3,7 @@
 ![Static Badge](https://img.shields.io/badge/flutter-3.24.1-blue)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/richuff/RcTool)
 
-一个基于 **Flutter** 和 **Get** 的音乐播放器及 Live2D 项目。
+一个基于 **Flutter** 的音乐播放器及 Live2D 项目。
 
 ## 项目介绍
 
@@ -58,10 +58,6 @@ rctool 是一个跨平台的音乐播放器应用，支持 Android端 设备
 - **headset_connection_event**: 蓝牙耳机断连检测
 - **fluttertoast**: 提示信息显示
 - **cupertino_icons**: iOS 风格图标库
-
-### 开发工具
-- **Flutter SDK**: Flutter 开发环境
-- **flutter_lints**: 代码规范检查
 
 ## Getting Started
 
