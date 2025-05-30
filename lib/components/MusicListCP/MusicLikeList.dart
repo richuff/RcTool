@@ -15,7 +15,7 @@ class MusicLikeList extends StatefulWidget {
 class _MusicLikeList extends State<MusicLikeList> {
   MusicController musicController = Get.put(MusicController());
 
-  List<Music> Likelist = [];
+  List<Music> likeList = [];
 
   @override
   void initState() {
@@ -27,7 +27,7 @@ class _MusicLikeList extends State<MusicLikeList> {
   }
 
   Future<void> _loadMusicList() async {
-    Likelist = await SqlLiteConn.queryByFavorite();
+    likeList = await SqlLiteConn.queryByFavorite();
     setState(() {});
   }
 
@@ -41,7 +41,7 @@ class _MusicLikeList extends State<MusicLikeList> {
             Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: Likelist.map((element) {
+                children: likeList.map((element) {
                   return Stack(
                     children: [
                       const SizedBox(
@@ -105,7 +105,7 @@ class _MusicLikeList extends State<MusicLikeList> {
                                     false);
                                 SqlLiteConn.updateMusicByUrl(music);
                                 //musicController.upDateFavorite(music);
-                                Likelist.remove(music);
+                                likeList.remove(music);
                                 _loadMusicList();
                               },
                               icon: const Icon(

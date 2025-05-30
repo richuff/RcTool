@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import '../../components/MusicListCP/MusicLikeList.dart';
+import '../../feature/design/IconButtonNoRipple.dart';
 import '../../widget/BackGround/MusicBackGround.dart';
 import '../../widget/MainDrawer.dart';
 import '../../widget/SearchWidget.dart';
@@ -31,13 +32,13 @@ class _MusicLike extends State<MusicLike> {
               const Padding(padding: EdgeInsets.only(top: 8)),
               Padding(
                 padding: const EdgeInsets.only(left: 10),
-                child: IconButton(
+                child: IconButtonNoRipple(
                   hoverColor: Colors.pink[100],
                   focusColor: Colors.pink[100],
                   highlightColor: Colors.pink[200],
                   alignment: Alignment.bottomCenter,
                   icon: const Icon(
-                    Icons.list,
+                    Icons.menu,
                     size: 26,
                   ),
                   color: Colors.black,
