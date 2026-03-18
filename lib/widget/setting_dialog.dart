@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../views/MainSettings.dart';
+import '../views/main_settings.dart';
 
+/// @ClassName SettingDialog
+/// @Description 设置窗口
+/// @Author richuff
+/// @Date 2024-10-11
+/// @Version 1.0
 class SettingDialog extends Dialog {
   const SettingDialog({super.key});
 

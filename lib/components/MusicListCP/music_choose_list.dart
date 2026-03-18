@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controller/MusicController.dart';
-import '../../utils/SqlLiteConn/index.dart';
+import '../../utils/SqlLiteConn/Index.dart';
 
 class MusicChooseList extends StatefulWidget {
   const MusicChooseList({super.key});
@@ -14,13 +14,13 @@ class MusicChooseList extends StatefulWidget {
 class _MusicChooseList extends State<MusicChooseList> {
   MusicController musicController = Get.put(MusicController());
 
-  List chooselist = [];
+  List chooseList = [];
 
   @override
   void initState() {
     super.initState();
     setState(() {
-      chooselist = musicController.musiclist;
+      chooseList = musicController.musiclist;
     });
   }
 
@@ -34,7 +34,7 @@ class _MusicChooseList extends State<MusicChooseList> {
             Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: chooselist.map((element) {
+                children: chooseList.map((element) {
                   return Stack(
                     children: [
                       const SizedBox(height: 80,),
@@ -98,7 +98,7 @@ class _MusicChooseList extends State<MusicChooseList> {
                                 musicController.dec(element);
                                 SqlLiteConn.deleteByUrl(element.url);
                                 setState(() {
-                                  chooselist.remove(element);
+                                  chooseList.remove(element);
                                 });
                               },
                               icon: const Icon(

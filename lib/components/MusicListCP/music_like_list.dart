@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../../controller/MusicController.dart';
 import '../../entity/Music.dart';
-import '../../utils/SqlLiteConn/index.dart';
+import '../../utils/SqlLiteConn/Index.dart';
 
 class MusicLikeList extends StatefulWidget {
   const MusicLikeList({super.key});

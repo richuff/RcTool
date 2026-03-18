@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/utils/SqlLiteConn/index.dart';
+import 'package:rctool/utils/SqlLiteConn/Index.dart';
 
 import '../controller/MusicController.dart';
-import '../utils/NotificationHelper.dart';
+import '../utils/notification_helper.dart';
 
 class MSCard extends StatefulWidget {
   final String url;
@@ -22,7 +22,6 @@ class MSCard extends StatefulWidget {
 class _MSCard extends State<MSCard> {
 
   final NotificationHelper notificationHelper = NotificationHelper();
-
   MusicController musicController = Get.put(MusicController());
   bool isFavorite = false;
 
@@ -41,9 +40,10 @@ class _MSCard extends State<MSCard> {
         decoration: BoxDecoration(
             image: DecorationImage(
                 image: NetworkImage(widget.image), fit: BoxFit.cover, opacity: 0.7),
-            color: const Color.fromRGBO(255, 243, 242, 0.8),
+            color: Get.isDarkMode ? const Color.fromRGBO(255, 243, 242, 0.8) : const Color.fromRGBO(200, 190, 185, 0.8),
             borderRadius: const BorderRadius.all(Radius.circular(50.0)),
-            boxShadow: const [BoxShadow(color: Colors.pink, blurRadius: 4.0)]),
+            boxShadow: const [BoxShadow(color: Colors.pink, blurRadius: 4.0)]
+        ),
         child: Stack(
           children: [
             Positioned(
@@ -60,11 +60,12 @@ class _MSCard extends State<MSCard> {
                     ),
                     child: IconButton(
                         iconSize: 32,
-                        onPressed: () => {
+                        onPressed: (){
                               setState(() {
                                 isFavorite = !isFavorite;
-                              })
-                            },
+                              });
+                          SqlLiteConn.queryByUrlAndUpdateFav(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
+                    },
                         icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border)),
                   ),
                 )),
@@ -81,9 +82,10 @@ class _MSCard extends State<MSCard> {
                 child: IconButton(
                     iconSize: 35,
                     onPressed: (){
-                      SqlLiteConn.queryByUrlAndInsert(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
-                      musicController.inc(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
-                      notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "${widget.songName}  -----  ${widget.decoration}");
+                      if (widget.url != ""){
+                        musicController.inc(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
+                        notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "${widget.songName}  -----  ${widget.decoration}");
+                      }
                     },
                     icon: const Icon(
                         Icons.play_arrow_sharp )),

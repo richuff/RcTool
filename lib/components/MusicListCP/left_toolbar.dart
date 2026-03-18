@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../routers/RoutePath.dart';
 
-class Lefttoolbar extends StatefulWidget {
-  const Lefttoolbar({super.key});
+class LeftToolbar extends StatefulWidget {
+  const LeftToolbar({super.key});
 
   @override
-  State<Lefttoolbar> createState() => _Lefttoolbar();
+  State<LeftToolbar> createState() => _LeftToolbar();
 }
 
-class _Lefttoolbar extends State<Lefttoolbar> {
+class _LeftToolbar extends State<LeftToolbar> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -55,7 +54,7 @@ class _Lefttoolbar extends State<Lefttoolbar> {
           ),
         ),
         const SizedBox(
-          width: 10,
+          width: 5,
         ),
         GestureDetector(
           onTap: () {

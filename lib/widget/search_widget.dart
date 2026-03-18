@@ -4,8 +4,15 @@ import 'package:rctool/controller/IsDarkController.dart';
 import 'package:rctool/iconfont/RcIcon.dart';
 
 import '../feature/design/IconButtonNoRipple.dart';
-import 'TextWidget/DarkLightText.dart';
+import 'TextWidget/dark_light_text.dart';
 
+
+
+/// @ClassName SearchWidget
+/// @Description 搜索组件
+/// @Author richuff
+/// @Date 2024-10-11
+/// @Version 1.0
 class SearchWidget extends StatefulWidget {
   const SearchWidget({super.key});
 

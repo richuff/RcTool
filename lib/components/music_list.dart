@@ -7,7 +7,7 @@ import 'package:rctool/routers/RoutePath.dart';
 
 import '../controller/MusicController.dart';
 import '../feature/design/IconButtonNoRipple.dart';
-import '../utils/NotificationHelper.dart';
+import '../utils/notification_helper.dart';
 
 class MusicList extends StatefulWidget {
   const MusicList({super.key});
