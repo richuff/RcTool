@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/utils/SqlLiteConn/index.dart';
+import 'package:rctool/entity/MusicEntity/MusicList.dart';
+import 'package:rctool/utils/CommUtil.dart';
+import 'package:rctool/utils/SqlLiteConn/Index.dart';
 
+import '../../controller/IsDarkController.dart';
 import '../../controller/MusicController.dart';
-import '../../entity/Music.dart';
+import '../../utils/NotificationHelper.dart';
 
 class EverydayList extends StatefulWidget {
   const EverydayList({super.key});
@@ -14,20 +17,18 @@ class EverydayList extends StatefulWidget {
 
 class _EverydayList extends State<EverydayList> {
   MusicController musicController = Get.put(MusicController());
-  List<Music> msList = [];
+  IsDarkController isDarkController = Get.put(IsDarkController());
+  final NotificationHelper notificationHelper = NotificationHelper();
+
+  bool Indark = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      _loadMusicList();
-    });
-  }
-
-  Future<void> _loadMusicList() async {
-    msList = await SqlLiteConn.query();
-    setState(() {
-
+    isDarkController.addListener(() {
+      setState(() {
+        Indark = isDarkController.isDark.value;
+      });
     });
   }
 
@@ -38,10 +39,126 @@ class _EverydayList extends State<EverydayList> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              margin: const EdgeInsets.fromLTRB(5, 5, 0, 5),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "每日推荐".tr,
+                style: const TextStyle(
+                  fontSize: 30,
+                ),
+                textAlign: TextAlign.left,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.fromLTRB(5, 5, 0, 12),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Hi~ 为你准备了以下歌曲，请开始你的音乐之旅吧!".tr,
+                style: TextStyle(
+                    fontSize: 16,
+                    color: Indark
+                        ? const Color.fromARGB(140, 255, 255, 255)
+                        : const Color.fromARGB(140, 0, 0, 0)),
+                textAlign: TextAlign.left,
+              ),
+            ),
+            SizedBox(
+              height: 56,
+              child: Row(
+                children: [
+                  Flexible(
+                    flex: 2,
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.fromLTRB(8, 5, 2, 4),
+                      decoration: const BoxDecoration(boxShadow: [
+                        BoxShadow(color: Colors.black26, blurRadius: 2.0),
+                      ]),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                              left: 37,
+                              top: -8,
+                              child: IconButton(
+                                  splashColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.play_arrow_sharp,
+                                    size: 45,
+                                  ))),
+                          const Positioned(
+                              left: 90,
+                              top: 11,
+                              child: Text(
+                                "播放全部",
+                                style: TextStyle(fontSize: 20),
+                              ))
+                        ],
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.fromLTRB(5, 5, 2, 4),
+                      decoration: const BoxDecoration(boxShadow: [
+                        BoxShadow(color: Colors.black26, blurRadius: 2.0),
+                      ]),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                              left: 18,
+                              top: -4,
+                              child: IconButton(
+                                  splashColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.access_time_outlined,
+                                    size: 40,
+                                  )))
+                        ],
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.fromLTRB(5, 5, 6, 4),
+                      decoration: const BoxDecoration(boxShadow: [
+                        BoxShadow(color: Colors.black26, blurRadius: 2.0),
+                      ]),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                              left: 18,
+                              top: -4,
+                              child: IconButton(
+                                  splashColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.favorite_border,
+                                    size: 40,
+                                  )))
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
             Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: msList.map((element) {
+                children: allmusiclist.map((element) {
                   return Stack(
                     children: [
                       const SizedBox(
@@ -80,7 +197,7 @@ class _EverydayList extends State<EverydayList> {
                             height: 75,
                             decoration: BoxDecoration(
                               image: DecorationImage(
-                                  image: NetworkImage(element.imageUrl),
+                                  image: NetworkImage(element['imageUrl']!),
                                   fit: BoxFit.cover),
                               color: Colors.pink[100],
                               borderRadius:
@@ -91,20 +208,30 @@ class _EverydayList extends State<EverydayList> {
                         left: 90,
                         bottom: 30,
                         child: Text(
-                            "${element.songName}  -----  ${element.decoration}"),
+                            "${element['songName']}  -----  ${element['decoration']}"),
                       ),
                       Positioned(
                           right: 10,
                           bottom: 18,
                           child: IconButton(
-                              onPressed: () => {
-                                    musicController.inc(
-                                        element.url,
-                                        element.imageUrl,
-                                        element.songName,
-                                        element.decoration,
-                                        element.isFavorite)
-                                  },
+                              onPressed: () {
+                                musicController.inc(
+                                    element['url']!,
+                                    element['imageUrl']!,
+                                    element['songName']!,
+                                    element['decoration']!,
+                                    CommUtil.parseBool(element['isFavorite']));
+                                notificationHelper.showNewMusicNotification(
+                                    title: "当前正在播放".tr,
+                                    body:
+                                        "${element['songName']}  -----  ${element['decoration']}");
+                                SqlLiteConn.queryByUrlAndInsert(
+                                    element['url']!,
+                                    element['imageUrl']!,
+                                    element['songName']!,
+                                    element['decoration']!,
+                                    CommUtil.parseBool(element['isFavorite']));
+                              },
                               icon: const Icon(
                                 Icons.play_arrow_sharp,
                                 color: Colors.white,
