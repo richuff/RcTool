@@ -6,7 +6,7 @@ import 'package:rctool/page/MusicPages/MusicChoose.dart';
 import 'package:rctool/page/MusicPages/MusicLike.dart';
 import 'package:rctool/page/MusicPages/MusicPage.dart';
 import 'package:rctool/page/LiveTod.dart';
-import 'package:rctool/page/RankingPage/Ranking.dart';
+import 'package:rctool/page/RankingPage/ranking.dart';
 import 'package:rctool/page/RecommendPages/RecommendMusic.dart';
 import 'package:rctool/routers/RoutePath.dart';
 

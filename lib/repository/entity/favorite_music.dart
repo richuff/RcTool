@@ -1,0 +1,25 @@
+class FavoriteMusic{
+  String id;
+  String musicId;
+
+  FavoriteMusic(this.id,this.musicId);
+
+  @override
+  String toString() {
+    return 'FavoriteMusic{id: $id, musicId: $musicId}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is FavoriteMusic && other.id == id && other.musicId == musicId) {
+      return true;
+    }
+    return false;
+  }
+
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'musicId': musicId};
+  }
+}
