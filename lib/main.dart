@@ -6,7 +6,7 @@ import 'package:rctool/routers/Index.dart';
 import 'package:rctool/utils/my_message.dart';
 import 'package:rctool/utils/notification_helper.dart';
 import 'package:rctool/utils/PermissionRequest/Index.dart';
-import 'package:rctool/utils/SqlLiteConn/Index.dart';
+import 'package:rctool/repository/SqlLiteConn/index.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/main_drawer.dart';
 import 'package:rctool/widget/search_widget.dart';

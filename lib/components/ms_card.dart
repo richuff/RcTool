@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/utils/SqlLiteConn/Index.dart';
+import 'package:rctool/repository/SqlLiteConn/favorite_conn.dart';
+import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 
-import '../controller/MusicController.dart';
+import '../controller/music_controller.dart';
 import '../utils/notification_helper.dart';
 
 class MSCard extends StatefulWidget {
+  final int? id;
   final String url;
   final String image;
   final String decoration;
   final String songName;
-  final bool isFavorite;
 
-  const MSCard(this.url, this.image, this.songName, this.decoration,this.isFavorite,
+  const MSCard(this.id,this.url, this.image, this.songName, this.decoration,
       {super.key});
 
   @override
@@ -26,9 +27,11 @@ class _MSCard extends State<MSCard> {
   bool isFavorite = false;
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
-    isFavorite = widget.isFavorite;
+    if (widget.id != null){
+      isFavorite = await FavoriteConn.queryByMusicAndCheckFavorite(widget.id ?? 0);
+    }
   }
 
   @override
@@ -64,7 +67,7 @@ class _MSCard extends State<MSCard> {
                               setState(() {
                                 isFavorite = !isFavorite;
                               });
-                          SqlLiteConn.queryByUrlAndUpdateFav(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
+                          MusicConn.queryByUrlAndUpdateFav(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
                     },
                         icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border)),
                   ),
@@ -83,7 +86,7 @@ class _MSCard extends State<MSCard> {
                     iconSize: 35,
                     onPressed: (){
                       if (widget.url != ""){
-                        musicController.inc(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
+                        musicController.inc(widget.id,widget.url,widget.image,widget.songName,widget.decoration);
                         notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "${widget.songName}  -----  ${widget.decoration}");
                       }
                     },
