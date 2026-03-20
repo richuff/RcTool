@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/repository/SqlLiteConn/favorite_conn.dart';
-import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 
 import '../controller/music_controller.dart';
 import '../utils/notification_helper.dart';
@@ -67,7 +66,9 @@ class _MSCard extends State<MSCard> {
                               setState(() {
                                 isFavorite = !isFavorite;
                               });
-                          MusicConn.queryByUrlAndUpdateFav(widget.url,widget.image,widget.songName,widget.decoration,isFavorite);
+                          if (widget.id != null){
+                            FavoriteConn.deleteByMusicId(widget.id ?? 0);
+                          }
                     },
                         icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border)),
                   ),

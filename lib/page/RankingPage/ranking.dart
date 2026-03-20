@@ -1,12 +1,11 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 
 import '../../feature/design/IconButtonNoRipple.dart';
-import '../../widget/BackGround/MusicBackGround.dart';
-import '../../widget/MainDrawer.dart';
-import '../../widget/SearchWidget.dart';
+import '../../widget/main_drawer.dart';
+import '../../widget/search_widget.dart';
 
 class Ranking extends StatefulWidget{
   const Ranking({super.key});
@@ -54,7 +53,7 @@ class _Ranking extends State<Ranking> {
           actions: const [SearchWidget()]),
       body: Container(
           width: double.infinity,
-          decoration: musicBackGround(),
+          decoration: BackGroundEnum.musicBackGround.decoration,
           child: Column(children: [
             Flexible(
                 child: ScrollConfiguration(
@@ -64,7 +63,7 @@ class _Ranking extends State<Ranking> {
                       PointerDeviceKind.touch,
                       PointerDeviceKind.mouse,
                     }),
-                    child: Text("data")
+                    child: const Text("data")
                 )),
           ])),
     );

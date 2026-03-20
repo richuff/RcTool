@@ -1,6 +1,6 @@
 class FavoriteMusic{
-  String id;
-  String musicId;
+  int id;
+  int musicId;
 
   FavoriteMusic(this.id,this.musicId);
 

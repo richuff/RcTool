@@ -1,17 +1,22 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/widget/Settingdialog.dart';
+import 'package:rctool/widget/setting_dialog.dart';
 
 import '../iconfont/RcIcon.dart';
 import '../routers/RoutePath.dart';
 
+
+/// @ClassName MainDrawer
+/// @Description 主菜单窗口
+/// @Author richuff
+/// @Date 2024-10-12
+/// @Version 1.0
 class MainDrawer extends StatelessWidget {
   
   final closeDrawer;
 
-  MainDrawer(this.closeDrawer);
-  
+  const MainDrawer(this.closeDrawer, {super.key});
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -63,9 +68,8 @@ class MainDrawer extends StatelessWidget {
             title: Text('设置'.tr),
             onTap: () {
               closeDrawer();
-              //Get.toNamed(RoutePath.ABOUT);
               showDialog(context: context, builder:(context){
-                return Settingdialog();
+                return const SettingDialog();
               });
             },
           ),

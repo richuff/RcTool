@@ -43,7 +43,7 @@ class FavoriteConn{
     return MusicConn.queryByIds(ids);
   }
 
-  static Future<void> updateMusicByUrl(FavoriteMusic favoriteMusic) async {
+  static Future<void> updateByMusicId(FavoriteMusic favoriteMusic) async {
     final db = await _db;
 
     await db.update(
@@ -54,7 +54,7 @@ class FavoriteConn{
     );
   }
 
-  static Future<void> deleteByUrl(String id) async {
+  static Future<void> deleteByMusicId(int id) async {
     final db = await _db;
 
     await db.delete(

@@ -216,8 +216,7 @@ class _EverydayList extends State<EverydayList> {
                           child: IconButton(
                               onPressed: () {
                                 //incMusicOld(element);
-
-                                Get.back();
+                                incMusic(element);
                               },
                               icon: musicController.isplay.value && musicController.getPlaySongName() == element['songName'] ? const Icon(
                                 Icons.pause,
@@ -252,6 +251,7 @@ class _EverydayList extends State<EverydayList> {
         title: "当前正在播放".tr,
         body:
         "${element['songName']}  -----  ${element['decoration']}");
+    Get.back();
   }
 
   @Deprecated("不使用controller插入")
@@ -272,5 +272,6 @@ class _EverydayList extends State<EverydayList> {
         element['songName']!,
         element['decoration']!,
         CommUtil.parseBool(element['isFavorite']));
+    Get.back();
   }
 }

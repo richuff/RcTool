@@ -20,7 +20,7 @@ class _LeftToolbar extends State<LeftToolbar> {
             Get.toNamed(RoutePath.RECOMMEND);
           },
           child: Container(
-            width: 150,
+            width: 145,
             margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
             decoration: BoxDecoration(
                 color: Colors.yellow[100],
@@ -61,7 +61,7 @@ class _LeftToolbar extends State<LeftToolbar> {
             Get.toNamed(RoutePath.MUSICLIKE);
           },
           child: Container(
-            width: 150,
+            width: 145,
             margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
             decoration: BoxDecoration(
                 color: Colors.blue[100],

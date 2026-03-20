@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/controller/IsDarkController.dart';
+import 'package:rctool/controller/is_dark_controller.dart';
 import 'package:rctool/iconfont/RcIcon.dart';
 
 import '../feature/design/IconButtonNoRipple.dart';
