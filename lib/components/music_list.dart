@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:headset_connection_event/headset_event.dart';
 import 'package:rctool/routers/RoutePath.dart';
 
-import '../controller/MusicController.dart';
+import '../controller/music_controller.dart';
 import '../feature/design/IconButtonNoRipple.dart';
 import '../utils/notification_helper.dart';
 
@@ -153,7 +153,7 @@ class _MusicList extends State<MusicList> {
         Positioned(
           left: 70,
           bottom: -3,
-          child: Container(
+          child: SizedBox(
             width: 300,
             child: Slider(
               min: 0.0,

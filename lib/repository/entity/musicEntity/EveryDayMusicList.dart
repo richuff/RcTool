@@ -6,7 +6,7 @@ var everydaymusiclist = [
     "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
     "songName": "Cry For Me(feat.Ami)",
     "decoration": "Michita",
-    "isFavorite":"true"
+    "isFavorite":"false"
   },
   {
     "url":
@@ -42,7 +42,7 @@ var everydaymusiclist = [
     "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
     "songName": "ただ声一つ",
     "decoration": "ロクデナシ",
-    "isFavorite":"true"
+    "isFavorite":"false"
   }
 ];
 

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/entity/MusicEntity/MusicList.dart';
-import 'package:rctool/utils/CommUtil.dart';
-import 'package:rctool/utils/SqlLiteConn/Index.dart';
+import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
+import 'package:rctool/utils/comm_util.dart';
 
-import '../../controller/IsDarkController.dart';
-import '../../controller/MusicController.dart';
-import '../../utils/NotificationHelper.dart';
+import '../../controller/is_dark_controller.dart';
+import '../../controller/music_controller.dart';
+import '../../repository/entity/musicEntity/MusicList.dart';
+import '../../utils/notification_helper.dart';
 
 class EverydayList extends StatefulWidget {
   const EverydayList({super.key});
@@ -20,14 +20,14 @@ class _EverydayList extends State<EverydayList> {
   IsDarkController isDarkController = Get.put(IsDarkController());
   final NotificationHelper notificationHelper = NotificationHelper();
 
-  bool Indark = false;
+  bool inDark = false;
 
   @override
   void initState() {
     super.initState();
     isDarkController.addListener(() {
       setState(() {
-        Indark = isDarkController.isDark.value;
+        inDark = isDarkController.isDark.value;
       });
     });
   }
@@ -57,7 +57,7 @@ class _EverydayList extends State<EverydayList> {
                 "Hi~ 为你准备了以下歌曲，请开始你的音乐之旅吧!".tr,
                 style: TextStyle(
                     fontSize: 16,
-                    color: Indark
+                    color: inDark
                         ? const Color.fromARGB(140, 255, 255, 255)
                         : const Color.fromARGB(140, 0, 0, 0)),
                 textAlign: TextAlign.left,
@@ -215,24 +215,14 @@ class _EverydayList extends State<EverydayList> {
                           bottom: 18,
                           child: IconButton(
                               onPressed: () {
-                                musicController.inc(
-                                    element['url']!,
-                                    element['imageUrl']!,
-                                    element['songName']!,
-                                    element['decoration']!,
-                                    CommUtil.parseBool(element['isFavorite']));
-                                notificationHelper.showNewMusicNotification(
-                                    title: "当前正在播放".tr,
-                                    body:
-                                        "${element['songName']}  -----  ${element['decoration']}");
-                                SqlLiteConn.queryByUrlAndInsert(
-                                    element['url']!,
-                                    element['imageUrl']!,
-                                    element['songName']!,
-                                    element['decoration']!,
-                                    CommUtil.parseBool(element['isFavorite']));
+                                //incMusicOld(element);
+
+                                Get.back();
                               },
-                              icon: const Icon(
+                              icon: musicController.isplay.value && musicController.getPlaySongName() == element['songName'] ? const Icon(
+                                Icons.pause,
+                                color: Colors.white,
+                              ) :const Icon(
                                 Icons.play_arrow_sharp,
                                 color: Colors.white,
                               ))),
@@ -241,5 +231,46 @@ class _EverydayList extends State<EverydayList> {
                 }).toList())
           ],
         ));
+  }
+
+  void incMusic(Map<String, String> element) async {
+    int? insertId = await MusicConn.queryByNameAndInsertMusic(
+        element['url']!,
+        element['imageUrl']!,
+        element['songName']!,
+        element['decoration']!);
+    if (insertId == null) {
+      return;
+    }
+    musicController.inc(
+        insertId,
+        element['url']!,
+        element['imageUrl']!,
+        element['songName']!,
+        element['decoration']!);
+    notificationHelper.showNewMusicNotification(
+        title: "当前正在播放".tr,
+        body:
+        "${element['songName']}  -----  ${element['decoration']}");
+  }
+
+  @Deprecated("不使用controller插入")
+  void incMusicOld(Map<String, String> element) {
+    musicController.incOld(
+        element['url']!,
+        element['imageUrl']!,
+        element['songName']!,
+        element['decoration']!,
+        CommUtil.parseBool(element['isFavorite']));
+    notificationHelper.showNewMusicNotification(
+        title: "当前正在播放".tr,
+        body:
+            "${element['songName']}  -----  ${element['decoration']}");
+    MusicConn.queryByUrlAndInsert(
+        element['url']!,
+        element['imageUrl']!,
+        element['songName']!,
+        element['decoration']!,
+        CommUtil.parseBool(element['isFavorite']));
   }
 }

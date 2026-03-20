@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/repository/SqlLiteConn/favorite_conn.dart';
+import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 
-import '../../controller/MusicController.dart';
-import '../../entity/Music.dart';
-import '../../utils/SqlLiteConn/Index.dart';
+import '../../controller/music_controller.dart';
+import '../../repository/entity/Music.dart';
 
 class MusicLikeList extends StatefulWidget {
   const MusicLikeList({super.key});
@@ -27,7 +28,7 @@ class _MusicLikeList extends State<MusicLikeList> {
   }
 
   Future<void> _loadMusicList() async {
-    likeList = await SqlLiteConn.queryByFavorite();
+    likeList = await FavoriteConn.queryFavoriteMusic();
     setState(() {});
   }
 
@@ -98,12 +99,12 @@ class _MusicLikeList extends State<MusicLikeList> {
                           bottom: 18,
                           child: IconButton(
                               onPressed: () {
-                                Music music = Music(element.url,
+                                Music music = Music(element.id,
+                                    element.url,
                                     element.imageUrl,
                                     element.songName,
-                                    element.decoration,
-                                    false);
-                                SqlLiteConn.updateMusicByUrl(music);
+                                    element.decoration);
+                                MusicConn.updateMusicByUrl(music);
                                 //musicController.upDateFavorite(music);
                                 likeList.remove(music);
                                 _loadMusicList();

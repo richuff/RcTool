@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 
-import '../../controller/MusicController.dart';
-import '../../utils/SqlLiteConn/Index.dart';
+import '../../controller/music_controller.dart';
 
 class MusicChooseList extends StatefulWidget {
   const MusicChooseList({super.key});
@@ -96,7 +96,7 @@ class _MusicChooseList extends State<MusicChooseList> {
                           child: IconButton(
                               onPressed: (){
                                 musicController.dec(element);
-                                SqlLiteConn.deleteByUrl(element.url);
+                                MusicConn.deleteByUrl(element.url);
                                 setState(() {
                                   chooseList.remove(element);
                                 });

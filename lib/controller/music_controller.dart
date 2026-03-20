@@ -1,9 +1,10 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
-import 'package:rctool/entity/Music.dart';
+import 'package:rctool/repository/entity/music_old.dart';
 
-import '../utils/NotificationHelper.dart';
+import '../repository/entity/Music.dart';
+import '../utils/notification_helper.dart';
 
 class MusicController extends GetxController {
   RxList musiclist = [].obs;
@@ -40,11 +41,11 @@ class MusicController extends GetxController {
     await player.play(UrlSource(file.path));
   }
 
-  inc(String url,String imageUrl,String songName,String decoration,bool isFavorite) async {
-    Music music = Music(url, imageUrl, songName, decoration,isFavorite);
-    for (Music lmusic in musiclist){
-      if (music == lmusic){
-        playAt(lmusic);
+  inc(int? id,String url,String imageUrl,String songName,String decoration) async {
+    Music music = Music(id,url, imageUrl, songName, decoration);
+    for (Music lMusic in musiclist){
+      if (music == lMusic){
+        playAt(lMusic);
         return;
       }
     }
@@ -59,6 +60,28 @@ class MusicController extends GetxController {
 
     playLocal();
   }
+
+  @Deprecated("废弃isFavorite字段")
+  incOld(String url,String imageUrl,String songName,String decoration,bool isFavorite) async {
+    MusicOld music = MusicOld(url, imageUrl, songName, decoration,isFavorite);
+    for (MusicOld lmusic in musiclist){
+      if (music == lmusic){
+        playAt(lmusic as Music);
+        return;
+      }
+    }
+
+    musiclist.add(music);
+    update();
+
+    player.stop();
+    position.value = musiclist.length-1;
+    isplay.value = false;
+    update();
+
+    playLocal();
+  }
+
   dec(Music music){
     musiclist.remove(music);
     if (position.value > 0){
@@ -89,7 +112,17 @@ class MusicController extends GetxController {
     }
   }
 
-
+  playAway() async {
+    if (musiclist.isNotEmpty){
+      isplay.value = true;
+      update();
+      await playCachedAudio(musiclist[position.value].url);
+      totalDuration = await player.getDuration();
+      player.onDurationChanged.listen((Duration duration) {
+        totalDuration = duration;
+      });
+    }
+  }
 
   playAt(Music music) async {
     for (int i=0;i<musiclist.length;i++){
@@ -110,8 +143,8 @@ class MusicController extends GetxController {
     if (musiclist.isNotEmpty) {
       position.value =
           (position.value - 1 + musiclist.length) % musiclist.length;
-      isplay.value = false;
-      update();
+      player.stop();
+      onPause();
       playLocal();
     }
   }
@@ -119,9 +152,8 @@ class MusicController extends GetxController {
   skipNext() async{
     if (musiclist.isNotEmpty) {
       position.value = (position.value + 1) % musiclist.length;
-      isplay.value = false;
-      update();
-
+      player.stop();
+      onPause();
       playLocal();
     }
   }
@@ -134,6 +166,7 @@ class MusicController extends GetxController {
       }
     }
   }
+
   //设置播放进度条
   void setPosition(double sliderValue) {
     double proportion = (sliderValue - 1) / 99;
@@ -143,18 +176,17 @@ class MusicController extends GetxController {
     }
   }
 
+  //播放下一首
   void playNextLocal() async {
     if (musiclist.isNotEmpty){
-      if (isplay.isFalse) {
+      if (isplay.isFalse && musiclist.length > 1) {
         isplay.value = true;
         await playCachedAudio(musiclist[(position.value + 1) % musiclist.length].url);
 
         position.value = (position.value + 1) % musiclist.length;
         update();
       } else {
-        isplay.value = false;
-        player.pause();
-        update();
+        onPause();
       }
 
       //通知栏显示要播放的下一首歌
@@ -166,5 +198,19 @@ class MusicController extends GetxController {
         totalDuration = duration;
       });
     }
+  }
+
+  upDateFavorite(Music music) {
+    for (int i=0;i<musiclist.length;i++){
+      if (musiclist[i].url == music.url){
+        musiclist[i] = music;
+        update();
+        break;
+      }
+    }
+  }
+
+  String getPlaySongName(){
+    return musiclist[position.value].songName;
   }
 }
