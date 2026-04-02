@@ -43,8 +43,8 @@ class IconButtonNoRipple extends StatelessWidget {
   final bool? isSelected;
   final Widget? selectedIcon;
 
-  IconButtonNoRipple(
-      {required this.onPressed,
+  const IconButtonNoRipple(
+      {super.key, required this.onPressed,
       required this.icon,
       this.iconSize,
       this.visualDensity,

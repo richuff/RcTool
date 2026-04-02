@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:rctool/widget/SearchWidget.dart';
+import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import 'package:rctool/widget/search_widget.dart';
 
-import '../feature/design/IconButtonNoRipple.dart';
-import '../widget/BackGround/LivetodBackGround.dart';
-import '../widget/MainDrawer.dart';
+import '../feature/design/icon_button_no_ripple.dart';
+import '../widget/main_drawer.dart';
 
 class LiveTod extends StatefulWidget {
   const LiveTod({super.key});
@@ -50,7 +50,7 @@ class _LiveTod extends State<LiveTod> {
               SearchWidget()
             ]),
         body: Container(
-            decoration:livetodBackGround(),
+            decoration:BackGroundEnum.livetodBackGround.decoration,
             child: ListView(
               children:[
                 Text(

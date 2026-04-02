@@ -5,7 +5,7 @@ import 'package:rctool/utils/comm_util.dart';
 
 import '../../controller/is_dark_controller.dart';
 import '../../controller/music_controller.dart';
-import '../../repository/entity/musicEntity/MusicList.dart';
+import '../../repository/entity/musicEntity/music_list.dart';
 import '../../utils/notification_helper.dart';
 
 class EverydayList extends StatefulWidget {
@@ -214,26 +214,38 @@ class _EverydayList extends State<EverydayList> {
                           right: 10,
                           bottom: 18,
                           child: IconButton(
-                              onPressed: () async {
-                                int? insertId = await MusicConn.queryByNameAndInsertMusic(
-                                    element['url']!,
-                                    element['imageUrl']!,
-                                    element['songName']!,
-                                    element['decoration']!);
-                                if (insertId == null) {
-                                  return;
-                                }
-                                musicController.inc(
-                                    insertId,
-                                    element['url']!,
-                                    element['imageUrl']!,
-                                    element['songName']!,
-                                    element['decoration']!);
-                                notificationHelper.showNewMusicNotification(
-                                    title: "当前正在播放".tr,
-                                    body:
-                                    "${element['songName']}  -----  ${element['decoration']}");
-                                Get.back();
+                              onPressed: () {
+                                () async {
+                                  try {
+                                    final url = element['url'];
+                                    final imageUrl = element['imageUrl'];
+                                    final songName = element['songName'];
+                                    final decoration = element['decoration'];
+
+                                    if (url == null || imageUrl == null || songName == null || decoration == null) {
+                                      return;
+                                    }
+
+                                    int? insertId = await MusicConn.queryByNameAndInsertMusic(
+                                      url,
+                                      imageUrl,
+                                      songName,
+                                      decoration,
+                                    );
+
+                                    if (insertId != null) {
+                                      musicController.inc(insertId, url, imageUrl, songName, decoration);
+
+                                      notificationHelper.showNewMusicNotification(
+                                        title: "当前正在播放".tr,
+                                        body: "$songName - $decoration",
+                                      );
+
+                                      Get.back();
+                                    }
+                                  } catch (e) {
+                                  }
+                                }();
                               },
                               icon: musicController.isplay.value && musicController.getPlaySongName() == element['songName'] ? const Icon(
                                 Icons.pause,

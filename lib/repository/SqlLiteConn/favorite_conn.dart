@@ -6,9 +6,10 @@ import '../entity/Music.dart';
 import '../entity/favorite_music.dart';
 
 class FavoriteConn{
-  static Future<Database> get _db async => await SqlLiteConn.dataBase;
 
-  static Future<void> insertFavoriteMusic(FavoriteMusic favoriteMusic, dynamic db) async {
+  static Future<void> insertFavoriteMusic(int musicId) async {
+    final db = await SqlLiteConn.dataBase;
+    var favoriteMusic = FavoriteMusic(musicId: musicId);
     await db.insert(
       'favorite_music',
       favoriteMusic.toMap(),
@@ -16,20 +17,20 @@ class FavoriteConn{
     );
   }
 
-  static Future<bool> queryByMusicAndCheckFavorite(int id) async {
-    final db = await _db;
+  static Future<bool> queryByMusicAndCheckFavorite(int musicId) async {
+    final db = await SqlLiteConn.dataBase;
 
     final List<Map<String, Object?>> musicFavoriteList = await db.query(
       'favorite_music',
       where: 'musicId = ?',
-      whereArgs: [id],
+      whereArgs: [musicId],
     );
 
     return musicFavoriteList.isNotEmpty;
   }
 
   static Future<List<Music>> queryFavoriteMusic() async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     final List<Map<String, Object?>> favoriteMusicList = await db.query(
       'favorite_music',
@@ -44,7 +45,7 @@ class FavoriteConn{
   }
 
   static Future<void> updateByMusicId(FavoriteMusic favoriteMusic) async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     await db.update(
       'favorite_music',
@@ -55,7 +56,7 @@ class FavoriteConn{
   }
 
   static Future<void> deleteByMusicId(int id) async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     await db.delete(
       'favorite_music',

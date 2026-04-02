@@ -1,21 +1,20 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import '../../components/MusicListCP/music_like_list.dart';
+import '../../feature/design/icon_button_no_ripple.dart';
+import '../../widget/main_drawer.dart';
+import '../../widget/search_widget.dart';
 
-import '../../components/MusicListCP/MusicChooseList.dart';
-import '../../widget/BackGround/MusicBackGround.dart';
-import '../../widget/MainDrawer.dart';
-import '../../widget/SearchWidget.dart';
-
-class MusicChoose extends StatefulWidget {
-  const MusicChoose({super.key});
+class MusicLike extends StatefulWidget {
+  const MusicLike({super.key});
 
   @override
-  State<MusicChoose> createState() => _MusicChoose();
+  State<MusicLike> createState() => _MusicLike();
 }
 
-class _MusicChoose extends State<MusicChoose> {
-
+class _MusicLike extends State<MusicLike> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -33,13 +32,13 @@ class _MusicChoose extends State<MusicChoose> {
               const Padding(padding: EdgeInsets.only(top: 8)),
               Padding(
                 padding: const EdgeInsets.only(left: 10),
-                child: IconButton(
+                child: IconButtonNoRipple(
                   hoverColor: Colors.pink[100],
                   focusColor: Colors.pink[100],
                   highlightColor: Colors.pink[200],
                   alignment: Alignment.bottomCenter,
                   icon: const Icon(
-                    Icons.list,
+                    Icons.menu,
                     size: 26,
                   ),
                   color: Colors.black,
@@ -50,21 +49,20 @@ class _MusicChoose extends State<MusicChoose> {
               ),
             ]);
           }),
-          actions: [SearchWidget()]),
+          actions: const [SearchWidget()]),
       body: Container(
-        width: double.infinity,
-          decoration: musicBackGround(),
+          width: double.infinity,
+          decoration: BackGroundEnum.musicBackGround.decoration,
           child: Column(children: [
             Flexible(
                 child: ScrollConfiguration(
-              behavior: ScrollConfiguration.of(context)
-                  .copyWith(scrollbars: false, dragDevices: {
-                //必须设置此事件，不然无法滚动
-                PointerDeviceKind.touch,
-                PointerDeviceKind.mouse,
-              }),
-              child: const MusicChooseList()
-            )),
+                    behavior: ScrollConfiguration.of(context)
+                        .copyWith(scrollbars: false, dragDevices: {
+                      //必须设置此事件，不然无法滚动
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                    }),
+                    child: const MusicLikeList())),
           ])),
     );
   }

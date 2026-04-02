@@ -1,8 +1,11 @@
 class FavoriteMusic{
-  int id;
+  int? id;
   int musicId;
 
-  FavoriteMusic(this.id,this.musicId);
+  FavoriteMusic({
+    this.id,
+    required this.musicId,
+  });
 
   @override
   String toString() {

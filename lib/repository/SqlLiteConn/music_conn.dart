@@ -7,9 +7,9 @@ import '../entity/Music.dart';
 
 
 class MusicConn {
-  static Future<Database> get _db async => await SqlLiteConn.dataBase;
 
-  static Future<int> insertMusic(Music music, dynamic db) async {
+  static Future<int> insertMusic(Music music) async {
+    final db = await SqlLiteConn.dataBase;
     int insertId = await db.insert(
       'music',
       music.toMap(),
@@ -27,8 +27,8 @@ class MusicConn {
     // 关键：id 传 null，让数据库自动生成
     Music music = Music(null, url, imageUrl, songName, decoration);
 
-    final db = await _db;
 
+    final db = await SqlLiteConn.dataBase;
     final List<Map<String, Object?>> musicList = await db.query(
       'music',
       where: 'songName = ?',
@@ -36,13 +36,13 @@ class MusicConn {
     );
 
     if (musicList.isEmpty) {
-      return await insertMusic(music, db);
+      return await insertMusic(music);
     }
     return null;
   }
 
   static Future<List<Music>> queryByIds(List<int> ids) async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     // 生成占位符：?, ?, ?
     final placeholders = List.filled(ids.length, '?').join(',');
@@ -67,7 +67,7 @@ class MusicConn {
   }
 
   static Future<List<Music>> queryAll() async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     final List<Map<String, Object?>> musicList = await db.query(
       'music',
@@ -87,7 +87,7 @@ class MusicConn {
   }
 
   static Future<void> updateMusicByUrl(Music music) async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     await db.update(
       'music',
@@ -98,7 +98,7 @@ class MusicConn {
   }
 
   static Future<void> deleteByUrl(String url) async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     await db.delete(
       'music',
@@ -109,7 +109,7 @@ class MusicConn {
 
   @Deprecated("废除isFavorite字段")
   static Future<List<MusicOld>> query() async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     final List<Map<String, Object?>> musicList = await db.query(
       'music',
@@ -146,7 +146,7 @@ class MusicConn {
       bool isFavorite,
       ) async {
     MusicOld music = MusicOld(url, imageUrl, songName, decoration, isFavorite);
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     final List<Map<String, Object?>> musicList = await db.query(
       'music',
@@ -170,7 +170,7 @@ class MusicConn {
       bool isFavorite,
       ) async {
     MusicOld music = MusicOld(url, imageUrl, songName, decoration, isFavorite);
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     final List<Map<String, Object?>> musicList = await db.query(
       'music',
@@ -182,7 +182,7 @@ class MusicConn {
 
   @Deprecated("废除isFavorite字段")
   static Future<List<MusicOld>> queryByFavorite() async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     final List<Map<String, Object?>> musicList = await db.query(
       'music',
@@ -204,7 +204,7 @@ class MusicConn {
 
   @Deprecated("采用喜欢音乐表进行存储")
   static Future<void> updateMusicByFavorite(MusicOld music, int id) async {
-    final db = await _db;
+    final db = await SqlLiteConn.dataBase;
 
     await db.update(
       'music',

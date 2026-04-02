@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/iconfont/RcIcon.dart';
-import 'package:rctool/widget/SearchWidget.dart';
+import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import 'package:rctool/widget/search_widget.dart';
+
+import '../feature/design/icon_button_no_ripple.dart';
+import '../widget/main_drawer.dart';
 
 class AboutAuthor extends StatefulWidget {
   const AboutAuthor({super.key});
@@ -16,53 +19,10 @@ class _AboutAuthor extends State<AboutAuthor> {
   Widget build(BuildContext context) {
     return Scaffold(
         key: scaffoldKey,
-        drawer: Drawer(
-          width: 250,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              SizedBox(
-                height: 100.0,
-                child: DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Colors.pink[200],
-                    ),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 40.0, // 设置高度
-                          alignment: Alignment.center,
-                          child: Text(
-                            '工具箱'.tr ,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.music_note),
-                title: Text('听音乐'.tr),
-                onTap: () {
-                  scaffoldKey.currentState?.closeDrawer();
-                  Get.toNamed("/music");
-                },
-              ),
-              ListTile(
-                leading: const Icon(RcIcon.livetod),
-                title: Text('live2d'.tr),
-                onTap: () {
-                  scaffoldKey.currentState?.closeDrawer();
-                  Get.toNamed("/livetod");
-                },
-              ),
-            ],
-          ),
-        ),
+        drawerScrimColor: Colors.transparent,
+        drawer: MainDrawer((){
+          scaffoldKey.currentState?.closeDrawer();
+        }),
         appBar: AppBar(
             backgroundColor: Colors.pink[50],
             leading: Builder(builder: (context) {
@@ -70,13 +30,13 @@ class _AboutAuthor extends State<AboutAuthor> {
                 const Padding(padding: EdgeInsets.only(top: 8)),
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: IconButton(
+                  child: IconButtonNoRipple(
                     hoverColor: Colors.pink[100],
                     focusColor: Colors.pink[100],
                     highlightColor: Colors.pink[200],
                     alignment: Alignment.bottomCenter,
                     icon: const Icon(
-                      Icons.list,
+                      Icons.menu,
                       size: 26,
                     ),
                     color: Colors.black,
@@ -87,17 +47,11 @@ class _AboutAuthor extends State<AboutAuthor> {
                 ),
               ]);
             }),
-            actions: [
+            actions: const [
               SearchWidget()
             ]),
         body: Container(
-          decoration:const BoxDecoration(
-            image: DecorationImage(
-              opacity: 0.1,
-                image: NetworkImage("https://p0.meituan.net/csc/ac442b7297cabb92da0ad4f114b22660667771.jpg",),
-                fit:BoxFit.cover
-            ),
-          ),
+          decoration: BackGroundEnum.aboutBackGround.decoration,
           child: ListView(
             children:[
               Text(
@@ -112,10 +66,10 @@ class _AboutAuthor extends State<AboutAuthor> {
                 height: 20,
               ),
               ListTile(
-                title: Text("关于作者".tr, style: TextStyle(color: Colors.black,fontSize: 18)),
+                title: Text("关于作者".tr, style: const TextStyle(color: Colors.black,fontSize: 18)),
                 subtitle: Text(
                   "一".tr,
-                  style: TextStyle(color: Colors.black,fontSize: 14),
+                  style: const TextStyle(color: Colors.black,fontSize: 14),
                 ),
                 leading: ClipOval(
                   child: Image.network(
@@ -132,11 +86,11 @@ class _AboutAuthor extends State<AboutAuthor> {
               ListTile(
                 title: Text(
                   "作者的话".tr,
-                  style: TextStyle(color: Colors.black,fontSize: 18),
+                  style: const TextStyle(color: Colors.black,fontSize: 18),
                 ),
                 subtitle: Text(
                   "二".tr,
-                  style: TextStyle(color: Colors.black,fontSize: 14),
+                  style: const TextStyle(color: Colors.black,fontSize: 14),
                 ),
                 leading: ClipOval(
                   child: Image.network(
