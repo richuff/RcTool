@@ -214,9 +214,26 @@ class _EverydayList extends State<EverydayList> {
                           right: 10,
                           bottom: 18,
                           child: IconButton(
-                              onPressed: () {
-                                //incMusicOld(element);
-                                incMusic(element);
+                              onPressed: () async {
+                                int? insertId = await MusicConn.queryByNameAndInsertMusic(
+                                    element['url']!,
+                                    element['imageUrl']!,
+                                    element['songName']!,
+                                    element['decoration']!);
+                                if (insertId == null) {
+                                  return;
+                                }
+                                musicController.inc(
+                                    insertId,
+                                    element['url']!,
+                                    element['imageUrl']!,
+                                    element['songName']!,
+                                    element['decoration']!);
+                                notificationHelper.showNewMusicNotification(
+                                    title: "当前正在播放".tr,
+                                    body:
+                                    "${element['songName']}  -----  ${element['decoration']}");
+                                Get.back();
                               },
                               icon: musicController.isplay.value && musicController.getPlaySongName() == element['songName'] ? const Icon(
                                 Icons.pause,
@@ -230,28 +247,6 @@ class _EverydayList extends State<EverydayList> {
                 }).toList())
           ],
         ));
-  }
-
-  void incMusic(Map<String, String> element) async {
-    int? insertId = await MusicConn.queryByNameAndInsertMusic(
-        element['url']!,
-        element['imageUrl']!,
-        element['songName']!,
-        element['decoration']!);
-    if (insertId == null) {
-      return;
-    }
-    musicController.inc(
-        insertId,
-        element['url']!,
-        element['imageUrl']!,
-        element['songName']!,
-        element['decoration']!);
-    notificationHelper.showNewMusicNotification(
-        title: "当前正在播放".tr,
-        body:
-        "${element['songName']}  -----  ${element['decoration']}");
-    Get.back();
   }
 
   @Deprecated("不使用controller插入")

@@ -40,7 +40,7 @@ class _LeftToolbar extends State<LeftToolbar> {
                     top: 8,
                     child: Text(
                       "每日推荐".tr,
-                      style: const TextStyle(fontSize: 28, color: Colors.white),
+                      style: const TextStyle(fontSize: 26, color: Colors.white),
                     )),
                 const Positioned(
                     left: 10,
@@ -81,7 +81,7 @@ class _LeftToolbar extends State<LeftToolbar> {
                     top: 8,
                     child: Text(
                       "我的喜欢".tr,
-                      style: const TextStyle(fontSize: 28, color: Colors.white),
+                      style: const TextStyle(fontSize: 26, color: Colors.white),
                     )),
                 const Positioned(
                     left: 10,

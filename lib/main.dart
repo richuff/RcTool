@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -11,9 +14,12 @@ import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/main_drawer.dart';
 import 'package:rctool/widget/search_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 import 'feature/Theme/TypeValue.dart';
 import 'feature/design/IconButtonNoRipple.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart'; // 全局 openDatabase API 依赖
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,8 +60,6 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
     _controller.forward();
 
     WidgetsFlutterBinding.ensureInitialized();
-    /// @brief 加载sqllite
-    SqlLiteConn.initState();
     /// @brief 读取SharedPreferences所存的配置
     _readData();
     /// @brief 请求需要的权限
