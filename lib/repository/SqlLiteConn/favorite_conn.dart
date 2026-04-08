@@ -36,12 +36,15 @@ class FavoriteConn{
       'favorite_music',
       limit: 30,
     );
-    List<int> ids = List.empty();
-    for (final {'id': id as int} in favoriteMusicList){
-      ids.add(id);
+    List<int> musicIds = [];
+    for (var map in favoriteMusicList) {
+      int? musicId = int.tryParse(map['musicId'].toString());
+      if (musicId != null) {
+        musicIds.add(musicId);
+      }
     }
 
-    return MusicConn.queryByIds(ids);
+    return MusicConn.queryByIds(musicIds);
   }
 
   static Future<void> updateByMusicId(FavoriteMusic favoriteMusic) async {
@@ -55,13 +58,13 @@ class FavoriteConn{
     );
   }
 
-  static Future<void> deleteByMusicId(int id) async {
+  static Future<void> deleteByMusicId(int musicId) async {
     final db = await SqlLiteConn.dataBase;
 
     await db.delete(
       'favorite_music',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'musicId = ?',
+      whereArgs: [musicId],
     );
   }
 }

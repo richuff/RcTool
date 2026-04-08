@@ -217,16 +217,25 @@ class _EverydayList extends State<EverydayList> {
                               onPressed: () {
                                 () async {
                                   try {
+                                    if (musicController.isplay.value) {
+                                      musicController.onPause();
+                                      Get.back();
+                                      return;
+                                    }
                                     final url = element['url'];
                                     final imageUrl = element['imageUrl'];
                                     final songName = element['songName'];
                                     final decoration = element['decoration'];
 
-                                    if (url == null || imageUrl == null || songName == null || decoration == null) {
+                                    if (url == null ||
+                                        imageUrl == null ||
+                                        songName == null ||
+                                        decoration == null) {
                                       return;
                                     }
 
-                                    int? insertId = await MusicConn.queryByNameAndInsertMusic(
+                                    int? insertId = await MusicConn
+                                        .queryByNameAndInsertMusic(
                                       url,
                                       imageUrl,
                                       songName,
@@ -234,26 +243,31 @@ class _EverydayList extends State<EverydayList> {
                                     );
 
                                     if (insertId != null) {
-                                      musicController.inc(insertId, url, imageUrl, songName, decoration);
+                                      musicController.inc(insertId, url,
+                                          imageUrl, songName, decoration);
 
-                                      notificationHelper.showNewMusicNotification(
+                                      notificationHelper
+                                          .showNewMusicNotification(
                                         title: "当前正在播放".tr,
                                         body: "$songName - $decoration",
                                       );
 
                                       Get.back();
                                     }
-                                  } catch (e) {
-                                  }
+                                  } catch (e) {}
                                 }();
                               },
-                              icon: musicController.isplay.value && musicController.getPlaySongName() == element['songName'] ? const Icon(
-                                Icons.pause,
-                                color: Colors.white,
-                              ) :const Icon(
-                                Icons.play_arrow_sharp,
-                                color: Colors.white,
-                              ))),
+                              icon: musicController.isplay.value &&
+                                      musicController.getPlaySongName() ==
+                                          element['songName']
+                                  ? const Icon(
+                                      Icons.pause,
+                                      color: Colors.white,
+                                    )
+                                  : const Icon(
+                                      Icons.play_arrow_sharp,
+                                      color: Colors.white,
+                                    ))),
                     ],
                   );
                 }).toList())
@@ -271,8 +285,7 @@ class _EverydayList extends State<EverydayList> {
         CommUtil.parseBool(element['isFavorite']));
     notificationHelper.showNewMusicNotification(
         title: "当前正在播放".tr,
-        body:
-            "${element['songName']}  -----  ${element['decoration']}");
+        body: "${element['songName']}  -----  ${element['decoration']}");
     MusicConn.queryByUrlAndInsert(
         element['url']!,
         element['imageUrl']!,

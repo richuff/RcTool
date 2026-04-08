@@ -1,12 +1,11 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 
-import '../../feature/design/IconButtonNoRipple.dart';
-import '../../widget/BackGround/MusicBackGround.dart';
-import '../../widget/MainDrawer.dart';
-import '../../widget/SearchWidget.dart';
+import '../../feature/design/icon_button_no_ripple.dart';
+import '../../widget/main_drawer.dart';
+import '../../widget/search_widget.dart';
 
 class Album extends StatefulWidget {
   const Album({super.key});
@@ -53,7 +52,7 @@ class _Album extends State<Album> {
           actions: const [SearchWidget()]),
       body: Container(
           width: double.infinity,
-          decoration: musicBackGround(),
+          decoration: BackGroundEnum.musicBackGround.decoration,
           child: Column(children: [
             Flexible(
                 child: ScrollConfiguration(
@@ -63,7 +62,7 @@ class _Album extends State<Album> {
                       PointerDeviceKind.touch,
                       PointerDeviceKind.mouse,
                     }),
-                    child: Text("test"))),
+                    child: const Text("test"))),
           ])),
     );
   }
