@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:rctool/utils/SqlLiteConn/index.dart';
-import 'package:rctool/widget/SearchWidget.dart';
+import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
+import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import 'package:rctool/widget/search_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../controller/MusicController.dart';
-import '../../feature/design/IconButtonNoRipple.dart';
-import '../../views/MusicPlayer.dart';
-import '../../widget/BackGround/MusicBackGround.dart';
-import '../../widget/MainDrawer.dart';
-import 'package:rctool/feature/Theme/TypeValue.dart';
+import '../../controller/music_controller.dart';
+import '../../feature/design/icon_button_no_ripple.dart';
+import '../../views/music_player.dart';
+import '../../widget/main_drawer.dart';
+import 'package:rctool/feature/Theme/type_value.dart';
 
 class MusicPage extends StatefulWidget {
   const MusicPage({super.key});
@@ -40,7 +39,7 @@ class _MusicPage extends State<MusicPage> {
   }
 
   Future<void> _loadMusicList() async {
-    musicController.musiclist.value = await SqlLiteConn.query();
+    musicController.musiclist.value = await MusicConn.queryAll();
     if (isPlayNow == true || musicController.isplay.isTrue){
       musicController.playAway();
     }else{
@@ -87,7 +86,7 @@ class _MusicPage extends State<MusicPage> {
             SearchWidget()
           ]),
       body: Container(
-          decoration: musicBackGround(),
+          decoration: BackGroundEnum.musicBackGround.decoration,
           child: const Column(
             children: [MusicPlayer()],
           )),

@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:headset_connection_event/headset_event.dart';
-import 'package:rctool/routers/RoutePath.dart';
+import 'package:rctool/routers/route_path.dart';
 
 import '../controller/music_controller.dart';
-import '../feature/design/IconButtonNoRipple.dart';
+import '../feature/design/icon_button_no_ripple.dart';
 import '../utils/notification_helper.dart';
 
 class MusicList extends StatefulWidget {
@@ -36,7 +36,8 @@ class _MusicList extends State<MusicList> {
           : title;
       isplay = musicController.isplay.value;
       _mlength = musicController.musiclist.length;
-      decoration = musicController.musiclist.length > musicController.position.value
+      decoration = musicController.musiclist.length >
+              musicController.position.value
           ? musicController.musiclist[musicController.position.value].decoration
           : decoration;
     });
@@ -49,12 +50,12 @@ class _MusicList extends State<MusicList> {
     //请求蓝牙权限
     _headsetPlugin.requestPermission();
     //监听蓝牙设备
-    _headsetPlugin.setListener((val){
+    _headsetPlugin.setListener((val) {
       //如果蓝牙连接断开，则让播放停止
-      if (val == HeadsetState.DISCONNECT){
+      if (val == HeadsetState.DISCONNECT) {
         musicController.onPause();
-      }//如果蓝牙连接,则继续进行播放
-      else{
+      } //如果蓝牙连接,则继续进行播放
+      else {
         musicController.playLocal();
       }
     });
@@ -64,16 +65,19 @@ class _MusicList extends State<MusicList> {
           ? musicController.musiclist[musicController.position.value].songName
           : title;
       _mlength = musicController.musiclist.length;
-      decoration = musicController.musiclist.length > musicController.position.value
+      decoration = musicController.musiclist.length >
+              musicController.position.value
           ? musicController.musiclist[musicController.position.value].decoration
           : decoration;
     });
 
     musicController.addListener(_musicControllerListener);
 
-    _positionSubscription = musicController.player.onPositionChanged.listen((Duration position) {
+    _positionSubscription =
+        musicController.player.onPositionChanged.listen((Duration position) {
       if (musicController.totalDuration != null) {
-        double proportion = position.inSeconds / musicController.totalDuration!.inSeconds;
+        double proportion =
+            position.inSeconds / musicController.totalDuration!.inSeconds;
         double sliderValue = proportion * 100; // 转换为1到100的范围
         setState(() {
           _sliderValue = sliderValue;
@@ -83,7 +87,6 @@ class _MusicList extends State<MusicList> {
   }
 
   final NotificationHelper notificationHelper = NotificationHelper();
-
 
   @override
   void dispose() {
@@ -151,24 +154,23 @@ class _MusicList extends State<MusicList> {
                   color: Colors.white,
                 ))),
         Positioned(
-          left: 70,
-          bottom: -3,
-          child: SizedBox(
-            width: 300,
-            child: Slider(
-              min: 0.0,
-              max: 100.0,
-              divisions: 100, // 刻度数量
-              value: _sliderValue, // 滑动条当前值
-              onChanged: (value) {
-                setState(() {
-                  _sliderValue = value; // 更新状态变量
-                });
-                musicController.setPosition(_sliderValue);
-              },
-            ),
-          )
-        ),
+            left: 70,
+            bottom: -3,
+            child: SizedBox(
+              width: 300,
+              child: Slider(
+                min: 0.0,
+                max: 100.0,
+                divisions: 100, // 刻度数量
+                value: _sliderValue, // 滑动条当前值
+                onChanged: (value) {
+                  setState(() {
+                    _sliderValue = value; // 更新状态变量
+                  });
+                  musicController.setPosition(_sliderValue);
+                },
+              ),
+            )),
         Positioned(
             right: 35,
             bottom: 20,
@@ -183,9 +185,11 @@ class _MusicList extends State<MusicList> {
             bottom: 20,
             child: IconButtonNoRipple(
                 onPressed: () => {
-                  musicController.playLocal(),
-                  notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "$title  -----  $decoration")
-                },
+                      musicController.playLocal(),
+                      notificationHelper.showNewMusicNotification(
+                          title: "当前正在播放".tr,
+                          body: "$title  -----  $decoration")
+                    },
                 icon: Icon(
                   isplay ? Icons.pause : Icons.play_arrow_sharp,
                   color: Colors.white,
@@ -194,9 +198,7 @@ class _MusicList extends State<MusicList> {
             right: 2,
             bottom: 20,
             child: IconButtonNoRipple(
-                onPressed: () => {
-                  Get.toNamed(RoutePath.MUSICCHOOSE)
-                },
+                onPressed: () => {Get.toNamed(RoutePath.MUSICCHOOSE)},
                 icon: const Icon(
                   Icons.queue_music_sharp,
                   color: Colors.white,
@@ -205,16 +207,19 @@ class _MusicList extends State<MusicList> {
             right: 6,
             bottom: 42,
             child: Container(
-          width: 16,
-          height: 16,
-          decoration: const BoxDecoration(
-            color: Colors.redAccent,
-            borderRadius: BorderRadius.all(Radius.circular(50))
-          ),
+              width: 16,
+              height: 16,
+              decoration: const BoxDecoration(
+                  color: Colors.redAccent,
+                  borderRadius: BorderRadius.all(Radius.circular(50))),
               child: Center(
-                child: Text(_mlength <= 99 ? "$_mlength" : "99+", style: const TextStyle(fontSize: 10), textAlign: TextAlign.center,),
+                child: Text(
+                  _mlength <= 99 ? "$_mlength" : "99+",
+                  style: const TextStyle(fontSize: 10),
+                  textAlign: TextAlign.center,
+                ),
               ),
-        ))
+            ))
       ],
     );
   }

@@ -3,15 +3,14 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:rctool/controller/MusicController.dart';
-import 'package:rctool/entity/Music.dart';
+import 'package:rctool/controller/music_controller.dart';
+import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 
-import '../components/MSCard.dart';
-import '../components/MusicList.dart';
-import '../components/MusicListCP/LeftToolBar.dart';
-import '../components/MusicListCP/RightToolBar.dart';
-import '../utils/SqlLiteConn/index.dart';
+import '../components/ms_card.dart';
+import '../components/music_list.dart';
+import '../components/MusicListCP/left_toolbar.dart';
+import '../components/MusicListCP/right_toolbar.dart';
+import '../repository/entity/Music.dart';
 
 class MusicPlayer extends StatefulWidget {
   const MusicPlayer({super.key});
@@ -42,7 +41,7 @@ class _MusicCard extends State<MusicPlayer> {
   }
 
   Future<void> _loadMusicList() async {
-    msList = await SqlLiteConn.query();
+    msList = await MusicConn.queryAll();
     setState(() {
       isEmpty = msList.isEmpty;
     });
@@ -86,19 +85,19 @@ class _MusicCard extends State<MusicPlayer> {
                         children: isEmpty
                             ? <Widget>[
                                 const MSCard(
+                                    null,
                                     "",
                                     "http://kycloud3.koyoo.cn/202503218399a202503212001341625.jpg",
                                     "未选择播放的歌曲",
-                                    "",
-                                    false)
+                                    "")
                               ]
                             : msList.map((element) {
                                 return MSCard(
+                                    element.id,
                                     element.url,
                                     element.imageUrl,
                                     element.songName,
-                                    element.decoration,
-                                    element.isFavorite);
+                                    element.decoration);
                               }).toList())
                   ],
                 )),
