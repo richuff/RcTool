@@ -1,14 +1,14 @@
 import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:get/get_navigation/src/routes/transitions_type.dart';
-import 'package:rctool/page/AboutAuthor.dart';
-import 'package:rctool/page/AlbumPage/Album.dart';
-import 'package:rctool/page/MusicPages/MusicChoose.dart';
-import 'package:rctool/page/MusicPages/MusicLike.dart';
-import 'package:rctool/page/MusicPages/MusicPage.dart';
-import 'package:rctool/page/LiveTod.dart';
+import 'package:rctool/page/about_author.dart';
+import 'package:rctool/page/AlbumPage/album.dart';
+import 'package:rctool/page/MusicPages/music_choose.dart';
+import 'package:rctool/page/MusicPages/music_like.dart';
+import 'package:rctool/page/MusicPages/music_page.dart';
+import 'package:rctool/page/live_to_d.dart';
 import 'package:rctool/page/RankingPage/ranking.dart';
-import 'package:rctool/page/RecommendPages/RecommendMusic.dart';
-import 'package:rctool/routers/RoutePath.dart';
+import 'package:rctool/page/RecommendPages/recommend_music.dart';
+import 'package:rctool/routers/route_path.dart';
 
 var routes = [
   GetPage(

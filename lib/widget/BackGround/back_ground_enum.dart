@@ -1,5 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
+/// @EnumName BackGroundEnum
+/// @Description 背景图枚举类
+/// @Author richuff
+/// @Date 2024-11-12
+/// @Version 1.0
 enum BackGroundEnum {
   homeBackGround(
     BoxDecoration(

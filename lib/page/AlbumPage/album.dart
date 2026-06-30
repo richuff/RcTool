@@ -14,6 +14,7 @@ class Album extends StatefulWidget {
   State<Album> createState() => _Album();
 }
 
+
 class _Album extends State<Album> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
