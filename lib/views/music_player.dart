@@ -12,6 +12,11 @@ import '../components/MusicListCP/left_toolbar.dart';
 import '../components/MusicListCP/right_toolbar.dart';
 import '../repository/entity/Music.dart';
 
+/// @EnumName MusicPlayer
+/// @Description
+/// @Author richuff
+/// @Date 2024-11-12
+/// @Version 1.0
 class MusicPlayer extends StatefulWidget {
   const MusicPlayer({super.key});
 

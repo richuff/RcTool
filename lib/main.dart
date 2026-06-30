@@ -1,25 +1,19 @@
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:rctool/routers/RoutePath.dart';
+import 'package:rctool/routers/route_path.dart';
 import 'package:rctool/routers/Index.dart';
 import 'package:rctool/utils/my_message.dart';
 import 'package:rctool/utils/notification_helper.dart';
 import 'package:rctool/utils/PermissionRequest/Index.dart';
-import 'package:rctool/repository/SqlLiteConn/index.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/main_drawer.dart';
 import 'package:rctool/widget/search_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
-import 'feature/Theme/TypeValue.dart';
-import 'feature/design/IconButtonNoRipple.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite/sqflite.dart'; // 全局 openDatabase API 依赖
+import 'feature/Theme/type_value.dart';
+import 'feature/design/icon_button_no_ripple.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +29,6 @@ void main() async {
 /// @Author richuff
 /// @Date 2024-10-10
 /// @Version 1.0
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 

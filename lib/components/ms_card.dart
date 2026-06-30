@@ -12,7 +12,7 @@ class MSCard extends StatefulWidget {
   final String decoration;
   final String songName;
 
-  const MSCard(this.id,this.url, this.image, this.songName, this.decoration,
+  const MSCard(this.id, this.url, this.image, this.songName, this.decoration,
       {super.key});
 
   @override
@@ -20,7 +20,6 @@ class MSCard extends StatefulWidget {
 }
 
 class _MSCard extends State<MSCard> {
-
   final NotificationHelper notificationHelper = NotificationHelper();
   MusicController musicController = Get.put(MusicController());
   bool isFavorite = false;
@@ -28,24 +27,37 @@ class _MSCard extends State<MSCard> {
   @override
   void initState() async {
     super.initState();
-    if (widget.id != null){
-      isFavorite = await FavoriteConn.queryByMusicAndCheckFavorite(widget.id ?? 0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFavorite();
+    });
+  }
+
+  Future<void> _loadFavorite() async {
+    if (widget.id != null) {
+      final status =
+          await FavoriteConn.queryByMusicAndCheckFavorite(widget.id ?? 0);
+      setState(() {
+        isFavorite = status;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        margin: const EdgeInsets.only(top: 20,right: 15,left: 15),
+        margin: const EdgeInsets.only(top: 20, right: 15, left: 15),
         width: 300,
         height: 530,
         decoration: BoxDecoration(
             image: DecorationImage(
-                image: NetworkImage(widget.image), fit: BoxFit.cover, opacity: 0.7),
-            color: Get.isDarkMode ? const Color.fromRGBO(255, 243, 242, 0.8) : const Color.fromRGBO(200, 190, 185, 0.8),
+                image: NetworkImage(widget.image),
+                fit: BoxFit.cover,
+                opacity: 0.7),
+            color: Get.isDarkMode
+                ? const Color.fromRGBO(255, 243, 242, 0.8)
+                : const Color.fromRGBO(200, 190, 185, 0.8),
             borderRadius: const BorderRadius.all(Radius.circular(50.0)),
-            boxShadow: const [BoxShadow(color: Colors.pink, blurRadius: 4.0)]
-        ),
+            boxShadow: const [BoxShadow(color: Colors.pink, blurRadius: 4.0)]),
         child: Stack(
           children: [
             Positioned(
@@ -62,15 +74,25 @@ class _MSCard extends State<MSCard> {
                     ),
                     child: IconButton(
                         iconSize: 32,
-                        onPressed: (){
-                              setState(() {
-                                isFavorite = !isFavorite;
-                              });
-                          if (widget.id != null){
-                            FavoriteConn.deleteByMusicId(widget.id ?? 0);
+                        onPressed: () async {
+                          try {
+                            if (isFavorite) {
+                              await FavoriteConn.deleteByMusicId(
+                                  widget.id ?? 0);
+                            } else {
+                              await FavoriteConn.insertFavoriteMusic(
+                                  widget.id ?? 0);
+                            }
+                            setState(() {
+                              isFavorite = !isFavorite;
+                            });
+                          } catch (e) {
+                            print("收藏失败：$e");
                           }
-                    },
-                        icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border)),
+                        },
+                        icon: Icon(isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border)),
                   ),
                 )),
             Positioned(
@@ -85,14 +107,17 @@ class _MSCard extends State<MSCard> {
                 ),
                 child: IconButton(
                     iconSize: 35,
-                    onPressed: (){
-                      if (widget.url != ""){
-                        musicController.inc(widget.id,widget.url,widget.image,widget.songName,widget.decoration);
-                        notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body:  "${widget.songName}  -----  ${widget.decoration}");
+                    onPressed: () {
+                      if (widget.url != "") {
+                        musicController.inc(widget.id, widget.url, widget.image,
+                            widget.songName, widget.decoration);
+                        notificationHelper.showNewMusicNotification(
+                            title: "当前正在播放".tr,
+                            body:
+                                "${widget.songName}  -----  ${widget.decoration}");
                       }
                     },
-                    icon: const Icon(
-                        Icons.play_arrow_sharp )),
+                    icon: const Icon(Icons.play_arrow_sharp)),
               ),
             ),
             Positioned(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:rctool/feature/Theme/TypeValue.dart';
+import 'package:rctool/feature/Theme/type_value.dart';
 
 class MainSettings extends StatefulWidget{
   const MainSettings({super.key});

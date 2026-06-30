@@ -61,26 +61,7 @@ class MusicController extends GetxController {
     playLocal();
   }
 
-  @Deprecated("废弃isFavorite字段")
-  incOld(String url,String imageUrl,String songName,String decoration,bool isFavorite) async {
-    MusicOld music = MusicOld(url, imageUrl, songName, decoration,isFavorite);
-    for (MusicOld lmusic in musiclist){
-      if (music == lmusic){
-        playAt(lmusic as Music);
-        return;
-      }
-    }
 
-    musiclist.add(music);
-    update();
-
-    player.stop();
-    position.value = musiclist.length-1;
-    isplay.value = false;
-    update();
-
-    playLocal();
-  }
 
   dec(Music music){
     musiclist.remove(music);
@@ -212,5 +193,26 @@ class MusicController extends GetxController {
 
   String getPlaySongName(){
     return musiclist[position.value].songName;
+  }
+
+  @Deprecated("废弃isFavorite字段")
+  incOld(String url,String imageUrl,String songName,String decoration,bool isFavorite) async {
+    MusicOld music = MusicOld(url, imageUrl, songName, decoration,isFavorite);
+    for (MusicOld lmusic in musiclist){
+      if (music == lmusic){
+        playAt(lmusic as Music);
+        return;
+      }
+    }
+
+    musiclist.add(music);
+    update();
+
+    player.stop();
+    position.value = musiclist.length-1;
+    isplay.value = false;
+    update();
+
+    playLocal();
   }
 }

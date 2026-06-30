@@ -1,11 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import '../../components/RecommendCP/EveryDayRecommend.dart';
-import '../../feature/design/IconButtonNoRipple.dart';
-import '../../widget/BackGround/MusicBackGround.dart';
-import '../../widget/MainDrawer.dart';
-import '../../widget/SearchWidget.dart';
+import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import '../../components/RecommendCP/everyday_recommend.dart';
+import '../../feature/design/icon_button_no_ripple.dart';
+import '../../widget/main_drawer.dart';
+import '../../widget/search_widget.dart';
 
 class EverydayMusic extends StatefulWidget {
   const EverydayMusic({super.key});
@@ -52,7 +52,7 @@ class _EverydayMusic extends State<EverydayMusic> {
           actions: const [SearchWidget()]),
       body: Container(
           width: double.infinity,
-          decoration: musicBackGround(),
+          decoration: BackGroundEnum.musicBackGround.decoration,
           child: Column(children: [
             Flexible(
                 child: ScrollConfiguration(

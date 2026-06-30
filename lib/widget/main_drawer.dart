@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/widget/setting_dialog.dart';
 
-import '../iconfont/RcIcon.dart';
-import '../routers/RoutePath.dart';
-
+import '../iconfont/rc_icon.dart';
+import '../routers/route_path.dart';
 
 /// @ClassName MainDrawer
 /// @Description 主菜单窗口
@@ -12,7 +11,6 @@ import '../routers/RoutePath.dart';
 /// @Date 2024-10-12
 /// @Version 1.0
 class MainDrawer extends StatelessWidget {
-  
   final closeDrawer;
 
   const MainDrawer(this.closeDrawer, {super.key});
@@ -68,9 +66,11 @@ class MainDrawer extends StatelessWidget {
             title: Text('设置'.tr),
             onTap: () {
               closeDrawer();
-              showDialog(context: context, builder:(context){
-                return const SettingDialog();
-              });
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return const SettingDialog();
+                  });
             },
           ),
         ],
