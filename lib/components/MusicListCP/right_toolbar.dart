@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/routers/RoutePath.dart';
+import 'package:rctool/routers/route_path.dart';
 
 class RightToolbar extends StatefulWidget {
+  const RightToolbar({super.key});
+
   @override
   State<RightToolbar> createState() => _RightToolbar();
 }

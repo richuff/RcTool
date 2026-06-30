@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/is_dark_controller.dart';
-import 'package:rctool/iconfont/RcIcon.dart';
+import 'package:rctool/iconfont/rc_icon.dart';
 
-import '../feature/design/IconButtonNoRipple.dart';
+import '../feature/design/icon_button_no_ripple.dart';
 import 'TextWidget/dark_light_text.dart';
 
 
