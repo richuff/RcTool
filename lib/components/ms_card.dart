@@ -75,6 +75,7 @@ class _MSCard extends State<MSCard> {
                     child: IconButton(
                         iconSize: 32,
                         onPressed: () async {
+                          if (widget.id == null) return;
                           try {
                             if (isFavorite) {
                               await FavoriteConn.deleteByMusicId(
@@ -88,6 +89,8 @@ class _MSCard extends State<MSCard> {
                             });
                           } catch (e) {
                             print("收藏失败：$e");
+                            Get.snackbar("收藏失败".tr, "$e",
+                                snackPosition: SnackPosition.BOTTOM);
                           }
                         },
                         icon: Icon(isFavorite

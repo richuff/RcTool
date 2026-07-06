@@ -27,29 +27,18 @@ class SqlLiteConn {
 
       final db = await openDatabase(
         'music_database.db',
-        version: 1,
-        onCreate: (db, version) async {
+        version: 2,
+        // 外键是连接级会话设置，不会持久化，必须在每次打开连接时设置
+        onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON;');
-
-          await db.execute('''
-            CREATE TABLE music (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                url TEXT NOT NULL,
-                imageUrl TEXT NOT NULL,
-                songName TEXT NOT NULL,
-                decoration TEXT NOT NULL
-            );
-          ''');
-
-          await db.execute('''
-            CREATE TABLE favorite_music (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                musicId INTEGER NOT NULL,
-                FOREIGN KEY (musicId) REFERENCES music(id)
-                ON DELETE CASCADE
-                ON UPDATE CASCADE
-            );
-          ''');
+        },
+        onCreate: (db, version) async {
+          await _createTables(db);
+        },
+        // 升级安装后旧库文件仍在，onCreate 不会执行；
+        // 这里用 IF NOT EXISTS 给老库补建缺失的表
+        onUpgrade: (db, oldVersion, newVersion) async {
+          await _createTables(db);
         },
       );
 
@@ -58,5 +47,27 @@ class SqlLiteConn {
     } catch (e) {
       _completer.completeError(e);
     }
+  }
+
+  static Future<void> _createTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS music (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          url TEXT NOT NULL,
+          imageUrl TEXT NOT NULL,
+          songName TEXT NOT NULL,
+          decoration TEXT NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS favorite_music (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          musicId INTEGER NOT NULL,
+          FOREIGN KEY (musicId) REFERENCES music(id)
+          ON DELETE CASCADE
+          ON UPDATE CASCADE
+      );
+    ''');
   }
 }
