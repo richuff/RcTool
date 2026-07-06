@@ -13,6 +13,7 @@ import 'package:rctool/widget/search_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'feature/Theme/type_value.dart';
+import 'feature/theme/app_theme.dart';
 import 'feature/design/icon_button_no_ripple.dart';
 
 void main() async {
@@ -85,10 +86,9 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
         title: 'RcTool',  //应用名
         debugShowCheckedModeBanner: false, // 测试时显示debug框
         getPages: routes,  //设置路由
-        theme: ThemeData( //设置主题
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.purpleAccent),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.light, //亮色主题(主色:淡粉色)
+        darkTheme: AppTheme.dark, //暗色主题
+        themeMode: ThemeMode.system, //跟随系统;可由 IsDarkController 覆盖
         initialRoute: RoutePath.HOME, //初始路径
         translations: MyMessage(),
         locale: const Locale('zh', 'CN'),
@@ -102,7 +102,7 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
               scaffoldKey.currentState?.closeDrawer();
             }),
             appBar: AppBar(
-                backgroundColor: Colors.pink[50],
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 leading: Builder(builder: (context) {
                   return Column(children: [
                     const Padding(padding: EdgeInsets.only(top: 8)),
@@ -178,15 +178,7 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
                                 // 按钮1的点击事件
                                 Get.toNamed("/music");
                               },
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.blue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 30, vertical: 15),
-                              ),
+                              // 沿用主题默认的 primary(淡粉)按钮样式
                               child: Text('听音乐'.tr),
                             ),
                             const SizedBox(width: 20),
@@ -196,13 +188,12 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
                                 Get.toNamed("/livetod");
                               },
                               style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.blueAccent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 30, vertical: 15),
+                                foregroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer,
                               ),
                               child: const Text("live2d"),
                             ),
