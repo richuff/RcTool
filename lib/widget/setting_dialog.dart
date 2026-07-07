@@ -13,14 +13,15 @@ class SettingDialog extends Dialog {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Material(
         type: MaterialType.transparency,
         child: Center(
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(5))),
+            decoration: BoxDecoration(
+                color: scheme.surface,
+                borderRadius: const BorderRadius.all(Radius.circular(5))),
             height: 600,
             width: 380,
             child: Column(
@@ -61,19 +62,19 @@ class SettingDialog extends Dialog {
                         borderRadius:
                             const BorderRadius.all(Radius.circular(4)),
                         border: Border.all(
-                            color: const Color.fromARGB(255, 199, 223, 251),
+                            color: scheme.outline.withOpacity(0.45),
                             width: 1.0),
-                        color: const Color.fromARGB(255, 237, 245, 254)),
+                        color: scheme.primaryContainer.withOpacity(0.72)),
                     padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
                     width: double.infinity,
                     child: Stack(
                       children: [
-                        const Positioned(
+                        Positioned(
                           top: 9,
                           child: Icon(
                             size: 30,
                             Icons.info,
-                            color: Color.fromARGB(255, 32, 128, 240),
+                            color: scheme.primary,
                           ),
                         ),
                         const Positioned(
