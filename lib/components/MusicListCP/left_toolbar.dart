@@ -3,189 +3,122 @@ import 'package:get/get.dart';
 
 import '../../routers/route_path.dart';
 
-class LeftToolbar extends StatefulWidget {
+class LeftToolbar extends StatelessWidget {
   const LeftToolbar({super.key});
 
   @override
-  State<LeftToolbar> createState() => _LeftToolbar();
-}
-
-class _LeftToolbar extends State<LeftToolbar> {
-  @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       children: [
-        GestureDetector(
-          onTap: () {
-            Get.toNamed(RoutePath.RECOMMEND);
-          },
-          child: Container(
-            width: 145,
-            margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
-            decoration: BoxDecoration(
-                color: Colors.yellow[100],
-                borderRadius: const BorderRadius.all(Radius.circular(6))),
-            child: Stack(
-              children: [
-                Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Image.asset(
-                      "image/Mika.gif",
-                      width: 100,
-                      height: 100,
-                    )),
-                Positioned(
-                    left: 4,
-                    top: 8,
-                    child: Text(
-                      "每日推荐".tr,
-                      style: const TextStyle(fontSize: 26, color: Colors.white),
-                    )),
-                const Positioned(
-                    left: 10,
-                    top: 41,
-                    child: Text(
-                      "blue archive",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    )),
-              ],
-            ),
+        Expanded(
+          child: _HomeFeatureCard(
+            title: "每日推荐".tr,
+            subtitle: "Daily Mix",
+            image: "image/Mika.gif",
+            backgroundColor: scheme.secondaryContainer,
+            foregroundColor: scheme.onSecondaryContainer,
+            onTap: () => Get.toNamed(RoutePath.RECOMMEND),
           ),
         ),
-        const SizedBox(
-          width: 5,
-        ),
-        GestureDetector(
-          onTap: () {
-            Get.toNamed(RoutePath.MUSICLIKE);
-          },
-          child: Container(
-            width: 145,
-            margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
-            decoration: BoxDecoration(
-                color: Colors.blue[100],
-                borderRadius: const BorderRadius.all(Radius.circular(6))),
-            child: Stack(
-              children: [
-                Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Image.asset(
-                      "image/ARoNa.png",
-                      width: 100,
-                      height: 100,
-                    )),
-                Positioned(
-                    left: 4,
-                    top: 8,
-                    child: Text(
-                      "我的喜欢".tr,
-                      style: const TextStyle(fontSize: 26, color: Colors.white),
-                    )),
-                const Positioned(
-                    left: 10,
-                    top: 41,
-                    child: Text(
-                      "archive",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    )),
-              ],
-            ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: _HomeFeatureCard(
+            title: "我的喜欢".tr,
+            subtitle: "Favorite",
+            image: "image/ARoNa.png",
+            backgroundColor: scheme.primaryContainer,
+            foregroundColor: scheme.onPrimaryContainer,
+            onTap: () => Get.toNamed(RoutePath.MUSICLIKE),
           ),
-        )
+        ),
       ],
     );
   }
 }
 
-/*SizedBox(
-        height: 300,
-        child:Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                    margin: const EdgeInsets.fromLTRB(10, 10,0,0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Get.toNamed(RoutePath.RECOMMEND);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        fixedSize: const Size(90, 70),
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.pink[200], // 文字颜色
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(15), // 左上角为圆形
-                            bottomRight: Radius.circular(15), // 右下角为圆形
-                          ),
-                        ),
-                        elevation: 5, // 按钮的阴影高度
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10), // 按钮内边距
-                        side: BorderSide(
-                          color: Colors.pink[200]!, // 按钮边框颜色
-                          width: 2, // 边框宽度
-                        ),
-                      ),
-                      child: const Text("每日推荐"),
-                    )),
-                const SizedBox(
-                  width: 40,
+class _HomeFeatureCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String image;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final VoidCallback onTap;
+
+  const _HomeFeatureCard({
+    required this.title,
+    required this.subtitle,
+    required this.image,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Container(
+          height: double.infinity,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: scheme.outline.withOpacity(0.18)),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -6,
+                bottom: -4,
+                child: Opacity(
+                  opacity: 0.86,
+                  child: Image.asset(
+                    image,
+                    width: 92,
+                    height: 92,
+                    fit: BoxFit.contain,
+                  ),
                 ),
-                Container(
-                    margin: const EdgeInsets.only(top: 10),
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        fixedSize: const Size(95, 70),
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.pink[200], // 文字颜色
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(15), // 左上角为圆形
-                            bottomRight: Radius.circular(15), // 右下角为圆形
-                          ),
-                        ),
-                        elevation: 5, // 按钮的阴影高度
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 15), // 按钮内边距
-                        side: BorderSide(
-                          color: Colors.pink[200]!, // 按钮边框颜色
-                          width: 2, // 边框宽度
-                        ),
+              ),
+              Positioned.fill(
+                right: 56,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 22,
+                        height: 1.05,
+                        fontWeight: FontWeight.w700,
+                        color: foregroundColor,
                       ),
-                      child: const Text("top20"),
-                    )),
-                const SizedBox(
-                  width: 35,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: foregroundColor.withOpacity(0.72),
+                      ),
+                    ),
+                  ],
                 ),
-                Container(
-                    margin: const EdgeInsets.only(top: 10),
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        fixedSize: const Size(95, 70),
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.pink[200], // 文字颜色
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(15), // 左上角为圆形
-                            bottomRight: Radius.circular(15), // 右下角为圆形
-                          ),
-                        ),
-                        elevation: 5, // 按钮的阴影高度
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 5), // 按钮内边距
-                        side: BorderSide(
-                          color: Colors.pink[200]!, // 按钮边框颜色
-                          width: 2, // 边框宽度
-                        ),
-                      ),
-                      child: const Text("他们都在听"),
-                    )),
-              ],
-            ),
-          ],
-        ));*/
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

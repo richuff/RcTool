@@ -27,7 +27,7 @@ class SqlLiteConn {
 
       final db = await openDatabase(
         'music_database.db',
-        version: 2,
+        version: 5,
         // 外键是连接级会话设置，不会持久化，必须在每次打开连接时设置
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON;');
@@ -64,6 +64,64 @@ class SqlLiteConn {
       CREATE TABLE IF NOT EXISTS favorite_music (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           musicId INTEGER NOT NULL,
+          FOREIGN KEY (musicId) REFERENCES music(id)
+          ON DELETE CASCADE
+          ON UPDATE CASCADE
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS playlist (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          createdAt INTEGER NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS playlist_music (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          playlistId INTEGER NOT NULL,
+          musicId INTEGER NOT NULL,
+          sortOrder INTEGER NOT NULL,
+          UNIQUE(playlistId, musicId),
+          FOREIGN KEY (playlistId) REFERENCES playlist(id)
+          ON DELETE CASCADE
+          ON UPDATE CASCADE,
+          FOREIGN KEY (musicId) REFERENCES music(id)
+          ON DELETE CASCADE
+          ON UPDATE CASCADE
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS favorite_playlist (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          playlistId INTEGER NOT NULL UNIQUE,
+          FOREIGN KEY (playlistId) REFERENCES playlist(id)
+          ON DELETE CASCADE
+          ON UPDATE CASCADE
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS recommend_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          recommendDate TEXT NOT NULL UNIQUE,
+          createdAt INTEGER NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS recommend_history_music (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          historyId INTEGER NOT NULL,
+          musicId INTEGER NOT NULL,
+          sortOrder INTEGER NOT NULL,
+          UNIQUE(historyId, musicId),
+          FOREIGN KEY (historyId) REFERENCES recommend_history(id)
+          ON DELETE CASCADE
+          ON UPDATE CASCADE,
           FOREIGN KEY (musicId) REFERENCES music(id)
           ON DELETE CASCADE
           ON UPDATE CASCADE

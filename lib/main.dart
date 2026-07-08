@@ -12,7 +12,8 @@ import 'package:rctool/widget/main_drawer.dart';
 import 'package:rctool/widget/search_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'feature/Theme/type_value.dart';
+import 'controller/is_dark_controller.dart';
+import 'feature/theme/type_value.dart';
 import 'feature/theme/app_theme.dart';
 import 'feature/design/icon_button_no_ripple.dart';
 
@@ -39,6 +40,9 @@ class MyApp extends StatefulWidget {
 
 class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final IsDarkController isDarkController =
+      Get.put(IsDarkController(), permanent: true);
+  Locale appLocale = const Locale('zh', 'CN');
 
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -78,20 +82,28 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
     if (prefs.getBool(playKey) == null) {
       _saveData();
     }
+    final languageCode = prefs.getString(languageCodeKey);
+    final countryCode = prefs.getString(countryCodeKey);
+    if (languageCode != null && countryCode != null) {
+      setState(() {
+        appLocale = Locale(languageCode, countryCode);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
+    return GetBuilder<IsDarkController>(builder: (controller) {
+      return GetMaterialApp(
         title: 'RcTool',  //应用名
         debugShowCheckedModeBanner: false, // 测试时显示debug框
         getPages: routes,  //设置路由
         theme: AppTheme.light, //亮色主题(主色:淡粉色)
         darkTheme: AppTheme.dark, //暗色主题
-        themeMode: ThemeMode.system, //跟随系统;可由 IsDarkController 覆盖
+        themeMode: controller.themeMode,
         initialRoute: RoutePath.HOME, //初始路径
         translations: MyMessage(),
-        locale: const Locale('zh', 'CN'),
+        locale: appLocale,
         //指定默认的语言
         fallbackLocale: const Locale('en', 'US'),
         //添加一个回调语言选项
@@ -205,5 +217,6 @@ class _MyApp extends State<MyApp> with SingleTickerProviderStateMixin {
                 ),
               ),
             )));
+    });
   }
 }

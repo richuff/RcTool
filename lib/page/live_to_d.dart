@@ -16,6 +16,7 @@ class _LiveTod extends State<LiveTod> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
         key: scaffoldKey,
         drawerScrimColor: Colors.transparent,
@@ -23,22 +24,22 @@ class _LiveTod extends State<LiveTod> {
           scaffoldKey.currentState?.closeDrawer();
         }),
         appBar: AppBar(
-            backgroundColor: Colors.pink[50],
+            backgroundColor: scheme.surface,
             leading: Builder(builder: (context) {
               return Column(children: [
                 const Padding(padding: EdgeInsets.only(top: 8)),
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
                   child: IconButtonNoRipple(
-                    hoverColor: Colors.pink[100],
-                    focusColor: Colors.pink[100],
-                    highlightColor: Colors.pink[200],
+                    hoverColor: scheme.primaryContainer,
+                    focusColor: scheme.primaryContainer,
+                    highlightColor: scheme.secondaryContainer,
                     alignment: Alignment.bottomCenter,
                     icon: const Icon(
                       Icons.menu,
                       size: 26,
                     ),
-                    color: Colors.black,
+                    color: scheme.onSurface,
                     onPressed: () {
                       Scaffold.of(context).openDrawer();
                     },
@@ -57,7 +58,7 @@ class _LiveTod extends State<LiveTod> {
                   "还在开发中",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.pink[400],
+                    color: scheme.primary,
                     fontSize: 25,
                   ),
                 ),
