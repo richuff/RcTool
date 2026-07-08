@@ -8,6 +8,7 @@ import '../entity/favorite_music.dart';
 class FavoriteConn{
 
   static Future<void> insertFavoriteMusic(int musicId) async {
+    if (await queryByMusicAndCheckFavorite(musicId)) return;
     final db = await SqlLiteConn.dataBase;
     var favoriteMusic = FavoriteMusic(musicId: musicId);
     await db.insert(

@@ -86,17 +86,17 @@ class RcSemanticColors extends ThemeExtension<RcSemanticColors> {
 class AppTheme {
   AppTheme._();
 
-  /// 亮色配色:淡粉背景 + 玫瑰粉强调
+  /// 亮色配色:淡粉背景 + 玫瑰粉强调 + 淡蓝辅助色
   static const ColorScheme _lightScheme = ColorScheme(
     brightness: Brightness.light,
     primary: RcPalette.pink500,
     onPrimary: Colors.white,
     primaryContainer: RcPalette.pink100,
     onPrimaryContainer: Color(0xFF3E0021),
-    secondary: Color(0xFF7D5260),
+    secondary: Color(0xFF5B8DB8),
     onSecondary: Colors.white,
-    secondaryContainer: Color(0xFFFFD9E4),
-    onSecondaryContainer: Color(0xFF31101D),
+    secondaryContainer: Color(0xFFD7ECFF),
+    onSecondaryContainer: Color(0xFF071E31),
     tertiary: Color(0xFF7E5700),
     onTertiary: Colors.white,
     error: RcPalette.danger,
@@ -108,17 +108,17 @@ class AppTheme {
     outline: Color(0xFF847375),
   );
 
-  /// 暗色配色:粉调深灰背景 + 淡粉强调(暗色下淡粉可作主色)
+  /// 暗色配色:粉调深灰背景 + 淡粉强调 + 淡蓝辅助色
   static const ColorScheme _darkScheme = ColorScheme(
     brightness: Brightness.dark,
     primary: RcPalette.pink200,
     onPrimary: Color(0xFF5E1133),
     primaryContainer: Color(0xFF7B2949),
     onPrimaryContainer: RcPalette.pink100,
-    secondary: Color(0xFFE3BAC7),
-    onSecondary: Color(0xFF482531),
-    secondaryContainer: Color(0xFF613B47),
-    onSecondaryContainer: Color(0xFFFFD9E4),
+    secondary: Color(0xFFA9CBE8),
+    onSecondary: Color(0xFF10344C),
+    secondaryContainer: Color(0xFF254A63),
+    onSecondaryContainer: Color(0xFFD7ECFF),
     tertiary: Color(0xFFF2BE6D),
     onTertiary: Color(0xFF432C00),
     error: Color(0xFFFFB4AB),
