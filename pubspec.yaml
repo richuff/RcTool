@@ -22,6 +22,8 @@ dependencies:
   path: ^1.9.0
   headset_connection_event: ^4.0.1
   shared_preferences: ^2.2.2
+  webview_flutter: ^4.10.0
+  webview_windows: ^0.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -46,3 +48,5 @@ flutter:
     - image/Mika.gif
     - image/ARoNa.png
     - image/Splash.png
+    - assets/live2d/viewer/
+    - assets/live2d/models/
