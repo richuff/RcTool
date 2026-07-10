@@ -38,10 +38,12 @@ class MusicConn {
     if (musicList.isEmpty) {
       return await insertMusic(music);
     }
-    return null;
+    return musicList[0]['id'] as int;
   }
 
   static Future<List<Music>> queryByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+
     final db = await SqlLiteConn.dataBase;
 
     // 生成占位符：?, ?, ?
