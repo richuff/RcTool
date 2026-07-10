@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
+import 'package:rctool/repository/SqlLiteConn/playlist_conn.dart';
 import 'package:rctool/repository/SqlLiteConn/recommend_history_conn.dart';
 import 'package:rctool/utils/comm_util.dart';
 
@@ -32,6 +33,7 @@ class _EverydayList extends State<EverydayList> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _saveTodayRecommend();
+      favoriteController.ensureLoaded();
     });
     isDarkController.addListener(() {
       setState(() {
@@ -104,13 +106,27 @@ class _EverydayList extends State<EverydayList> {
                   ),
                   Flexible(
                     flex: 1,
-                    child: _recommendActionButton(
-                      context,
-                      icon: Icons.favorite_border,
-                      backgroundColor: scheme.primaryContainer,
-                      foregroundColor: scheme.onPrimaryContainer,
-                      margin: const EdgeInsets.fromLTRB(5, 5, 6, 4),
-                      onTap: () => _favoriteTodayRecommend(context),
+                    child: GetBuilder<FavoriteController>(
+                      builder: (controller) {
+                        final isFavoriteToday =
+                            controller.favoritePlaylists.any(
+                          (playlist) => playlist.name == _todayPlaylistName(),
+                        );
+                        return _recommendActionButton(
+                          context,
+                          icon: isFavoriteToday
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          backgroundColor: isFavoriteToday
+                              ? scheme.primary
+                              : scheme.primaryContainer,
+                          foregroundColor: isFavoriteToday
+                              ? scheme.onPrimary
+                              : scheme.onPrimaryContainer,
+                          margin: const EdgeInsets.fromLTRB(5, 5, 6, 4),
+                          onTap: () => _favoriteTodayRecommend(context),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -274,6 +290,10 @@ class _EverydayList extends State<EverydayList> {
     return "${now.year}-$month-$day";
   }
 
+  String _todayPlaylistName() {
+    return "每日推荐 ${_todayKey()}";
+  }
+
   Future<List<Music>> _saveTodayRecommend() async {
     final musicList = <Music>[];
     for (final element in allmusiclist) {
@@ -302,13 +322,14 @@ class _EverydayList extends State<EverydayList> {
 
   Future<void> _favoriteTodayRecommend(BuildContext context) async {
     final musicList = await _saveTodayRecommend();
-    await favoriteController.addAll(
-      musicList.where((music) => music.id != null).map((music) => music.id!),
-    );
+    final playlistName = _todayPlaylistName();
+    final playlistId = await PlaylistConn.ensurePlaylist(playlistName);
+    await PlaylistConn.replaceMusicList(playlistId, musicList);
+    await favoriteController.addPlaylist(playlistId);
     if (!context.mounted) return;
     Get.snackbar(
       "收藏成功",
-      "已收藏今日推荐 ${musicList.length} 首歌曲",
+      "已收藏歌单：$playlistName（${musicList.length} 首歌曲）",
       snackPosition: SnackPosition.BOTTOM,
     );
   }
