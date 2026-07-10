@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart' as system_webview;
 import 'package:webview_windows/webview_windows.dart' as windows_webview;
 
@@ -97,8 +96,8 @@ class _Live2DWebViewState extends State<Live2DWebView> {
         windows_webview.WebviewPopupWindowPolicy.deny,
       );
 
-      final html = await rootBundle.loadString(widget.assetPath);
-      await controller.loadStringContent(html);
+      final htmlPath = File(widget.assetPath).absolute.uri.toString();
+      await controller.loadUrl(htmlPath);
 
       if (!mounted) {
         unawaited(controller.dispose());

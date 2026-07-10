@@ -22,90 +22,50 @@
     }
 
     .stage {
-      width: min(92vw, 760px);
-      height: min(78vh, 680px);
-      display: grid;
-      place-items: center;
+      width: 100vw;
+      height: 100vh;
       position: relative;
-    }
-
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
+      overflow: hidden;
       background:
         radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.22), transparent 34%),
         linear-gradient(160deg, rgba(82, 111, 134, 0.24), rgba(200, 86, 127, 0.18));
-      border: 1px solid rgba(255, 255, 255, 0.26);
-      border-radius: 8px;
-      box-shadow: 0 18px 42px rgba(15, 20, 28, 0.28);
     }
 
-    .empty {
+    #live2d-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .status {
       position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(15, 20, 28, 0.58);
+      color: rgba(249, 251, 255, 0.9);
+      font-size: 13px;
+      line-height: 1.45;
       pointer-events: none;
-      text-align: center;
-      padding: 24px;
-      box-sizing: border-box;
+      transition: opacity 180ms ease;
     }
 
-    .title {
-      margin: 0 0 8px;
-      font-size: clamp(20px, 4vw, 34px);
-      font-weight: 700;
-    }
-
-    .hint {
-      margin: 0;
-      max-width: 520px;
-      color: rgba(249, 251, 255, 0.76);
-      font-size: 14px;
-      line-height: 1.6;
+    .status.ready {
+      opacity: 0;
     }
   </style>
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
 </head>
 <body>
   <main class="stage">
     <canvas id="live2d-canvas"></canvas>
-    <section class="empty" aria-label="Live2D viewer placeholder">
-      <div>
-        <p class="title">Live2D Viewer Ready</p>
-        <p class="hint">
-          WebView is ready. Add Cubism runtime scripts and a model3.json here to render the character.
-        </p>
-      </div>
-    </section>
+    <div id="live2d-status" class="status">Loading Live2D runtime...</div>
   </main>
 
-  <script>
-    const canvas = document.getElementById('live2d-canvas');
-    const context = canvas.getContext('2d');
-
-    function resizeCanvas() {
-      const ratio = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = Math.floor(rect.width * ratio);
-      canvas.height = Math.floor(rect.height * ratio);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    window.live2dBridge = {
-      loadModel(modelPath) {
-        console.log(`Live2D model requested: ${modelPath}`);
-      },
-      playMotion(group, index) {
-        console.log(`Live2D motion requested: ${group}:${index}`);
-      },
-      setExpression(name) {
-        console.log(`Live2D expression requested: ${name}`);
-      }
-    };
-  </script>
+  <script src="./main.js"></script>
 </body>
 </html>
