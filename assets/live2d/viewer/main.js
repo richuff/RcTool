@@ -5,6 +5,27 @@ const statusNode = document.getElementById('live2d-status');
 let app;
 let model;
 
+function getLive2DModelClass() {
+  return window.PIXI &&
+    window.PIXI.live2d &&
+    window.PIXI.live2d.Live2DModel &&
+    window.PIXI.live2d.Live2DModel.from
+    ? window.PIXI.live2d.Live2DModel
+    : null;
+}
+
+function assertRuntimeReady() {
+  if (!window.Live2DCubismCore) {
+    throw new Error('Live2D Cubism Core was not loaded.');
+  }
+  if (!window.PIXI) {
+    throw new Error('PixiJS was not loaded.');
+  }
+  if (!getLive2DModelClass()) {
+    throw new Error('pixi-live2d-display Cubism4 runtime was not loaded.');
+  }
+}
+
 function setStatus(message, ready = false) {
   statusNode.textContent = message;
   statusNode.classList.toggle('ready', ready);
@@ -38,6 +59,7 @@ async function createApp() {
 
 async function loadModel(path = modelPath) {
   setStatus(`Loading model: ${path}`);
+  assertRuntimeReady();
 
   if (!app) await createApp();
   if (model) {
@@ -46,7 +68,8 @@ async function loadModel(path = modelPath) {
     model = null;
   }
 
-  model = await PIXI.live2d.Live2DModel.from(path, {
+  const Live2DModel = getLive2DModelClass();
+  model = await Live2DModel.from(path, {
     autoInteract: false,
   });
 

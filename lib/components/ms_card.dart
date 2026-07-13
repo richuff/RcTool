@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/repository/SqlLiteConn/favorite_conn.dart';
+import 'package:rctool/repository/entity/Music.dart';
 
+import '../controller/favorite_controller.dart';
 import '../controller/music_controller.dart';
 import '../utils/notification_helper.dart';
 
@@ -22,28 +23,19 @@ class MSCard extends StatefulWidget {
 class _MSCard extends State<MSCard> {
   final NotificationHelper notificationHelper = NotificationHelper();
   MusicController musicController = Get.put(MusicController());
-  bool isFavorite = false;
+  FavoriteController favoriteController = Get.put(FavoriteController());
 
   @override
-  void initState() async {
+  void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadFavorite();
+      favoriteController.ensureLoaded();
     });
-  }
-
-  Future<void> _loadFavorite() async {
-    if (widget.id != null) {
-      final status =
-          await FavoriteConn.queryByMusicAndCheckFavorite(widget.id ?? 0);
-      setState(() {
-        isFavorite = status;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
         margin: const EdgeInsets.only(top: 20, right: 15, left: 15),
         width: 300,
@@ -53,11 +45,11 @@ class _MSCard extends State<MSCard> {
                 image: NetworkImage(widget.image),
                 fit: BoxFit.cover,
                 opacity: 0.7),
-            color: Get.isDarkMode
-                ? const Color.fromRGBO(255, 243, 242, 0.8)
-                : const Color.fromRGBO(200, 190, 185, 0.8),
+            color: scheme.surface.withOpacity(Get.isDarkMode ? 0.86 : 0.78),
             borderRadius: const BorderRadius.all(Radius.circular(50.0)),
-            boxShadow: const [BoxShadow(color: Colors.pink, blurRadius: 4.0)]),
+            boxShadow: [
+              BoxShadow(color: scheme.primary.withOpacity(0.45), blurRadius: 4.0)
+            ]),
         child: Stack(
           children: [
             Positioned(
@@ -70,57 +62,68 @@ class _MSCard extends State<MSCard> {
                     width: 50,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
-                      color: Colors.white,
+                      color: scheme.surface,
                     ),
-                    child: IconButton(
-                        iconSize: 32,
-                        onPressed: () async {
-                          if (widget.id == null) return;
-                          try {
-                            if (isFavorite) {
-                              await FavoriteConn.deleteByMusicId(
-                                  widget.id ?? 0);
-                            } else {
-                              await FavoriteConn.insertFavoriteMusic(
-                                  widget.id ?? 0);
-                            }
-                            setState(() {
-                              isFavorite = !isFavorite;
-                            });
-                          } catch (e) {
-                            print("收藏失败：$e");
-                            Get.snackbar("收藏失败".tr, "$e",
-                                snackPosition: SnackPosition.BOTTOM);
-                          }
-                        },
-                        icon: Icon(isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_border)),
+                    child: GetBuilder<FavoriteController>(
+                      builder: (controller) {
+                        final isFavorite = controller.isFavorite(widget.id);
+                        return IconButton(
+                            iconSize: 32,
+                            onPressed: () async {
+                              if (widget.id == null) return;
+                              try {
+                                await controller.toggle(widget.id);
+                              } catch (e) {
+                                print("收藏失败：$e");
+                                Get.snackbar("收藏失败".tr, "$e",
+                                    snackPosition: SnackPosition.BOTTOM);
+                              }
+                            },
+                            icon: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isFavorite ? Colors.red : null,
+                            ));
+                      },
+                    ),
                   ),
                 )),
             Positioned(
               bottom: 30,
               right: 35,
-              child: Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  color: Colors.white,
-                ),
-                child: IconButton(
-                    iconSize: 35,
-                    onPressed: () {
-                      if (widget.url != "") {
-                        musicController.inc(widget.id, widget.url, widget.image,
-                            widget.songName, widget.decoration);
-                        notificationHelper.showNewMusicNotification(
-                            title: "当前正在播放".tr,
-                            body:
-                                "${widget.songName}  -----  ${widget.decoration}");
-                      }
-                    },
-                    icon: const Icon(Icons.play_arrow_sharp)),
+              child: GetBuilder<MusicController>(
+                builder: (controller) {
+                  final music = Music(widget.id, widget.url, widget.image,
+                      widget.songName, widget.decoration);
+                  final playing = controller.isPlayingMusic(music);
+                  return Container(
+                    height: 50,
+                    width: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      color: playing ? scheme.secondary : scheme.surface,
+                    ),
+                    child: IconButton(
+                        iconSize: 35,
+                        onPressed: () {
+                          if (widget.url != "") {
+                            controller.playOrPauseMusic(music);
+                            if (!playing) {
+                              notificationHelper.showNewMusicNotification(
+                                  title: "当前正在播放".tr,
+                                  body:
+                                      "${widget.songName}  -----  ${widget.decoration}");
+                            }
+                          }
+                        },
+                        icon: Icon(
+                          playing ? Icons.pause : Icons.play_arrow_sharp,
+                          color:
+                              playing ? scheme.onSecondary : scheme.onSurface,
+                        )),
+                  );
+                },
               ),
             ),
             Positioned(
