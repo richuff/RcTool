@@ -61,6 +61,7 @@ class _Live2DWebViewState extends State<Live2DWebView> {
             });
           },
           onWebResourceError: (error) {
+            if (error.isForMainFrame == false) return;
             if (!mounted) return;
             setState(() {
               _error = error.description;
