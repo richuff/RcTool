@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/is_dark_controller.dart';
+import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/feature/theme/type_value.dart';
 import 'package:rctool/iconfont/rc_icon.dart';
-import 'package:rctool/routers/route_path.dart';
+import 'package:rctool/utils/cache_size.dart';
+import 'package:rctool/utils/size_format.dart';
+import 'package:rctool/widget/device_info_panel.dart';
 import 'package:rctool/widget/setting_dialog.dart';
+import 'package:rctool/widget/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../feature/design/icon_button_no_ripple.dart';
-import 'TextWidget/dark_light_text.dart';
-
-
 
 /// @ClassName SearchWidget
-/// @Description 搜索组件
+/// @Description 搜索 / 全局设置入口：底部面板与「完整设置」共用设置组件，样式完全对齐。
 /// @Author richuff
 /// @Date 2024-10-11
-/// @Version 1.0
+/// @Version 2.0
 class SearchWidget extends StatefulWidget {
   const SearchWidget({super.key});
 
@@ -29,17 +30,30 @@ class _SearchWidget extends State<SearchWidget> {
   bool autoPlay = false;
   bool musicNotification = true;
   bool cacheFirst = true;
+  int _cacheBytes = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadAutoPlay();
+      _loadCacheSize();
     });
+  }
+
+  Future<void> _loadCacheSize() async {
+    try {
+      final size = await readMusicCacheSize();
+      if (!mounted) return;
+      setState(() => _cacheBytes = size);
+    } catch (_) {
+      // 读取失败时保留上一次的值
+    }
   }
 
   Future<void> _loadAutoPlay() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       autoPlay = prefs.getBool(playKey) ?? false;
       musicNotification = prefs.getBool(notificationKey) ?? true;
@@ -48,8 +62,15 @@ class _SearchWidget extends State<SearchWidget> {
   }
 
   Future<void> _updateBoolSetting(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
+    if (key == notificationKey && Get.isRegistered<MusicController>()) {
+      await Get.find<MusicController>().updateNotificationSetting(value);
+    } else if (key == cacheFirstKey && Get.isRegistered<MusicController>()) {
+      await Get.find<MusicController>().updateCacheSetting(value);
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(key, value);
+    }
+    if (!mounted) return;
     setState(() {
       if (key == playKey) autoPlay = value;
       if (key == notificationKey) musicNotification = value;
@@ -74,178 +95,187 @@ class _SearchWidget extends State<SearchWidget> {
           hoverColor: scheme.primaryContainer,
           focusColor: scheme.primaryContainer,
           highlightColor: scheme.secondaryContainer,
+          tooltip: '全局设置',
           onPressed: () {
+            _loadAutoPlay();
+            _loadCacheSize();
             Get.bottomSheet(
               StatefulBuilder(
                 builder: (sheetContext, setSheetState) {
                   final sheetScheme = Theme.of(sheetContext).colorScheme;
                   return Container(
+                    height: height > 560 ? 640 : height * 0.9,
                     decoration: BoxDecoration(
-                        color: sheetScheme.surface,
-                        image: const DecorationImage(
-                            opacity: 0.16,
-                            image: AssetImage("image/BottomBackGround.jpg"),
-                            fit: BoxFit.cover)),
-                    height: height > 560 ? 560 : height * 0.86,
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+                      color: sheetScheme.surface,
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: Column(
                       children: [
-                        Row(
-                          children: [
-                            Icon(Icons.tune, color: sheetScheme.primary),
-                            const SizedBox(width: 8),
-                            Text(
-                              "全局设置",
-                              style:
-                                  Theme.of(sheetContext).textTheme.titleLarge,
-                            ),
-                          ],
+                        // 顶部拖拽条
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: sheetScheme.outline.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
-                        const SizedBox(height: 14),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: [
-                            _quickButton(
-                              sheetContext,
-                              icon: Icons.home,
-                              label: "主页".tr,
-                              onTap: () {
-                                Get.back();
-                                Get.toNamed(RoutePath.HOME);
-                              },
-                            ),
-                            _quickButton(
-                              sheetContext,
-                              icon: Icons.music_note,
-                              label: "听音乐".tr,
-                              onTap: () {
-                                Get.back();
-                                Get.toNamed(RoutePath.MUSIC);
-                              },
-                            ),
-                            _quickButton(
-                              sheetContext,
-                              icon: Icons.settings,
-                              label: "完整设置",
-                              onTap: () {
-                                Get.back();
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => const SettingDialog(),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        _settingCard(
-                          sheetContext,
-                          title: "主题",
-                          children: [
-                            Obx(
-                              () => _choiceTile(
-                                sheetContext,
-                                icon: Icons.sunny,
-                                title: "亮色",
-                                selected: !isDarkController.isDark.value,
-                                onTap: () {
-                                  isDarkController.updateIsDark(false);
-                                  setSheetState(() {});
-                                },
+                        Expanded(
+                          child: ListView(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                            children: [
+                              SettingsHeader(
+                                icon: Icons.tune,
+                                title: "全局设置".tr,
+                                subtitle: '快捷调整外观与播放',
+                                onClose: () => Get.back(),
                               ),
-                            ),
-                            Obx(
-                              () => _choiceTile(
-                                sheetContext,
-                                icon: Icons.nightlight,
-                                title: "暗色",
-                                selected: isDarkController.isDark.value,
-                                onTap: () {
-                                  isDarkController.updateIsDark(true);
-                                  setSheetState(() {});
-                                },
+                              const SizedBox(height: 14),
+                              const DeviceInfoPanel(),
+                              const SizedBox(height: 12),
+                              Obx(
+                                () => SettingsSection(
+                                  title: '主题',
+                                  icon: Icons.palette_outlined,
+                                  children: [
+                                    SettingsChoiceTile(
+                                      icon: Icons.brightness_auto_outlined,
+                                      title: "跟随系统",
+                                      selected: isDarkController.themeMode ==
+                                          ThemeMode.system,
+                                      onTap: () {
+                                        isDarkController
+                                            .updateThemeMode(ThemeMode.system);
+                                        setSheetState(() {});
+                                      },
+                                    ),
+                                    SettingsChoiceTile(
+                                      icon: Icons.sunny,
+                                      title: "亮色",
+                                      selected: isDarkController.themeMode ==
+                                          ThemeMode.light,
+                                      onTap: () {
+                                        isDarkController
+                                            .updateThemeMode(ThemeMode.light);
+                                        setSheetState(() {});
+                                      },
+                                    ),
+                                    SettingsChoiceTile(
+                                      icon: Icons.nightlight,
+                                      title: "暗色",
+                                      selected: isDarkController.themeMode ==
+                                          ThemeMode.dark,
+                                      onTap: () {
+                                        isDarkController
+                                            .updateThemeMode(ThemeMode.dark);
+                                        setSheetState(() {});
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        _settingCard(
-                          sheetContext,
-                          title: "语言",
-                          children: [
-                            _choiceTile(
-                              sheetContext,
-                              icon: RcIcon.chinese,
-                              title: "简体中文",
-                              selected: Get.locale?.languageCode == "zh",
-                              onTap: () {
-                                _updateLocale(const Locale("zh", "CN"));
-                                setSheetState(() {});
-                              },
-                            ),
-                            _choiceTile(
-                              sheetContext,
-                              icon: RcIcon.english,
-                              title: "English",
-                              selected: Get.locale?.languageCode == "en",
-                              onTap: () {
-                                _updateLocale(const Locale("en", "US"));
-                                setSheetState(() {});
-                              },
-                            ),
-                            _choiceTile(
-                              sheetContext,
-                              icon: RcIcon.japanese,
-                              title: "日本語",
-                              selected: Get.locale?.languageCode == "ja",
-                              onTap: () {
-                                _updateLocale(const Locale("ja", "JP"));
-                                setSheetState(() {});
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        _settingCard(
-                          sheetContext,
-                          title: "播放",
-                          children: [
-                            _switchTile(
-                              sheetContext,
-                              icon: Icons.play_circle_outline,
-                              title: "自动播放",
-                              subtitle: "进入音乐页后自动恢复播放",
-                              value: autoPlay,
-                              onChanged: (value) async {
-                                await _updateBoolSetting(playKey, value);
-                                setSheetState(() {});
-                              },
-                            ),
-                            _switchTile(
-                              sheetContext,
-                              icon: Icons.notifications_active_outlined,
-                              title: "播放通知",
-                              subtitle: "切歌时显示当前播放提示",
-                              value: musicNotification,
-                              onChanged: (value) async {
-                                await _updateBoolSetting(
-                                    notificationKey, value);
-                                setSheetState(() {});
-                              },
-                            ),
-                            _switchTile(
-                              sheetContext,
-                              icon: Icons.cached,
-                              title: "缓存优先",
-                              subtitle: "优先使用已缓存的音乐文件",
-                              value: cacheFirst,
-                              onChanged: (value) async {
-                                await _updateBoolSetting(cacheFirstKey, value);
-                                setSheetState(() {});
-                              },
-                            ),
-                          ],
+                              SettingsSection(
+                                title: '语言',
+                                icon: Icons.translate,
+                                children: [
+                                  SettingsChoiceTile(
+                                    icon: RcIcon.chinese,
+                                    title: "简体中文",
+                                    selected:
+                                        Get.locale?.languageCode == "zh",
+                                    onTap: () {
+                                      _updateLocale(
+                                          const Locale("zh", "CN"));
+                                      setSheetState(() {});
+                                    },
+                                  ),
+                                  SettingsChoiceTile(
+                                    icon: RcIcon.english,
+                                    title: "English",
+                                    selected:
+                                        Get.locale?.languageCode == "en",
+                                    onTap: () {
+                                      _updateLocale(
+                                          const Locale("en", "US"));
+                                      setSheetState(() {});
+                                    },
+                                  ),
+                                  SettingsChoiceTile(
+                                    icon: RcIcon.japanese,
+                                    title: "日本語",
+                                    selected:
+                                        Get.locale?.languageCode == "ja",
+                                    onTap: () {
+                                      _updateLocale(
+                                          const Locale("ja", "JP"));
+                                      setSheetState(() {});
+                                    },
+                                  ),
+                                ],
+                              ),
+                              SettingsSection(
+                                title: '播放',
+                                icon: Icons.play_circle_outline,
+                                children: [
+                                  SettingsSwitchTile(
+                                    icon: Icons.play_circle_outline,
+                                    title: "自动播放",
+                                    subtitle: "进入音乐页后自动恢复播放",
+                                    value: autoPlay,
+                                    onChanged: (value) async {
+                                      await _updateBoolSetting(
+                                          playKey, value);
+                                      setSheetState(() {});
+                                    },
+                                  ),
+                                  SettingsSwitchTile(
+                                    icon: Icons.notifications_active_outlined,
+                                    title: "播放通知",
+                                    subtitle: "切歌时显示当前播放提示",
+                                    value: musicNotification,
+                                    onChanged: (value) async {
+                                      await _updateBoolSetting(
+                                          notificationKey, value);
+                                      setSheetState(() {});
+                                    },
+                                  ),
+                                  SettingsSwitchTile(
+                                    icon: Icons.cached,
+                                    title: "缓存优先",
+                                    subtitle:
+                                        "已缓存 ${formatBytes(_cacheBytes)} · 优先使用本地缓存",
+                                    value: cacheFirst,
+                                    onChanged: (value) async {
+                                      await _updateBoolSetting(
+                                          cacheFirstKey, value);
+                                      setSheetState(() {});
+                                    },
+                                  ),
+                                ],
+                              ),
+                              SettingsSection(
+                                title: '更多',
+                                icon: Icons.settings_outlined,
+                                margin: EdgeInsets.zero,
+                                children: [
+                                  SettingsActionTile(
+                                    icon: Icons.settings,
+                                    title: "完整设置",
+                                    subtitle: "播放模式、音量、睡眠定时与缓存管理",
+                                    onTap: () {
+                                      Get.back();
+                                      showDialog(
+                                        context: context,
+                                        builder: (_) => const SettingDialog(),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -253,97 +283,10 @@ class _SearchWidget extends State<SearchWidget> {
                 },
               ),
               isScrollControlled: true,
+              backgroundColor: Colors.transparent,
             );
           },
           icon: const Icon(Icons.widgets)),
-    );
-  }
-
-  Widget _quickButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return FilledButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon),
-      label: Text(label),
-      style: FilledButton.styleFrom(
-        backgroundColor: scheme.secondary,
-        foregroundColor: scheme.onSecondary,
-      ),
-    );
-  }
-
-  Widget _settingCard(
-    BuildContext context, {
-    required String title,
-    required List<Widget> children,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surface.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outline.withOpacity(0.28)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _choiceTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return ListTile(
-      leading: Icon(icon, color: selected ? scheme.primary : null),
-      title: darkLightText(title),
-      trailing: selected
-          ? Icon(Icons.check_circle, color: scheme.primary)
-          : const Icon(Icons.circle_outlined),
-      onTap: onTap,
-    );
-  }
-
-  Widget _switchTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return SwitchListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-      secondary: Icon(icon, color: value ? scheme.secondary : null),
-      title: darkLightText(title),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(color: scheme.onSurfaceVariant),
-      ),
-      value: value,
-      activeColor: scheme.onSecondary,
-      activeTrackColor: scheme.secondary,
-      onChanged: onChanged,
     );
   }
 }

@@ -2,102 +2,69 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../views/main_settings.dart';
+import 'settings_ui.dart';
 
 /// @ClassName SettingDialog
-/// @Description 设置窗口
+/// @Description 完整设置窗口：与「全局设置」快捷面板共用同一套设置组件，
+///             头部、分组卡片与选项行样式完全对齐。
 /// @Author richuff
-/// @Date 2024-10-11
-/// @Version 1.0
-class SettingDialog extends Dialog {
+/// @Version 2.0
+class SettingDialog extends StatelessWidget {
   const SettingDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Material(
-        type: MaterialType.transparency,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-            decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius: const BorderRadius.all(Radius.circular(5))),
-            height: 600,
-            width: 380,
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 20,
-                ),
-                Stack(
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '设置'.tr,
-                        style: const TextStyle(fontSize: 30),
-                      ),
+    final screenHeight = MediaQuery.of(context).size.height;
+    final dialogHeight = (screenHeight - 48).clamp(360.0, 720.0).toDouble();
+
+    return Dialog(
+      backgroundColor: scheme.surface,
+      surfaceTintColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(16),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: SizedBox(
+        width: 460,
+        height: dialogHeight,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+          child: Column(
+            children: [
+              SettingsHeader(
+                icon: Icons.settings_outlined,
+                title: '设置'.tr,
+                subtitle: '外观、播放与存储偏好',
+                onClose: () => Navigator.of(context).pop(),
+              ),
+              const SizedBox(height: 6),
+              Divider(
+                height: 1,
+                color: scheme.outline.withOpacity(0.16),
+              ),
+              const MainSettings(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.lock_outline,
+                    size: 13,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '设置仅保存在本机',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: scheme.onSurfaceVariant,
                     ),
-                    Align(
-                        alignment: Alignment.centerRight,
-                        child: Container(
-                          margin: const EdgeInsets.fromLTRB(0, 0, 13, 0),
-                          child: InkWell(
-                              onTap: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Icon(
-                                Icons.close,
-                                size: 24,
-                              )),
-                        ))
-                  ],
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Container(
-                    height: 70,
-                    decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(4)),
-                        border: Border.all(
-                            color: scheme.outline.withOpacity(0.45),
-                            width: 1.0),
-                        color: scheme.primaryContainer.withOpacity(0.72)),
-                    padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: 9,
-                          child: Icon(
-                            size: 30,
-                            Icons.info,
-                            color: scheme.primary,
-                          ),
-                        ),
-                        const Positioned(
-                          top: 6,
-                          left: 34,
-                          child: Text(
-                            "仅在本地保存",
-                            style: TextStyle(fontSize: 25),
-                          ),
-                        ),
-                        Positioned(
-                          top: 40,
-                          left: 34,
-                          child: Container(
-                              alignment: Alignment.centerLeft,
-                              child: const Text("设置仅在本地保存，清除缓存后将恢复默认设置。")),
-                        )
-                      ],
-                    )),
-                const MainSettings()
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

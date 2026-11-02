@@ -46,6 +46,10 @@ class NotificationHelper {
     );
   }
 
+  Future<void> cancelAll() async {
+    await _notificationsPlugin.cancelAll();
+  }
+
   Future<void> showNewMusicNotification({required String title, required String body}) async {
     const AndroidNotificationDetails androidNotificationDetails =
     AndroidNotificationDetails(

@@ -3,3 +3,6 @@ const String notificationKey = "notificationKey";
 const String cacheFirstKey = "cacheFirstKey";
 const String languageCodeKey = "languageCodeKey";
 const String countryCodeKey = "countryCodeKey";
+const String themeModeKey = "themeModeKey";
+const String playModeKey = "playModeKey";
+const String volumeKey = "volumeKey";
