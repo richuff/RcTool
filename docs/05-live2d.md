@@ -51,7 +51,8 @@ export 'live2d_webview_stub.dart'
 - **触摸交互**：用户点击 / 拖拽角色，触发对应 `motions` 动作或 `expressions` 表情。
 - **缩放控制**：`live_to_d.dart` 底部缩放条（− / 滑块 / ＋ / 百分比）把倍率传给 `Live2DWebView(zoom:)`，Flutter 侧通过 JS 桥调用 `window.live2dBridge.setZoom(value)`；`fitModelToStage()` 里以 `0.86 * zoom` 计算缩放，默认 0.8（整屏贴合会显得过大），范围 0.45–1.6，倍率持久化到 `SharedPreferences`（`live2dZoomKey`）。模型未加载完成时的调用会被忽略，`ready` 回调里会再同步一次。
 - **状态回传**：`window.__rcPost({type: progress|ready|error, ...})` 经 `RcLive2DBridge`（Android）或 `chrome.webview.postMessage`（Windows）回传，Flutter 据此显示进度浮层、失败原因与重试入口。
-- **音频联动**：播放页 / Live2D 页可将 `MusicController` 的播放状态、节奏信息传递给 Web 端，驱动角色动作随音乐变化（具体桥接逻辑见 `live_to_d.dart` 与 viewer 配置）。
+- **口型联动**：音频由 Flutter 原生播放器（`audioplayers`）解码，WebView 拿不到音频采样，因此 `main.js` 用「音节包络」模拟说话节奏（快张慢合 + 乐句起伏），在 `internalModel` 的 `beforeModelUpdate` 回调里写入 `ParamMouthOpenY`——此时动作与物理都已算完、`coreModel.update()` 尚未执行，写入才会真正生效。开关在页面右上角（`live2dLipSyncKey` 持久化），只在播放时驱动，暂停后平滑闭嘴。
+- **状态驱动**：`Live2DWebView(lipSync:)` 通过 `window.live2dBridge.setLipSync(bool)` 把播放状态推进页面，`ready` 回调里补一次同步，切换歌曲不会丢失状态。
 
 ## 5. 新增模型步骤
 

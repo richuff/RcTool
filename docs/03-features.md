@@ -128,7 +128,8 @@
 
 - `/livetod` 进入 Live2D 页面，通过 WebView 加载 `assets/live2d/viewer/` 中的 Web 版 Live2D 运行时。
 - 当前内置模型为 **Haru**（`assets/live2d/models/Haru/`），含表情（expressions）、动作（motions）、物理（physics）与贴图。
-- 支持触摸交互触发角色动作、跟随音频节奏的动画（由页面层驱动）。
+- 支持触摸交互触发角色动作；播放音乐时可由「口型联动」开关驱动角色嘴型（`main.js` 内的音节包络 + `ParamMouthOpenY`）。
+- 右下角缩放条（0.45–1.6，默认 0.8）与右上角口型开关都会持久化到 `SharedPreferences`。
 - 页面叠加：左上角模型徽标、顶部渐隐遮罩、底部毛玻璃「互动提示」卡（可收起），并提供**重新加载**按钮（通过更换 `ValueKey` 重建 WebView）。
 
 ## 12. 主题与多语言
@@ -136,7 +137,26 @@
 - 跟随系统 / 亮色 / 暗色主题由 `IsDarkController` 控制并持久化，UI 实时响应（见 [02 - 整体架构](./02-architecture.md)）。
 - 多语言通过 `MyMessage` + `.tr` 实现，默认中文，回退英文。
 
-## 13. 关于作者
+## 13. 歌词
+
+全屏播放页（`/player`）点封面或右上角「歌词」图标即可在封面与歌词之间切换：
+
+- LRC 解析在 `lib/utils/lrc_parser.dart`：支持一行多个时间戳、`[offset:]`、`[ti:]` 等元信息，纯文本歌词也能保存（此时不滚动、不高亮）。
+- 歌词按音频 `url` 存在 `lyric` 表（`LyricConn`），换页面 / 换歌单进入同一首歌都能读到。
+- 当前行高亮并自动居中；点击任意行跳转到该句；手动滚动后暂停跟随并出现「回到当前」。
+- 「编辑歌词」面板：粘贴剪贴板内容、编辑原文、±0.5 秒偏移微调、删除歌词；空状态给出导入入口与格式示例。
+
+## 14. 离线缓存
+
+`OfflineController`（`lib/controller/offline_controller.dart`）统一管理下载状态：
+
+- 已下载的歌曲在列表行副标题尾部显示离线角标（`SongRow` 内部订阅，状态一变立刻刷新）。
+- 歌曲「…」面板新增「下载到本地 / 删除离线缓存」，显示单曲占用大小。
+- `/offline` 离线管理页：汇总已下载数量与占用、单曲试听 / 删除、清空缓存、调整缓存上限。
+- 缓存上限可选 不限 / 200MB / 500MB / 1GB / 2GB，超出后按下载时间自动清理最旧的音频（设置页与离线页共用同一个选择弹窗）。
+- 音频与封面共用 `DefaultCacheManager`，上限只统计音频文件，避免误删封面后列表全是占位图。
+
+## 15. 关于作者
 
 `/about`（`lib/page/about_author.dart`）使用 `AppScaffold` + `aboutBackGround` 背景，包含：
 

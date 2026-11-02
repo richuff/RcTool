@@ -83,6 +83,16 @@ RcTool 使用 **SQLite** 做本地持久化，由 `sqflite` 系列库驱动，�
 
 `play_history.playedAt` 建立 `idx_play_history_played_at(playedAt DESC)` 索引，加速最近播放和按时间统计。该表**不设外键**，故意保留歌曲快照，使歌曲从曲库删除后历史仍可用。
 
+### `lyric` — 本地歌词
+| 字段 | 类型 | 约束 |
+| --- | --- | --- |
+| url | TEXT | PK（音频地址，与 `music.url` 对应） |
+| content | TEXT | NOT NULL（LRC 原文） |
+| offsetMs | INTEGER | NOT NULL DEFAULT 0（用户微调的偏移） |
+| updatedAt | INTEGER | NOT NULL |
+
+以音频 url 作为主键，同一首歌无论从曲库、歌单还是历史进入播放，都能读到同一份歌词；解码与滚动逻辑在 `lib/utils/lrc_parser.dart` 与 `lib/widget/lyric_view.dart` 中完成，表里只存原文与偏移，方便用户随时改词。
+
 > 其余所有 `FK` 均配置 `ON DELETE CASCADE` / `ON UPDATE CASCADE`，删除歌曲或歌单时会级联清理关联行，保证引用完整性。
 
 ## 3. 关系图
@@ -119,12 +129,13 @@ play_history（独立快照表，无外键）
 - `playlist_conn.dart`：歌单与"收藏歌单"的查询 / 增删。
 - `recommend_history_conn.dart`：每日推荐历史与明细的读写。
 - `play_history_conn.dart`：播放历史写入、最近记录、聚合统计、单条删除与清空。
+- `lyric_conn.dart`：歌词按 `url` 的读取 / 保存 / 偏移更新 / 删除。
 
 > 业务逻辑（如"切换收藏"）封装在 `FavoriteController`，DAO 只负责 SQL 操作，职责清晰。
 
 ## 6. 升级注意事项
 
-- 数据库版本从 1 升到 6（v6 新增 `play_history` 及时间索引），每次发布迁移都应在 `onUpgrade` 中补建缺失表（当前实现已用 `IF NOT EXISTS` 兜底）。
+- 数据库版本从 1 升到 7（v6 新增 `play_history` 及时间索引，v7 新增 `lyric`），每次发布迁移都应在 `onUpgrade` 中补建缺失表（当前实现已用 `IF NOT EXISTS` 兜底）。
 - 若需新增字段或修改约束，建议在 `_createTables` 中追加 `ALTER` 语句或在 `onUpgrade` 按 `oldVersion` 分支处理，并在本文档同步更新表结构。
 
 下一篇：[05 - Live2D 集成](./05-live2d.md)
