@@ -11,7 +11,6 @@ import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/repository/entity/playlist.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 import 'package:rctool/widget/now_playing_bar.dart';
-import 'package:rctool/widget/settings_ui.dart';
 import 'package:rctool/widget/slide_fade_in.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
@@ -83,7 +82,9 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return AppScaffold(
+      // 歌单名称直接作为页面标题，页面内不再重复展示「歌单信息」卡片
       title: _playlist.name,
+      actions: [_playAllAction(scheme)],
       body: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(
           scrollbars: false,
@@ -98,10 +99,8 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 16),
                       children: [
-                        _infoCard(context),
-                        const SizedBox(height: 4),
                         if (_musicList.isEmpty)
                           _emptyState(scheme)
                         else
@@ -116,90 +115,70 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
     );
   }
 
-  /// 与设置页一致的分组卡片
-  Widget _infoCard(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return SettingsSection(
-      title: _isFavorite ? '默认歌单' : '歌单信息',
-      icon: _isFavorite
-          ? Icons.favorite_rounded
-          : Icons.queue_music_rounded,
-      children: [
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-          leading: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(13),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  scheme.primaryContainer,
-                  scheme.secondaryContainer,
+  /// 右上角「播放全部」按钮：直接加入队列并从头播放
+  Widget _playAllAction(ColorScheme scheme) {
+    final enabled = _musicList.isNotEmpty;
+    final radius = BorderRadius.circular(18);
+    return Padding(
+      padding: const EdgeInsets.only(top: 9, bottom: 9, right: 2),
+      child: Opacity(
+        opacity: enabled ? 1 : 0.42,
+        child: Material(
+          color: scheme.primary,
+          borderRadius: radius,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: enabled
+                ? () => musicController.addMusicListToQueue(_musicList)
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 5, 12, 5),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.play_arrow_rounded,
+                    size: 19,
+                    color: scheme.onPrimary,
+                  ),
+                  const SizedBox(width: 2),
+                  Text(
+                    '播放全部'.tr,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: scheme.onPrimary,
+                    ),
+                  ),
                 ],
               ),
             ),
-            child: Icon(
-              _isFavorite
-                  ? Icons.favorite_rounded
-                  : Icons.playlist_play_rounded,
-              color: scheme.onPrimaryContainer,
-            ),
-          ),
-          title: Text(
-            _playlist.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: scheme.onSurface,
-            ),
-          ),
-          subtitle: Text(
-            _isFavorite
-                ? '收藏的歌曲都会出现在这里 · 共 ${_musicList.length} 首'
-                : '共 ${_musicList.length} 首歌曲',
-            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
           ),
         ),
-        SettingsActionTile(
-          icon: Icons.play_arrow_rounded,
-          title: '播放全部',
-          subtitle: _musicList.isEmpty ? '歌单里还没有歌曲' : '加入播放队列并从头开始',
-          onTap: _musicList.isEmpty
-              ? () {}
-              : () => musicController.addMusicListToQueue(_musicList),
-        ),
-      ],
+      ),
     );
   }
 
   List<Widget> _buildRows() {
     return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(4, 6, 4, 8),
+        padding: const EdgeInsets.fromLTRB(8, 2, 8, 6),
         child: Row(
           children: [
-            Icon(Icons.music_note_rounded,
-                size: 16, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              _isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.queue_music_rounded,
+              size: 14,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(width: 6),
             Text(
-              '歌曲',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.primary,
-                letterSpacing: 0.6,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '${_musicList.length} 首',
+              '共 @count 首'.trParams({'count': '${_musicList.length}'}),
               style: TextStyle(
                 fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -222,7 +201,9 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                   onMore: () => showSongActions(
                     context,
                     music,
-                    removeLabel: _isFavorite ? '从我的喜欢移除' : '从歌单移除',
+                    removeLabel: _isFavorite
+                        ? '从我的喜欢移除'.tr
+                        : '从歌单移除'.tr,
                     onRemove: () => _removeMusic(music),
                   ).then((_) => _load()),
                 ),
@@ -258,8 +239,8 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
             const SizedBox(height: 12),
             Text(
               _isFavorite
-                  ? '还没有收藏歌曲，去每日推荐看看吧'
-                  : '这个歌单还是空的，在任意歌曲右侧点「…」就能加进来',
+                  ? '还没有收藏歌曲，去每日推荐看看吧'.tr
+                  : '这个歌单还是空的，在任意歌曲右侧点「…」就能加进来'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
             ),

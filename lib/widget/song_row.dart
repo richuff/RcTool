@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:rctool/repository/entity/Music.dart';
 
 /// @ClassName SongRow
-/// @Description 横向歌曲卡片：封面 + 渐变信息条 + 播放/移除按钮。
-///             信息条与圆形按钮垂直居中对齐（此前因外层边距导致横条偏上、
-///             按钮偏下），并修复亮色主题下白色图标不可见的问题。
+/// @Description 卡片式歌曲行：圆角底卡 + 封面 + 两行信息 + 轻量圆形操作按钮。
+///             播放中的行用主色渐变高亮，右侧按钮不再使用厚重阴影，
+///             整体与设置页的分组卡片风格保持一致。
 /// @Author richuff
-/// @Version 2.1
+/// @Version 3.0
 class SongRow extends StatelessWidget {
   final Music music;
   final bool playing;
@@ -14,7 +15,9 @@ class SongRow extends StatelessWidget {
   final VoidCallback? onRemove;
   final IconData removeIcon;
   final Color? removeColor;
-  final String? detail;
+
+  /// 第二行文案（默认展示歌手），用于「最近播放」这类需要显示时间的场景。
+  final String? subtitle;
 
   /// 队列序号（可选）。传入后在封面左侧显示序号，用于播放队列等有序场景。
   final int? index;
@@ -22,222 +25,354 @@ class SongRow extends StatelessWidget {
   /// 右侧「…」更多操作按钮（可选）。点击通常打开歌曲操作面板。
   final VoidCallback? onMore;
 
+  /// 是否正在为该歌曲准备缓存（首次播放需要下载）。
+  final bool loading;
+
   const SongRow({
     super.key,
     required this.music,
     this.playing = false,
     this.onPlayToggle,
     this.onRemove,
-    this.removeIcon = Icons.close,
+    this.removeIcon = Icons.close_rounded,
     this.removeColor,
-    this.detail,
+    this.subtitle,
     this.index,
     this.onMore,
+    this.loading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final bool hasPlay = onPlayToggle != null;
-    final bool hasRemove = onRemove != null;
-    final bool hasMore = onMore != null;
-    final bool hasIndex = index != null;
+    final radius = BorderRadius.circular(16);
 
-    // 序号占位宽度：信息条与封面的左偏移都据此让位
-    const double indexWidth = 24;
-    final double coverLeft = hasIndex ? indexWidth : 0;
+    final secondary = subtitle ??
+        (music.decoration.trim().isEmpty ? '未知歌手'.tr : music.decoration);
 
-    // 信息条与按钮共用的垂直中心：横条 40 高，按钮 38 高
-    const double barTop = 18;
-    const double buttonTop = 19;
-    const double buttonStep = 44;
-
-    // 从右往左依次摆放：… → 移除 → 播放/暂停
-    double right = 6;
-    final double moreRight = right;
-    if (hasMore) right += buttonStep;
-    final double removeRight = right;
-    if (hasRemove) right += buttonStep;
-    final double playRight = right;
-    if (hasPlay) right += buttonStep;
-
-    // 为右侧按钮预留文字空间
-    final double rightPadding = hasPlay || hasRemove || hasMore ? right + 4 : 12;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(8, 6, 8, 8),
-      child: SizedBox(
-        height: 78,
-        child: Stack(
-          children: [
-            // 队列序号
-            if (hasIndex)
-              Positioned(
-                left: 0,
-                top: barTop,
-                width: indexWidth,
-                height: 40,
-                child: Center(
-                  child: Text(
-                    '${index! + 1}',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color:
-                          playing ? scheme.primary : scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-            // 渐变信息条
-            Positioned(
-              left: coverLeft,
-              right: 0,
-              top: barTop,
-              height: 40,
-              child: Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 88, right: rightPadding),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [
-                      scheme.primaryContainer.withOpacity(0.86),
-                      scheme.secondaryContainer.withOpacity(0.78),
-                      scheme.tertiary.withOpacity(0.24),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: scheme.shadow.withOpacity(0.16),
-                      blurRadius: 10,
-                    )
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          gradient: LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: playing
+                ? [
+                    scheme.primaryContainer.withOpacity(0.92),
+                    scheme.secondaryContainer.withOpacity(0.66),
+                  ]
+                : [
+                    scheme.surface.withOpacity(0.82),
+                    scheme.surface.withOpacity(0.58),
                   ],
-                ),
-                child: Text(
-                  detail ?? "${music.songName}  -----  ${music.decoration}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+          ),
+          border: Border.all(
+            color: playing
+                ? scheme.primary.withOpacity(0.42)
+                : scheme.outlineVariant.withOpacity(0.26),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: scheme.shadow.withOpacity(playing ? 0.14 : 0.06),
+              blurRadius: playing ? 14 : 8,
+              offset: const Offset(0, 3),
             ),
-            // 封面
-            Positioned(
-              left: coverLeft,
-              top: 0,
-              child: Container(
-                width: 75,
-                height: 75,
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest,
-                  borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: scheme.shadow.withOpacity(0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    )
-                  ],
-                  image: music.imageUrl.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(music.imageUrl),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: music.imageUrl.isEmpty
-                    ? Icon(Icons.music_note, color: scheme.onSurfaceVariant)
-                    : null,
-              ),
-            ),
-            // 播放 / 暂停（与横条垂直居中对齐）
-            if (hasPlay)
-              Positioned(
-                right: playRight,
-                top: buttonTop,
-                child: _CircleButton(
-                  backgroundColor: playing ? scheme.primary : scheme.surface,
-                  onTap: onPlayToggle,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 240),
-                    transitionBuilder: (child, anim) =>
-                        ScaleTransition(scale: anim, child: child),
-                    child: Icon(
-                      playing ? Icons.pause : Icons.play_arrow_sharp,
-                      key: ValueKey(playing),
-                      size: 20,
-                      color: playing ? scheme.onPrimary : scheme.onSurface,
-                    ),
-                  ),
-                ),
-              ),
-            // 移除 / 删除
-            if (hasRemove)
-              Positioned(
-                right: removeRight,
-                top: buttonTop,
-                child: _CircleButton(
-                  backgroundColor: scheme.surface,
-                  onTap: onRemove,
-                  child: Icon(
-                    removeIcon,
-                    size: 18,
-                    color: removeColor ?? scheme.onSurface,
-                  ),
-                ),
-              ),
-            // 更多操作
-            if (hasMore)
-              Positioned(
-                right: moreRight,
-                top: buttonTop,
-                child: _CircleButton(
-                  backgroundColor: scheme.surface,
-                  onTap: onMore,
-                  child: Icon(
-                    Icons.more_horiz_rounded,
-                    size: 20,
-                    color: scheme.onSurface,
-                  ),
-                ),
-              ),
           ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: radius,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onPlayToggle,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(index != null ? 8 : 10, 8, 6, 8),
+              child: Row(
+                children: [
+                  if (index != null)
+                    SizedBox(
+                      width: 20,
+                      child: Text(
+                        '${index! + 1}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: playing
+                              ? scheme.primary
+                              : scheme.onSurfaceVariant.withOpacity(0.85),
+                        ),
+                      ),
+                    ),
+                  _Cover(music: music, playing: playing, scheme: scheme),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            if (playing) ...[
+                              Icon(
+                                Icons.graphic_eq_rounded,
+                                size: 14,
+                                color: scheme.primary,
+                              ),
+                              const SizedBox(width: 3),
+                            ],
+                            Expanded(
+                              child: Text(
+                                music.songName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: playing
+                                      ? scheme.primary
+                                      : scheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                secondary,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                            if (loading)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: _BufferingChip(scheme: scheme),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  if (onPlayToggle != null)
+                    _PlayButton(
+                      playing: playing,
+                      loading: loading,
+                      onTap: onPlayToggle,
+                      scheme: scheme,
+                    ),
+                  if (onRemove != null)
+                    _GhostButton(
+                      icon: removeIcon,
+                      color: removeColor ?? scheme.onSurfaceVariant,
+                      onTap: onRemove,
+                    ),
+                  if (onMore != null)
+                    _GhostButton(
+                      icon: Icons.more_horiz_rounded,
+                      color: scheme.onSurfaceVariant,
+                      onTap: onMore,
+                    ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-/// 统一风格的圆形按钮
-class _CircleButton extends StatelessWidget {
-  final Widget child;
-  final VoidCallback? onTap;
-  final Color backgroundColor;
+/// 封面：圆角矩形 + 轻描边，播放中加一圈主色光晕
+class _Cover extends StatelessWidget {
+  final Music music;
+  final bool playing;
+  final ColorScheme scheme;
 
-  const _CircleButton({
-    required this.child,
-    this.onTap,
-    this.backgroundColor = Colors.transparent,
+  const _Cover({
+    required this.music,
+    required this.playing,
+    required this.scheme,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: backgroundColor,
-      shape: const CircleBorder(),
-      elevation: 3,
-      shadowColor: scheme.shadow,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(width: 38, height: 38, child: Center(child: child)),
+    final hasImage = music.imageUrl.isNotEmpty;
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: scheme.surfaceContainerHighest,
+        border: Border.all(
+          color: playing
+              ? scheme.primary.withOpacity(0.55)
+              : Colors.white.withOpacity(
+                  Theme.of(context).brightness == Brightness.dark ? 0.06 : 0.5,
+                ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.shadow.withOpacity(0.16),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        image: hasImage
+            ? DecorationImage(
+                image: NetworkImage(music.imageUrl),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: hasImage
+          ? null
+          : Icon(
+              Icons.music_note_rounded,
+              size: 22,
+              color: scheme.onSurfaceVariant.withOpacity(0.85),
+            ),
+    );
+  }
+}
+
+/// 缓存中提示：小圆点 + 文案，跟随副标题行
+class _BufferingChip extends StatelessWidget {
+  final ColorScheme scheme;
+
+  const _BufferingChip({required this.scheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+      decoration: BoxDecoration(
+        color: scheme.primary.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 8,
+            height: 8,
+            child: CircularProgressIndicator(
+              strokeWidth: 1.5,
+              valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '缓存中'.tr,
+            style: TextStyle(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+              color: scheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 主操作按钮：播放中为实心主色，未播放为主色淡底
+class _PlayButton extends StatelessWidget {
+  final bool playing;
+  final bool loading;
+  final VoidCallback? onTap;
+  final ColorScheme scheme;
+
+  const _PlayButton({
+    required this.playing,
+    required this.loading,
+    required this.onTap,
+    required this.scheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = playing ? scheme.onPrimary : scheme.primary;
+    return Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Material(
+        color: playing
+            ? scheme.primary
+            : scheme.primary.withOpacity(
+                Theme.of(context).brightness == Brightness.dark ? 0.22 : 0.12,
+              ),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(
+            width: 34,
+            height: 34,
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: loading
+                    ? SizedBox(
+                        key: const ValueKey('loading'),
+                        width: 15,
+                        height: 15,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(foreground),
+                        ),
+                      )
+                    : Icon(
+                        playing
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        key: ValueKey(playing),
+                        size: 20,
+                        color: foreground,
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 次要操作按钮：无底色，只在按下时出现水波
+class _GhostButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _GhostButton({
+    required this.icon,
+    required this.color,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkResponse(
+      onTap: onTap,
+      radius: 20,
+      child: Padding(
+        padding: const EdgeInsets.all(7),
+        child: Icon(icon, size: 19, color: color),
       ),
     );
   }
