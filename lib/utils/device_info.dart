@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 class DeviceInfo {
   final String manufacturer;
   final String model;
+  final String board;
   final String systemVersion;
   final int? sdkInt;
   final String cpuModel;
@@ -22,6 +23,7 @@ class DeviceInfo {
   const DeviceInfo({
     required this.manufacturer,
     required this.model,
+    required this.board,
     required this.systemVersion,
     required this.sdkInt,
     required this.cpuModel,
@@ -36,7 +38,7 @@ class DeviceInfo {
   /// 例如 "Xiaomi 13" / "SM-G9910"
   String get deviceLabel {
     final brand = manufacturer.trim();
-    final name = model.trim();
+    final name = model.trim().isNotEmpty ? model.trim() : board.trim();
     if (brand.isEmpty && name.isEmpty) return '未知设备';
     if (name.isEmpty) return brand;
     if (brand.isEmpty) return name;
@@ -59,7 +61,9 @@ class DeviceInfo {
 
   /// 例如 "8 核 · 最高 2.40 GHz · arm64-v8a"
   String get cpuLabel {
-    final parts = <String>['$cpuCores 核'];
+    final parts = <String>[
+      cpuCores > 0 ? '$cpuCores 核' : '核心数未知',
+    ];
     if (cpuMaxGhz != null && cpuMaxGhz! > 0) {
       parts.add('最高 ${cpuMaxGhz!.toStringAsFixed(2)} GHz');
     }
@@ -111,15 +115,26 @@ class DeviceInfoService {
     final cpuInfo = _readCpuInfo();
     final totalRam = _asMb(native['totalRam']) ?? _readMemTotalMb() ?? 0;
     final availRam = _asMb(native['availRam']) ?? 0;
+    final broad = _pickModel([
+      cpuInfo.model,
+      _asText(native['socModel']),
+      _readSocMachine(),
+      _asText(native['hardware']),
+      _asText(native['board']),
+    ]);
 
     final info = DeviceInfo(
       manufacturer: (native['manufacturer'] as String?) ??
           (Platform.isAndroid ? '' : Platform.localHostname),
-      model: (native['model'] as String?) ?? '',
+      model: _cleanModelText(_asText(native['model'])),
+      board: _cleanModelText(_asText(native['board'])),
       systemVersion: (native['androidVersion'] as String?) ??
           Platform.operatingSystemVersion,
       sdkInt: (native['sdkInt'] as num?)?.toInt(),
-      cpuModel: cpuInfo.model,
+      cpuModel: _pickModel([
+        broad,
+        _asText(native['socManufacturer']),
+      ]),
       cpuCores: (native['cpuCores'] as num?)?.toInt() ??
           Platform.numberOfProcessors,
       cpuMaxGhz: _readCpuMaxGhz(),
@@ -131,6 +146,34 @@ class DeviceInfoService {
 
     _cache = info;
     return info;
+  }
+
+  static String _asText(dynamic value) =>
+      value is String ? value.trim() : '';
+
+  /// 过滤机型/主板字段里的占位值（个别机型会返回 "0" 或 "unknown"）。
+  static String _cleanModelText(String raw) {
+    const junk = {'unknown', 'null', 'nil', 'n/a', 'none', '0'};
+    final value = raw.trim();
+    if (value.length < 2) return '';
+    if (junk.contains(value.toLowerCase())) return '';
+    return value;
+  }
+
+  /// 从多个候选里挑出第一个「像样」的型号名。
+  /// 某些机型的 /proc/cpuinfo 或 Build 字段会返回 "0"、纯数字或 unknown，
+  /// 这类垃圾值会让面板显示成「0」，因此统一过滤掉。
+  static String _pickModel(List<String> candidates) {
+    const junk = {'unknown', 'null', 'nil', 'n/a', 'none', 'unavailable'};
+    for (final raw in candidates) {
+      final value = _cleanCpuName(raw);
+      if (value.isEmpty) continue;
+      if (value.length < 2) continue;
+      if (RegExp(r'^[\d\s._-]+$').hasMatch(value)) continue;
+      if (junk.contains(value.toLowerCase())) continue;
+      return value;
+    }
+    return '';
   }
 
   /// Android 的内存值单位是字节，统一换算为 MB。
@@ -184,11 +227,35 @@ class DeviceInfoService {
     return const _CpuInfo('');
   }
 
+  /// 去掉厂商常见的冗余后缀，如 (R)、(TM)、CPU、Processor。
   static String _cleanCpuName(String raw) {
+    if (raw.trim().isEmpty) return '';
     return raw
         .replaceAll(RegExp(r'\s+'), ' ')
-        .replaceAll(RegExp(r'\(R\)|\(TM\)|CPU|Processor', caseSensitive: false), '')
+        .replaceAll(
+          RegExp(r'\(R\)|\(TM\)|\(C\)|CPU|Processor', caseSensitive: false),
+          '',
+        )
+        .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
+  }
+
+  /// 部分机型在 `/sys/devices/soc0/machine` 中提供真实芯片名。
+  static String _readSocMachine() {
+    for (final path in const [
+      '/sys/devices/soc0/machine',
+      '/sys/devices/soc0/family',
+    ]) {
+      try {
+        final file = File(path);
+        if (!file.existsSync()) continue;
+        final value = file.readAsStringSync().trim();
+        if (value.isNotEmpty) return value;
+      } catch (_) {
+        // 读取受限时忽略
+      }
+    }
+    return '';
   }
 
   /// 读取 CPU 最高主频（kHz → GHz）。

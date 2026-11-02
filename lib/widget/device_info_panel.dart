@@ -77,12 +77,11 @@ class _DeviceInfoPanelState extends State<DeviceInfoPanel> {
                 label: '处理器'.tr,
                 value: info.cpuLabel,
               ),
-              if (info.cpuModel.isNotEmpty)
-                SettingsInfoTile(
-                  icon: Icons.developer_board_rounded,
-                  label: '型号'.tr,
-                  value: info.cpuModel,
-                ),
+              SettingsInfoTile(
+                icon: Icons.developer_board_rounded,
+                label: '型号'.tr,
+                value: info.cpuModel.isEmpty ? '系统未开放读取' : info.cpuModel,
+              ),
               SettingsInfoTile(
                 icon: Icons.storage_rounded,
                 label: '内存'.tr,
