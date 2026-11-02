@@ -10,6 +10,7 @@ import 'package:rctool/page/MusicPages/music_page.dart';
 import 'package:rctool/page/OfflinePage/offline_page.dart';
 import 'package:rctool/page/PlayerPage/now_playing_page.dart';
 import 'package:rctool/page/SearchPage/search_page.dart';
+import 'package:rctool/page/SettingsPage/backup_page.dart';
 import 'package:rctool/page/SettingsPage/wallpaper_page.dart';
 import 'package:rctool/page/HistoryPage/play_history_page.dart';
 import 'package:rctool/page/StatsPage/play_stats_page.dart';
@@ -23,22 +24,21 @@ var routes = [
   GetPage(
       name: RoutePath.MUSIC,
       page: () => const MusicPage(),
-      transition: Transition.rightToLeft
-  ),
+      transition: Transition.rightToLeft),
   GetPage(
       name: RoutePath.MUSICCHOOSE,
       page: () => const MusicChoose(),
-      transition: Transition.rightToLeft
-  ),
+      transition: Transition.rightToLeft),
   GetPage(
       name: RoutePath.RECOMMEND,
       page: () => const EverydayMusic(),
-      transition: Transition.rightToLeft
-  ),
-  GetPage(name: RoutePath.RANKING,
+      transition: Transition.rightToLeft),
+  GetPage(
+      name: RoutePath.RANKING,
       page: () => const Ranking(),
       transition: Transition.rightToLeft),
-  GetPage(name: RoutePath.ALBUM,
+  GetPage(
+      name: RoutePath.ALBUM,
       page: () => const Album(),
       transition: Transition.rightToLeft),
   GetPage(
@@ -58,14 +58,10 @@ var routes = [
       name: RoutePath.STATS,
       page: () => const PlayStatsPage(),
       transition: Transition.rightToLeft),
-
-
   GetPage(
       name: RoutePath.ABOUT,
       page: () => const AboutAuthor(),
       transition: Transition.rightToLeft),
-
-
   GetPage(
       name: RoutePath.SEARCH,
       page: () => const SearchPage(),
@@ -83,6 +79,10 @@ var routes = [
   GetPage(
       name: RoutePath.WALLPAPER,
       page: () => const WallpaperPage(),
+      transition: Transition.rightToLeft),
+  GetPage(
+      name: RoutePath.BACKUP,
+      page: () => const BackupPage(),
       transition: Transition.rightToLeft),
   GetPage(
       name: RoutePath.LIVETOD,

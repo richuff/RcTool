@@ -11,3 +11,8 @@ const String searchHistoryKey = "searchHistoryKey";
 const String cacheLimitKey = "cacheLimitKey";
 const String live2dLipSyncKey = "live2dLipSyncKey";
 const String live2dModelKey = "live2dModelKey";
+
+/// 断点续播：上次的播放队列 / 当前索引 / 播放进度（毫秒）
+const String sessionQueueKey = "sessionQueueKey";
+const String sessionIndexKey = "sessionIndexKey";
+const String sessionPositionKey = "sessionPositionKey";

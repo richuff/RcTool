@@ -35,6 +35,8 @@ class _MusicPage extends State<MusicPage> {
   }
 
   Future<void> _loadMusicList() async {
+    // 等上次会话恢复完再判断队列是否为空，避免刚启动时用曲库把恢复的队列顶掉
+    await musicController.ready;
     // 队列已存在时不再用曲库覆盖：否则用户排好的顺序、增删都会在进入页面时丢失
     if (musicController.musiclist.isEmpty) {
       musicController.musiclist.value = await MusicConn.queryAll();

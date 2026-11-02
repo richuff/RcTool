@@ -1,4 +1,4 @@
-class RoutePath{
+class RoutePath {
   static const String HOME = "/";
 
   static const String MUSIC = "/music";
@@ -30,6 +30,9 @@ class RoutePath{
 
   /// 离线（已下载）歌曲管理
   static const String OFFLINE = "/offline";
+
+  /// 数据备份与恢复
+  static const String BACKUP = "/backup";
 
   /// 壁纸管理与热替换
   static const String WALLPAPER = "/wallpaper";

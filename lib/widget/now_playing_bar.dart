@@ -39,8 +39,8 @@ class _NowPlayingBarState extends State<NowPlayingBar> {
       final total = controller.totalDuration;
       if (total != null && total.inMilliseconds > 0 && mounted) {
         setState(() {
-          _progress = (position.inMilliseconds / total.inMilliseconds)
-              .clamp(0.0, 1.0);
+          _progress =
+              (position.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0);
         });
       }
     });
@@ -55,6 +55,27 @@ class _NowPlayingBarState extends State<NowPlayingBar> {
     _positionSubscription?.cancel();
     controller.removeListener(_onControllerChanged);
     super.dispose();
+  }
+
+  /// 启动恢复出来的队列还没有开始播放时，提示「上次播到 mm:ss」
+  bool _showResumeHint(bool isPlaying) =>
+      !isPlaying && controller.hasResumePoint;
+
+  String _subtitleText(Music current, bool isPlaying) {
+    if (controller.loadingUrl.value.isNotEmpty &&
+        controller.loadingUrl.value == current.url) {
+      return '缓存中 · 首次播放需要下载'.tr;
+    }
+    if (_showResumeHint(isPlaying)) {
+      return '上次播到 @time'.trParams({'time': _mmss(controller.resumePosition)});
+    }
+    return current.decoration;
+  }
+
+  static String _mmss(Duration value) {
+    final minutes = value.inMinutes;
+    final seconds = value.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
   Music? get _current {
@@ -147,21 +168,19 @@ class _NowPlayingBarState extends State<NowPlayingBar> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    controller.loadingUrl.value.isNotEmpty &&
-                                            controller.loadingUrl.value ==
-                                                current.url
-                                        ? '缓存中 · 首次播放需要下载'.tr
-                                        : current.decoration,
+                                    _subtitleText(current, isPlaying),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: controller.loadingUrl.value ==
-                                              current.url
+                                                  current.url ||
+                                              _showResumeHint(isPlaying)
                                           ? FontWeight.w600
                                           : FontWeight.normal,
                                       color: controller.loadingUrl.value ==
-                                              current.url
+                                                  current.url ||
+                                              _showResumeHint(isPlaying)
                                           ? scheme.primary
                                           : scheme.onSurfaceVariant,
                                     ),
