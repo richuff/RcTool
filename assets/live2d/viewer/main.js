@@ -3,7 +3,27 @@
  * 依赖：live2dcubismcore / pixi.js 6 / pixi-live2d-display(cubism4)
  * 通过 window.__rcPost 把「加载中 / 就绪 / 失败」回传给 Flutter 宿主。
  */
-var modelPath = '../models/Haru/Haru.model3.json';
+var DEFAULT_MODEL_PATH = '../models/Haru/Haru.model3.json';
+var modelPath = DEFAULT_MODEL_PATH;
+
+/**
+ * 支持由 Flutter 通过 `?model=<url>` 指定模型：
+ *   - 随包模型：/assets/live2d/models/Haru/Haru.model3.json
+ *   - 外部模型：/ext/<相对路径>/xxx.model3.json（由本机静态服务读磁盘）
+ */
+function resolveInitialModel() {
+  try {
+    var search = window.location.search || '';
+    var match = /[?&]model=([^&]*)/.exec(search);
+    if (match && match[1]) {
+      var decoded = decodeURIComponent(match[1].replace(/\+/g, ' '));
+      if (decoded) return decoded;
+    }
+  } catch (e) {
+    /* 解析失败时用默认模型 */
+  }
+  return DEFAULT_MODEL_PATH;
+}
 var canvas = document.getElementById('live2d-canvas');
 var statusNode = document.getElementById('live2d-status');
 
@@ -333,4 +353,4 @@ function reportError(error) {
 }
 
 // 启动
-loadModel().catch(reportError);
+loadModel(resolveInitialModel()).catch(reportError);

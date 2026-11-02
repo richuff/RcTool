@@ -10,6 +10,7 @@ import 'package:rctool/page/MusicPages/music_page.dart';
 import 'package:rctool/page/OfflinePage/offline_page.dart';
 import 'package:rctool/page/PlayerPage/now_playing_page.dart';
 import 'package:rctool/page/SearchPage/search_page.dart';
+import 'package:rctool/page/SettingsPage/wallpaper_page.dart';
 import 'package:rctool/page/HistoryPage/play_history_page.dart';
 import 'package:rctool/page/StatsPage/play_stats_page.dart';
 import 'package:rctool/page/live_to_d.dart';
@@ -78,6 +79,10 @@ var routes = [
   GetPage(
       name: RoutePath.OFFLINE,
       page: () => const OfflinePage(),
+      transition: Transition.rightToLeft),
+  GetPage(
+      name: RoutePath.WALLPAPER,
+      page: () => const WallpaperPage(),
       transition: Transition.rightToLeft),
   GetPage(
       name: RoutePath.LIVETOD,

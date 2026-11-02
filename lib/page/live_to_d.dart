@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/feature/theme/type_value.dart';
+import 'package:rctool/service/live2d_model_library.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
+import 'package:rctool/widget/live2d/live2d_model_sheet.dart';
 import 'package:rctool/widget/live2d/live2d_webview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,11 +39,15 @@ class _LiveTodState extends State<LiveTod> {
   bool _lipSync = true;
   bool _wasPlaying = false;
 
+  /// 当前模型（内置 Haru 兜底）
+  Live2DModelEntry _model = Live2DModelLibrary.builtIn;
+
   @override
   void initState() {
     super.initState();
     _loadZoom();
     _loadLipSync();
+    _loadModelSelection();
     _wasPlaying = _musicController.isplay.value;
     _musicController.addListener(_onMusicChanged);
   }
@@ -82,6 +88,47 @@ class _LiveTodState extends State<LiveTod> {
     });
   }
 
+  /// 扫描外部模型目录（选择面板与页面共用同一份扫描逻辑）
+  Future<List<Live2DModelEntry>> _scanModels() async {
+    return Live2DModelLibrary.scan();
+  }
+
+  /// 读取上次选中的模型；模型被删掉时自动回到内置 Haru
+  Future<void> _loadModelSelection() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedId = prefs.getString(live2dModelKey);
+    if (!mounted) return;
+    // 先用持久化的 id 直接还原，避免第一帧加载内置模型后再切换
+    if (savedId != null && savedId != _model.id) {
+      setState(() => _model = Live2DModelLibrary.entryFromId(savedId));
+    }
+    final models = await _scanModels();
+    if (!mounted) return;
+    final resolved = Live2DModelLibrary.resolve(models, savedId);
+    if (resolved.id != _model.id) {
+      setState(() => _model = resolved);
+    }
+  }
+
+  Future<void> _pickModel() async {
+    final picked = await showModalBottomSheet<Live2DModelEntry>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Live2DModelSheet(
+        selectedId: _model.id,
+        onScan: _scanModels,
+      ),
+    );
+    if (picked == null || !mounted || picked.id == _model.id) return;
+    setState(() {
+      _model = picked;
+      _reloadToken++;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(live2dModelKey, picked.id);
+  }
+
   Future<void> _saveZoom() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(live2dZoomKey, _zoom);
@@ -102,8 +149,9 @@ class _LiveTodState extends State<LiveTod> {
         children: [
           Positioned.fill(
             child: Live2DWebView(
-              key: ValueKey(_reloadToken),
+              key: ValueKey('live2d-${_model.id}-$_reloadToken'),
               assetPath: 'assets/live2d/viewer/index.html',
+              modelUrl: _model.modelPath,
               zoom: _zoom,
               lipSync: _lipSync && _wasPlaying,
             ),
@@ -129,37 +177,11 @@ class _LiveTodState extends State<LiveTod> {
               ),
             ),
           ),
-          // 模型徽标
+          // 模型徽标：点击打开模型选择（自动扫描外部目录）
           Positioned(
             left: 16,
             top: 14,
-            child: IgnorePointer(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: scheme.surface.withOpacity(0.86),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: scheme.outline.withOpacity(0.2)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.face_retouching_natural,
-                        size: 14, color: scheme.primary),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Haru',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            child: _modelChip(scheme),
           ),
           // 口型联动开关
           Positioned(
@@ -201,6 +223,50 @@ class _LiveTodState extends State<LiveTod> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// 模型徽标：显示当前模型名，点开可切换（模型数量 > 1 时加下拉箭头）
+  Widget _modelChip(ColorScheme scheme) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: _pickModel,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(10, 5, 8, 5),
+          decoration: BoxDecoration(
+            color: scheme.surface.withOpacity(0.88),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: scheme.outline.withOpacity(0.2)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.face_retouching_natural,
+                  size: 14, color: scheme.primary),
+              const SizedBox(width: 5),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 116),
+                child: Text(
+                  _model.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 2),
+              Icon(Icons.expand_more_rounded,
+                  size: 14, color: scheme.onSurfaceVariant),
+            ],
+          ),
+        ),
       ),
     );
   }

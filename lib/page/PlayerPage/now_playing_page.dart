@@ -6,8 +6,8 @@ import 'package:get/get.dart';
 import 'package:rctool/controller/favorite_controller.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/entity/Music.dart';
-import 'package:rctool/routers/route_path.dart';
 import 'package:rctool/widget/lyric_view.dart';
+import 'package:rctool/widget/queue_sheet.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 
 /// @ClassName NowPlayingPage
@@ -176,47 +176,22 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
             icon: Icon(Icons.keyboard_arrow_down_rounded,
                 size: 28, color: scheme.onSurface),
           ),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '正在播放'.tr,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.6,
-                    color: scheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  '@index / @count'.trParams({
-                    'index': '${controller.position.value + 1}',
-                    'count': '${controller.musiclist.length}',
-                  }),
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const Spacer(),
           IconButton(
             tooltip: _showLyrics ? '显示封面'.tr : '显示歌词'.tr,
             onPressed: () => setState(() => _showLyrics = !_showLyrics),
             icon: Icon(
-              _showLyrics
-                  ? Icons.album_rounded
-                  : Icons.lyrics_rounded,
+              _showLyrics ? Icons.album_rounded : Icons.lyrics_rounded,
               color: _showLyrics ? scheme.primary : scheme.onSurface,
             ),
           ),
           IconButton(
-            tooltip: '播放队列'.tr,
-            onPressed: () => Get.toNamed(RoutePath.MUSICCHOOSE),
-            icon: Icon(Icons.queue_music_rounded, color: scheme.onSurface),
+            tooltip: '更多操作'.tr,
+            onPressed: () {
+              final music = _music;
+              if (music != null) showSongActions(context, music);
+            },
+            icon: Icon(Icons.more_horiz_rounded, color: scheme.onSurface),
           ),
         ],
       ),
@@ -448,9 +423,9 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
           icon: Icon(Icons.skip_next_rounded, color: scheme.onSurface),
         ),
         IconButton(
-          tooltip: '添加到歌单'.tr,
-          onPressed: () => showSongActions(context, music),
-          icon: Icon(Icons.playlist_add_rounded, color: scheme.onSurface),
+          tooltip: '当前歌单'.tr,
+          onPressed: () => showQueueSheet(context),
+          icon: Icon(Icons.queue_music_rounded, color: scheme.onSurface),
         ),
       ],
     );

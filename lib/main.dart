@@ -12,6 +12,7 @@ import 'controller/favorite_controller.dart';
 import 'controller/is_dark_controller.dart';
 import 'controller/music_controller.dart';
 import 'controller/offline_controller.dart';
+import 'controller/wallpaper_controller.dart';
 import 'feature/theme/type_value.dart';
 import 'feature/theme/app_theme.dart';
 
@@ -26,6 +27,7 @@ void main() async {
   Get.put(IsDarkController(), permanent: true);
   Get.put(FavoriteController(), permanent: true);
   Get.put(OfflineController(), permanent: true);
+  Get.put(WallpaperController(), permanent: true);
 
   /// @brief 用户入口
   runApp(const MyApp());

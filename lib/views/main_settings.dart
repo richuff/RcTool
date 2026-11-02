@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controller/is_dark_controller.dart';
 import '../controller/music_controller.dart';
 import '../controller/offline_controller.dart';
+import '../controller/wallpaper_controller.dart';
 import '../feature/theme/type_value.dart';
 import '../routers/route_path.dart';
+import '../service/live2d_model_library.dart';
 import '../utils/cache_size.dart';
 import '../utils/size_format.dart';
 import '../widget/cache_limit_dialog.dart';
@@ -89,6 +92,54 @@ class _MainSettingsState extends State<MainSettings> {
     await _readCacheSize();
     Get.snackbar('清除完成'.tr, '音乐缓存已清除'.tr,
         snackPosition: SnackPosition.BOTTOM);
+  }
+
+  /// 展示 Live2D 模型目录：可直接复制路径，或跳到 Live2D 页切换模型
+  Future<void> _showModelFolder() async {
+    final path = await Live2DModelLibrary.directoryPath();
+    final models = await Live2DModelLibrary.scan();
+    if (!mounted) return;
+    await Get.dialog<void>(
+      AlertDialog(
+        title: Text('Live2D 模型目录'.tr),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SelectableText(
+              path.isEmpty ? '—' : path,
+              style: const TextStyle(fontSize: 11.5, height: 1.45),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '已扫描到 @count 个模型。把包含 .model3.json 的模型文件夹放进该目录，'
+                      '进入 Live2D 页会自动扫描，并在左上角切换。'
+                  .trParams({'count': '${models.length}'}),
+              style: const TextStyle(fontSize: 12, height: 1.5),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              if (path.isEmpty) return;
+              await Clipboard.setData(ClipboardData(text: path));
+              Get.back();
+              Get.snackbar('已复制'.tr, path,
+                  snackPosition: SnackPosition.BOTTOM);
+            },
+            child: Text('复制路径'.tr),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              Get.toNamed(RoutePath.LIVETOD);
+            },
+            child: Text('去 Live2D'.tr),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _resetSettings() async {
@@ -203,6 +254,30 @@ class _MainSettingsState extends State<MainSettings> {
                   title: '暗色模式'.tr,
                   selected: controller.themeMode == ThemeMode.dark,
                   onTap: () => controller.updateThemeMode(ThemeMode.dark),
+                ),
+              ],
+            ),
+          ),
+          GetBuilder<WallpaperController>(
+            builder: (wallpaper) => SettingsSection(
+              title: '外观资源'.tr,
+              icon: Icons.wallpaper_outlined,
+              children: [
+                SettingsActionTile(
+                  icon: Icons.wallpaper_rounded,
+                  title: '壁纸'.tr,
+                  subtitle: wallpaper.fileCount > 0
+                      ? '已识别 @count 张自定义壁纸，点此替换或恢复默认'.trParams({
+                          'count': '${wallpaper.fileCount}',
+                        })
+                      : '支持放入图片快速替换，无需重新安装'.tr,
+                  onTap: () => Get.toNamed(RoutePath.WALLPAPER),
+                ),
+                SettingsActionTile(
+                  icon: Icons.face_retouching_natural,
+                  title: 'Live2D 模型'.tr,
+                  subtitle: '把模型文件夹放进指定目录，自动扫描全部模型'.tr,
+                  onTap: _showModelFolder,
                 ),
               ],
             ),

@@ -31,6 +31,7 @@ class FavoriteController extends GetxController {
     await refresh();
   }
 
+  @override
   Future<void> refresh() async {
     favoriteMusic = await FavoriteConn.queryFavoriteMusic();
     favoritePlaylists = await PlaylistConn.queryFavoritePlaylists();
@@ -49,11 +50,33 @@ class FavoriteController extends GetxController {
 
   Future<void> toggle(int? musicId) async {
     if (musicId == null) return;
-    if (isFavorite(musicId)) {
-      await FavoriteConn.deleteByMusicId(musicId);
+    final wasFavorite = isFavorite(musicId);
+
+    // 先改内存并通知界面：等数据库写完再刷新会有可感知的延迟，
+    // 播放页的爱心因此要过一会儿才变红。失败时回滚。
+    if (wasFavorite) {
+      _favoriteMusicIds.remove(musicId);
     } else {
-      await FavoriteConn.insertFavoriteMusic(musicId);
+      _favoriteMusicIds.add(musicId);
     }
+    update();
+
+    try {
+      if (wasFavorite) {
+        await FavoriteConn.deleteByMusicId(musicId);
+      } else {
+        await FavoriteConn.insertFavoriteMusic(musicId);
+      }
+    } catch (error) {
+      if (wasFavorite) {
+        _favoriteMusicIds.add(musicId);
+      } else {
+        _favoriteMusicIds.remove(musicId);
+      }
+      update();
+      rethrow;
+    }
+
     await refresh();
   }
 

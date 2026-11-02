@@ -30,4 +30,7 @@ class RoutePath{
 
   /// 离线（已下载）歌曲管理
   static const String OFFLINE = "/offline";
+
+  /// 壁纸管理与热替换
+  static const String WALLPAPER = "/wallpaper";
 }

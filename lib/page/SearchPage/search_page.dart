@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/music_controller.dart';
+import 'package:rctool/controller/wallpaper_controller.dart';
 import 'package:rctool/feature/theme/type_value.dart';
 import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
@@ -165,17 +166,20 @@ class _SearchPageState extends State<SearchPage> {
         ],
       ),
       body: SizedBox.expand(
-        child: DecoratedBox(
-          decoration: BackGroundEnum.musicBackGround.decoration,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (Theme.of(context).brightness == Brightness.dark)
-                IgnorePointer(
-                  child: ColoredBox(color: scheme.surface.withOpacity(0.62)),
-                ),
-              _body(scheme, hasQuery),
-            ],
+        child: GetBuilder<WallpaperController>(
+          builder: (wallpaper) => DecoratedBox(
+            key: ValueKey('search-bg-${wallpaper.revision}'),
+            decoration: BackGroundEnum.musicBackGround.decoration,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (Theme.of(context).brightness == Brightness.dark)
+                  IgnorePointer(
+                    child: ColoredBox(color: scheme.surface.withOpacity(0.62)),
+                  ),
+                _body(scheme, hasQuery),
+              ],
+            ),
           ),
         ),
       ),

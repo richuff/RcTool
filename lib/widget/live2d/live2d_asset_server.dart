@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
+
+import '../../service/external_storage.dart';
 
 /// @ClassName Live2DAssetServer
 /// @Description 本机静态资源服务：把 Flutter asset 以 http://127.0.0.1:<port>/ 暴露出去。
@@ -51,6 +54,13 @@ class Live2DAssetServer {
       if (path.isEmpty || path == '/') {
         path = '/assets/live2d/viewer/index.html';
       }
+
+      // 外部模型目录：/ext/<相对路径>，直接读磁盘，无需重新打包
+      if (path.startsWith('/ext/')) {
+        await _serveExternal(request, response, path.substring('/ext/'.length));
+        return;
+      }
+
       // 去掉开头的 '/' 就是 Flutter asset 的 key
       final assetKey = path.startsWith('/') ? path.substring(1) : path;
 
@@ -68,6 +78,33 @@ class Live2DAssetServer {
     } finally {
       await response.close();
     }
+  }
+
+  /// 输出外部模型目录里的文件（模型 json / moc3 / 贴图 / 音频）。
+  Future<void> _serveExternal(
+    HttpRequest request,
+    HttpResponse response,
+    String relative,
+  ) async {
+    final root = await ExternalStorage.instance.live2dDir();
+    final target = p.normalize(p.join(root.path, relative));
+    // 防止 ../ 跳出模型目录
+    if (!p.isWithin(root.path, target)) {
+      response.statusCode = HttpStatus.forbidden;
+      return;
+    }
+    final file = File(target);
+    if (!await file.exists()) {
+      response.statusCode = HttpStatus.notFound;
+      return;
+    }
+
+    response.headers.set('Content-Type', _mimeType(target));
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    // 模型文件允许用户随时替换，禁止缓存旧内容
+    response.headers.set('Cache-Control', 'no-store');
+    response.contentLength = await file.length();
+    await response.addStream(file.openRead());
   }
 
   static String _mimeType(String key) {

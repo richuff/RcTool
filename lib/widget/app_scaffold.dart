@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/feature/design/icon_button_no_ripple.dart';
 import 'package:rctool/routers/route_path.dart';
+import 'package:rctool/controller/wallpaper_controller.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/main_drawer.dart';
 import 'package:rctool/widget/search_widget.dart';
@@ -91,20 +92,24 @@ class AppScaffold extends StatelessWidget {
         ],
       ),
       body: SizedBox.expand(
-        child: DecoratedBox(
-          decoration: background.decoration,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // 暗色下给背景图压一层深色蒙层，避免亮图把整页照得发白
-              if (Theme.of(context).brightness == Brightness.dark)
-                IgnorePointer(
-                  child: ColoredBox(
-                    color: scheme.surface.withOpacity(0.62),
+        child: GetBuilder<WallpaperController>(
+          builder: (wallpaper) => DecoratedBox(
+            // 换壁纸后换 key，让 DecoratedBox 重新解码图片
+            key: ValueKey('bg-${background.slot}-${wallpaper.revision}'),
+            decoration: background.decoration,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // 暗色下给背景图压一层深色蒙层，避免亮图把整页照得发白
+                if (Theme.of(context).brightness == Brightness.dark)
+                  IgnorePointer(
+                    child: ColoredBox(
+                      color: scheme.surface.withOpacity(0.62),
+                    ),
                   ),
-                ),
-              body,
-            ],
+                body,
+              ],
+            ),
           ),
         ),
       ),

@@ -17,6 +17,10 @@ import 'live2d_asset_server.dart';
 class Live2DWebView extends StatefulWidget {
   final String assetPath;
 
+  /// 要加载的模型地址（相对站点根目录）。为空时用 viewer 内置的默认模型。
+  /// 外部模型走 `/ext/...`，随包模型走 `/assets/live2d/models/...`。
+  final String? modelUrl;
+
   /// 模型缩放倍率（1 表示完整贴合画面），由页面滑块控制。
   final double zoom;
 
@@ -26,6 +30,7 @@ class Live2DWebView extends StatefulWidget {
   const Live2DWebView({
     super.key,
     required this.assetPath,
+    this.modelUrl,
     this.zoom = 1.0,
     this.lipSync = false,
   });
@@ -62,6 +67,9 @@ class _Live2DWebViewState extends State<Live2DWebView> {
     }
     if (oldWidget.lipSync != widget.lipSync) {
       _applyLipSync();
+    }
+    if (oldWidget.modelUrl != widget.modelUrl) {
+      _retry();
     }
   }
 
@@ -131,7 +139,13 @@ class _Live2DWebViewState extends State<Live2DWebView> {
   /// http://127.0.0.1:53219/assets/live2d/viewer/index.html
   Future<Uri> _viewerUri() async {
     final port = await Live2DAssetServer.instance.ensureStarted();
-    return Uri.parse('http://127.0.0.1:$port/${widget.assetPath}');
+    final model = widget.modelUrl;
+    final query = (model == null || model.isEmpty)
+        ? ''
+        : '?model=${Uri.encodeComponent(model)}';
+    return Uri.parse(
+      'http://127.0.0.1:$port/${widget.assetPath}$query',
+    );
   }
 
   Future<void> _initSystemWebView() async {
