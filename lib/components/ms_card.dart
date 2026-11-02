@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/controller/favorite_controller.dart';
+import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/entity/Music.dart';
+import 'package:rctool/utils/notification_helper.dart';
 
-import '../controller/favorite_controller.dart';
-import '../controller/music_controller.dart';
-import '../utils/notification_helper.dart';
-
+/// @ClassName MSCard
+/// @Description 正在播放卡片：封面铺满 + 底部渐隐蒙层，歌名/歌手叠在封面上，
+///             右上角收藏、右下角播放/暂停；尺寸由外部按可用空间传入，避免小屏溢出。
+/// @Author richuff
+/// @Version 2.0
 class MSCard extends StatefulWidget {
   final int? id;
   final String url;
   final String image;
   final String decoration;
   final String songName;
+  final double width;
+  final double height;
 
-  const MSCard(this.id, this.url, this.image, this.songName, this.decoration,
-      {super.key});
+  const MSCard(
+    this.id,
+    this.url,
+    this.image,
+    this.songName,
+    this.decoration, {
+    super.key,
+    this.width = 300,
+    this.height = 500,
+  });
 
   @override
   State<MSCard> createState() => _MSCard();
@@ -22,8 +36,11 @@ class MSCard extends StatefulWidget {
 
 class _MSCard extends State<MSCard> {
   final NotificationHelper notificationHelper = NotificationHelper();
-  MusicController musicController = Get.put(MusicController());
-  FavoriteController favoriteController = Get.put(FavoriteController());
+  final MusicController musicController = Get.put(MusicController());
+  final FavoriteController favoriteController = Get.put(FavoriteController());
+
+  bool get _isEmpty =>
+      widget.id == null && widget.url.isEmpty && widget.image.isEmpty;
 
   @override
   void initState() {
@@ -36,112 +53,224 @@ class _MSCard extends State<MSCard> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final music = Music(
+      widget.id,
+      widget.url,
+      widget.image,
+      widget.songName,
+      widget.decoration,
+    );
+
     return Container(
-        margin: const EdgeInsets.only(top: 20, right: 15, left: 15),
-        width: 300,
-        height: 530,
-        decoration: BoxDecoration(
-            image: DecorationImage(
-                image: NetworkImage(widget.image),
-                fit: BoxFit.cover,
-                opacity: 0.7),
-            color: scheme.surface.withOpacity(Get.isDarkMode ? 0.86 : 0.78),
-            borderRadius: const BorderRadius.all(Radius.circular(50.0)),
-            boxShadow: [
-              BoxShadow(color: scheme.primary.withOpacity(0.45), blurRadius: 4.0)
-            ]),
-        child: Stack(
-          children: [
+      width: widget.width,
+      height: widget.height,
+      margin: const EdgeInsets.only(right: 14),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.shadow.withOpacity(0.22),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 封面底图
+          if (widget.image.isNotEmpty)
+            Image.network(
+              widget.image,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _placeholder(scheme),
+            )
+          else
+            _placeholder(scheme),
+          // 底部渐隐蒙层，保证文字在任何封面上都可读
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0.35, 0.68, 1],
+                colors: [
+                  Colors.black.withOpacity(0.02),
+                  Colors.black.withOpacity(0.45),
+                  Colors.black.withOpacity(0.82),
+                ],
+              ),
+            ),
+          ),
+          // 收藏
+          if (!_isEmpty)
             Positioned(
-                top: 20,
-                right: 35,
-                child: Opacity(
-                  opacity: 0.7,
-                  child: Container(
-                    height: 50,
-                    width: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50),
-                      color: scheme.surface,
-                    ),
-                    child: GetBuilder<FavoriteController>(
-                      builder: (controller) {
-                        final isFavorite = controller.isFavorite(widget.id);
-                        return IconButton(
-                            iconSize: 32,
-                            onPressed: () async {
-                              if (widget.id == null) return;
-                              try {
-                                await controller.toggle(widget.id);
-                              } catch (e) {
-                                print("收藏失败：$e");
-                                Get.snackbar("收藏失败".tr, "$e",
-                                    snackPosition: SnackPosition.BOTTOM);
-                              }
-                            },
-                            icon: Icon(
-                              isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: isFavorite ? Colors.red : null,
-                            ));
-                      },
-                    ),
-                  ),
-                )),
-            Positioned(
-              bottom: 30,
-              right: 35,
-              child: GetBuilder<MusicController>(
+              top: 12,
+              right: 12,
+              child: GetBuilder<FavoriteController>(
                 builder: (controller) {
-                  final music = Music(widget.id, widget.url, widget.image,
-                      widget.songName, widget.decoration);
-                  final playing = controller.isPlayingMusic(music);
-                  return Container(
-                    height: 50,
-                    width: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50),
-                      color: playing ? scheme.secondary : scheme.surface,
+                  final isFavorite = controller.isFavorite(widget.id);
+                  return Material(
+                    color: Colors.black.withOpacity(0.32),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () async {
+                        if (widget.id == null) return;
+                        try {
+                          await controller.toggle(widget.id);
+                        } catch (e) {
+                          Get.snackbar("收藏失败".tr, "$e",
+                              snackPosition: SnackPosition.BOTTOM);
+                        }
+                      },
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Center(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (child, anim) =>
+                                ScaleTransition(scale: anim, child: child),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              key: ValueKey(isFavorite),
+                              size: 21,
+                              color: isFavorite
+                                  ? scheme.error
+                                  : Colors.white.withOpacity(0.92),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    child: IconButton(
-                        iconSize: 35,
-                        onPressed: () {
-                          if (widget.url != "") {
-                            controller.playOrPauseMusic(music);
-                            if (!playing) {
-                              notificationHelper.showNewMusicNotification(
-                                  title: "当前正在播放".tr,
-                                  body:
-                                      "${widget.songName}  -----  ${widget.decoration}");
-                            }
-                          }
-                        },
-                        icon: Icon(
-                          playing ? Icons.pause : Icons.play_arrow_sharp,
-                          color:
-                              playing ? scheme.onSecondary : scheme.onSurface,
-                        )),
                   );
                 },
               ),
             ),
-            Positioned(
-              bottom: 50,
-              left: 30,
-              child: Text(
-                widget.songName,
-                style: const TextStyle(fontSize: 24, color: Colors.white),
+          // 歌名 / 歌手
+          Positioned(
+            left: 18,
+            right: 18,
+            bottom: 18,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _isEmpty ? '未选择播放的歌曲' : widget.songName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 21,
+                    height: 1.2,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(color: Colors.black54, blurRadius: 6),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _isEmpty ? '从下面的列表里挑一首吧' : widget.decoration,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: Colors.white.withOpacity(0.82),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GetBuilder<MusicController>(
+                      builder: (controller) {
+                        final playing = controller.isPlayingMusic(music);
+                        return _playButton(context, controller, music, playing);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _playButton(
+    BuildContext context,
+    MusicController controller,
+    Music music,
+    bool playing,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: playing ? scheme.primary : Colors.white,
+      shape: const CircleBorder(),
+      elevation: 4,
+      shadowColor: Colors.black26,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () {
+          if (widget.url.isEmpty) return;
+          controller.playOrPauseMusic(music);
+          if (!playing) {
+            notificationHelper.showNewMusicNotification(
+              title: "当前正在播放".tr,
+              body: "${widget.songName}  -----  ${widget.decoration}",
+            );
+          }
+        },
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
+              child: Icon(
+                playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                key: ValueKey(playing),
+                size: 26,
+                color: playing ? scheme.onPrimary : scheme.primary,
               ),
             ),
-            Positioned(
-                bottom: 20,
-                left: 30,
-                child: Text(
-                  widget.decoration,
-                  style: const TextStyle(fontSize: 18, color: Colors.white),
-                )),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder(ColorScheme scheme) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            scheme.primaryContainer,
+            scheme.secondaryContainer,
+            scheme.tertiaryContainer,
           ],
-        ));
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.music_note_rounded,
+          size: 56,
+          color: scheme.onPrimaryContainer.withOpacity(0.55),
+        ),
+      ),
+    );
   }
 }
