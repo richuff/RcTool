@@ -85,10 +85,11 @@
 
 `NotificationHelper`（`lib/utils/notification_helper.dart`）：
 
-- 启动时创建两个 Android 通知通道：
-  - `new_music_channel`（重要性 high）：用于"当前正在播放"等信息推送。
-  - `playback_control_channel`（重要性 low，预留 `ongoing` 常驻）：用于播放控制通知（示例代码已注释，可作为后续扩展点）。
-- 切歌时调用 `showNewMusicNotification()` 更新通知内容，使系统通知栏 / 锁屏能显示当前曲目。
+- 两个 Android 通知通道：`new_music_channel`（high，信息推送）、`playback_control_channel`（low，播放控制）。
+- **常驻播放通知**：`showPlaybackNotification()` 显示当前曲目与歌手，带三颗动作按钮（上一首 / 暂停·播放 / 下一首），`ongoing + onlyAlertOnce + 不发声`，不会每次切歌都响。
+- 按钮点击经 `initialize(onDidReceiveNotificationResponse:)` 回到 `MusicController._handleNotificationAction()`，动作 id 为 `rctool.prev / rctool.toggle / rctool.next`。
+- 触发时机：开始播放、暂停、切歌、清空队列、开关「播放通知」。
+- 限制：项目没有接入 `audio_service` 前台服务，按钮依赖应用进程存活（后台、息屏均可用）；进程被系统回收后通知只剩展示能力。
 
 ## 7. 系统集成
 
@@ -138,7 +139,9 @@
 ## 12. 主题与多语言
 
 - 跟随系统 / 亮色 / 暗色主题由 `IsDarkController` 控制并持久化，UI 实时响应（见 [02 - 整体架构](./02-architecture.md)）。
-- 多语言通过 `MyMessage` + `.tr` 实现，默认中文，回退英文。
+- 多语言通过 `MyMessage` + `.tr` 实现：中 / 英 / 日三套各 390 个键，键集合完全一致（有单测守着）。
+- **语言单一来源** `LocaleController`：切换时先改 `Get.locale`，再改 `Rx<Locale>`，`MyApp` 里的 `Obx` 让 `GetMaterialApp` 直接换 `locale`。只靠 `Get.updateLocale()` 时，`Get.locale` 是普通字段、不会通知任何 widget，只能靠 `performReassemble()` 全树重刷，弹层与已缓存页面容易漏刷——这正是「切了语言还有文案没变」的根因。
+- 代码里不再出现硬编码中文（内置歌单名、歌曲元数据、`日本語` 这类专有名词除外）：数据库存的是「我的喜欢」「每日推荐 2024-01-01」这样的原名，展示时统一走 `playlistDisplayName()` 随语言切换。
 
 ## 13. 歌词
 
@@ -175,7 +178,25 @@ RcTool/
 └── Live2D/         # 每个模型一个文件夹，内含 xxx.model3.json
 ```
 
-## 16. 关于作者
+## 16. 断点续播
+
+`MusicController` 会把「队列 + 当前索引 + 播放进度」写进 `SharedPreferences`：
+
+- 播放中每 4 秒落一次盘，暂停、切歌、启动播放、清空队列时立即落盘，退出应用最多丢 4 秒。
+- 启动时 `_restoreSession()` 还原队列与索引，并停在原进度（`isplay = false`，不自动出声）；迷你播放条副标题显示「上次播到 12:34」。
+- 用户点播放时 `playCachedAudio()` 匹配 `_resumeUrl`，用 `player.seek()` 回到上次的位置，之后清空断点。
+- `MusicController.ready` 暴露一个 Future，曲库页先 `await` 它再判断「队列是否为空」，避免刚启动时用曲库把恢复的队列顶掉。
+
+## 17. 备份与恢复
+
+`BackupService`（`lib/service/backup_service.dart`）+ `/backup` 页面：
+
+- 导出：按行 dump `music / playlist / playlist_music / favorite_music / lyric` 五张表，外加一份设置快照（主题、语言、播放模式、音量、缓存上限、Live2D 缩放与口型、壁纸模型选择），写到 `<外部目录>/backup/rcbackup-yyyyMMdd-HHmmss.json`（缩进过的 JSON，可直接看/手改）。
+- 恢复：列目录里的备份，显示时间、大小、歌单数与收藏数；确认后在一个事务里 `INSERT OR IGNORE`，同名歌单按名字合并，**不删除本机已有数据**。单行失败（版本差异）只跳过该行。
+- 设置项按类型写回 `SharedPreferences`，恢复后自动刷新收藏与壁纸控制器。
+- 备份不含音频文件，歌单只保存对曲库歌曲的引用。
+
+## 18. 关于作者
 
 `/about`（`lib/page/about_author.dart`）使用 `AppScaffold` + `aboutBackGround` 背景，包含：
 

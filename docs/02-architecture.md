@@ -92,7 +92,16 @@ RcTool 采用"页面 / 视图 → 控制器 → 数据层"的轻量级分层，�
 
 ## 6. 国际化
 
-`lib/utils/my_message.dart` 中的 `MyMessage` 继承 `Translations`，提供中（`zh_CN`）/ 英（`en_US`）双语映射。UI 通过 `.tr` 调用，如 `'欢迎使用Rctool'.tr`。应用默认语言与回退语言在 `GetMaterialApp` 中设置，用户语言偏好持久化于 `SharedPreferences`。
+`lib/utils/my_message.dart` 中的 `MyMessage` 继承 `Translations`，提供中（`zh_CN`）/ 英（`en_US`）/ 日（`ja_JP`）三套映射，键统一用中文原文（`'播放全部'.tr`），带参数时写 `@占位符` + `trParams`。
+
+语言状态放在 `lib/controller/locale_controller.dart` 的 `LocaleController`：
+
+- `locale` 是 `Rx<Locale>`，`MyApp` 用 `Obx` 包住 `GetMaterialApp` 并把它传给 `locale:`，切换语言时 MaterialApp 本身重建，路由与弹层的子树一定跟着刷新。
+- `change()` 先写 `Get.locale`（`.tr` 取值时读的就是它）再更新 Rx，最后持久化到 `SharedPreferences`（`languageCodeKey` / `countryCodeKey`）。
+- `restore()` 在 `main()` 里 await 一次，避免冷启动先闪一帧中文。
+- 只调用 `Get.updateLocale()` 是不够的：`Get.locale` 是普通字段，赋值不会通知任何 widget，只能依赖 `performReassemble()` 全树重刷，弹层/缓存页面容易漏刷。
+
+`test/layout_smoke_test.dart` 里有两条守卫：三套语言包键集合必须完全一致且无空值；切换 `Get.locale` 后同一个键要取到不同语言的译文。
 
 ## 7. 资源与字体
 

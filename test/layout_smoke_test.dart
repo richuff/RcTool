@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
+import 'package:rctool/controller/locale_controller.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/service/live2d_model_library.dart';
 import 'package:rctool/utils/lrc_parser.dart';
@@ -46,7 +50,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.byType(PlayAllButton).first);
+    await tester.tap(find.byType(PlayAllButton).first, warnIfMissed: false);
     await tester.pump();
     expect(tapped, 1);
   });
@@ -123,5 +127,79 @@ void main() {
     expect(sheet.synced, isFalse);
     expect(sheet.lines.length, 2);
     expect(sheet.indexAt(const Duration(seconds: 3)), 0);
+  });
+
+  test('三套语言包的键完全一致且没有空值', () {
+    final keys = MyMessage().keys;
+    final zh = keys['zh_CN']!;
+    final ja = keys['ja_JP']!;
+    final en = keys['en_US']!;
+
+    expect(zh.length, greaterThan(300));
+    expect(ja.keys.toSet(), zh.keys.toSet());
+    expect(en.keys.toSet(), zh.keys.toSet());
+    for (final map in [zh, ja, en]) {
+      for (final entry in map.entries) {
+        expect(entry.value.trim(), isNotEmpty, reason: entry.key);
+      }
+    }
+  });
+
+  test('切歌语言后 tr 结果跟着变', () {
+    Get.addTranslations(MyMessage().keys);
+    Get.locale = const Locale('zh', 'CN');
+    expect('播放全部'.tr, '播放全部');
+    Get.locale = const Locale('en', 'US');
+    expect('播放全部'.tr, isNot('播放全部'));
+    expect('播放全部'.tr.toLowerCase(), contains('play'));
+    Get.locale = const Locale('ja', 'JP');
+    expect('播放全部'.tr, 'すべて再生');
+    // 带占位符的文案在每种语言下都能替换
+    Get.locale = const Locale('en', 'US');
+    expect('队列 @count 首'.trParams({'count': '3'}), contains('3'));
+  });
+
+  testWidgets('切换 LocaleController 后界面文案立即跟着变', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final controller = Get.put(LocaleController());
+
+    await tester.pumpWidget(
+      Obx(
+        () => GetMaterialApp(
+          translations: MyMessage(),
+          locale: controller.locale.value,
+          fallbackLocale: const Locale('zh', 'CN'),
+          home: Builder(
+            builder: (_) => Scaffold(body: Center(child: Text('播放全部'.tr))),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('播放全部'), findsOneWidget);
+
+    await controller.change(const Locale('en', 'US'));
+    await tester.pumpAndSettle();
+    expect(find.text('播放全部'), findsNothing);
+    expect(Get.locale?.languageCode, 'en');
+
+    await controller.change(const Locale('ja', 'JP'));
+    await tester.pumpAndSettle();
+    expect(find.text('すべて再生'), findsOneWidget);
+
+    Get.reset();
+  });
+
+  test('播放队列可以完整写入与还原（断点续播）', () {
+    final music =
+        Music(7, 'https://example.com/a.mp3', 'cover.jpg', '歌名', '歌手');
+    final restored = Music.fromJson(jsonDecode(jsonEncode(music.toJson())));
+    expect(restored, isNotNull);
+    expect(restored!.id, 7);
+    expect(restored.url, music.url);
+    expect(restored.songName, '歌名');
+    expect(restored.decoration, '歌手');
+    // 坏数据直接丢弃，不会污染队列
+    expect(Music.fromJson({'songName': 'no url'}), isNull);
+    expect(Music.fromJson('nope'), isNull);
   });
 }
