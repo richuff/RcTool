@@ -1,0 +1,77 @@
+import 'package:flutter/material.dart';
+import 'package:rctool/feature/design/icon_button_no_ripple.dart';
+import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import 'package:rctool/widget/main_drawer.dart';
+import 'package:rctool/widget/search_widget.dart';
+
+/// @ClassName AppScaffold
+/// @Description 统一页面外壳：封装 Scaffold + Drawer + AppBar(菜单按钮 + 全局设置入口)
+///             + 背景装饰，消除各页面重复的脚手架代码。
+/// @Author richuff
+/// @Version 2.0
+class AppScaffold extends StatelessWidget {
+  final Widget body;
+  final String? title;
+  final List<Widget>? actions;
+  final BackGroundEnum background;
+  final Widget? floatingActionButton;
+  final bool resizeToAvoidBottomInset;
+  final bool extendBodyBehindAppBar;
+
+  const AppScaffold({
+    super.key,
+    required this.body,
+    this.title,
+    this.actions,
+    this.background = BackGroundEnum.musicBackGround,
+    this.floatingActionButton,
+    this.resizeToAvoidBottomInset = true,
+    this.extendBodyBehindAppBar = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final scaffoldKey = GlobalKey<ScaffoldState>();
+    return Scaffold(
+      key: scaffoldKey,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      extendBodyBehindAppBar: extendBodyBehindAppBar,
+      drawerScrimColor: Colors.transparent,
+      drawer: MainDrawer(() => scaffoldKey.currentState?.closeDrawer()),
+      appBar: AppBar(
+        backgroundColor: scheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 2,
+        leading: Builder(
+          builder: (context) => Padding(
+            padding: const EdgeInsets.only(left: 6, top: 6),
+            child: IconButtonNoRipple(
+              hoverColor: scheme.primaryContainer,
+              focusColor: scheme.primaryContainer,
+              highlightColor: scheme.secondaryContainer,
+              tooltip: '菜单',
+              alignment: Alignment.bottomCenter,
+              icon: Icon(Icons.menu, size: 26, color: scheme.onSurface),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+        ),
+        title: title == null ? null : Text(title!),
+        centerTitle: false,
+        actions: [
+          const SearchWidget(),
+          const SizedBox(width: 4),
+          ...?actions,
+        ],
+      ),
+      body: SizedBox.expand(
+        child: DecoratedBox(
+          decoration: background.decoration,
+          child: body,
+        ),
+      ),
+      floatingActionButton: floatingActionButton,
+    );
+  }
+}
