@@ -79,21 +79,22 @@ class _MainSettingsState extends State<MainSettings> {
 
   Future<void> _clearMusicCache() async {
     final confirmed = await _confirm(
-      title: '清除音乐缓存',
-      content: '将删除已下载的音频缓存，不会删除歌曲、歌单和设置。',
-      confirmText: '清除',
+      title: '清除音乐缓存'.tr,
+      content: '将删除已下载的音频缓存，不会删除歌曲、歌单和设置。'.tr,
+      confirmText: '清除'.tr,
     );
     if (!confirmed) return;
     await DefaultCacheManager().emptyCache();
     await _readCacheSize();
-    Get.snackbar('清除完成', '音乐缓存已清除', snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('清除完成'.tr, '音乐缓存已清除'.tr,
+        snackPosition: SnackPosition.BOTTOM);
   }
 
   Future<void> _resetSettings() async {
     final confirmed = await _confirm(
-      title: '恢复默认设置',
-      content: '外观、语言和播放设置将恢复默认，歌曲与歌单不会受影响。',
-      confirmText: '恢复',
+      title: '恢复默认设置'.tr,
+      content: '外观、语言和播放设置将恢复默认，歌曲与歌单不会受影响。'.tr,
+      confirmText: '恢复'.tr,
     );
     if (!confirmed) return;
 
@@ -111,7 +112,8 @@ class _MainSettingsState extends State<MainSettings> {
         cacheFirst = true;
       });
     }
-    Get.snackbar('已恢复', '设置已恢复为默认值', snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('已恢复'.tr, '设置已恢复为默认值'.tr,
+        snackPosition: SnackPosition.BOTTOM);
   }
 
   Future<bool> _confirm({
@@ -126,7 +128,7 @@ class _MainSettingsState extends State<MainSettings> {
             actions: [
               TextButton(
                 onPressed: () => Get.back(result: false),
-                child: const Text('取消'),
+                child: Text('取消'.tr),
               ),
               FilledButton(
                 onPressed: () => Get.back(result: true),
@@ -141,17 +143,17 @@ class _MainSettingsState extends State<MainSettings> {
   Future<void> _showSleepTimerDialog() async {
     final minutes = await Get.dialog<int>(
       SimpleDialog(
-        title: const Text('睡眠定时'),
+        title: Text('睡眠定时'.tr),
         children: [
           if (musicController.sleepTimerActive)
             SimpleDialogOption(
               onPressed: () => Get.back(result: 0),
-              child: const Text('取消当前定时'),
+              child: Text('取消当前定时'.tr),
             ),
           for (final item in const [15, 30, 45, 60])
             SimpleDialogOption(
               onPressed: () => Get.back(result: item),
-              child: Text('$item 分钟后暂停'),
+              child: Text('@minutes 分钟后暂停'.trParams({'minutes': '$item'})),
             ),
         ],
       ),
@@ -159,13 +161,14 @@ class _MainSettingsState extends State<MainSettings> {
     if (minutes == null) return;
     if (minutes == 0) {
       musicController.cancelSleepTimer();
-      Get.snackbar('睡眠定时', '已取消定时', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('睡眠定时'.tr, '已取消定时'.tr,
+          snackPosition: SnackPosition.BOTTOM);
       return;
     }
     musicController.startSleepTimer(Duration(minutes: minutes));
     Get.snackbar(
-      '睡眠定时',
-      '$minutes 分钟后将自动暂停播放',
+      '睡眠定时'.tr,
+      '@minutes 分钟后将自动暂停播放'.trParams({'minutes': '$minutes'}),
       snackPosition: SnackPosition.BOTTOM,
     );
   }
@@ -178,25 +181,25 @@ class _MainSettingsState extends State<MainSettings> {
         children: [
           GetBuilder<IsDarkController>(
             builder: (controller) => SettingsSection(
-              title: '外观',
+              title: '外观'.tr,
               icon: Icons.palette_outlined,
               children: [
                 SettingsChoiceTile(
                   icon: Icons.brightness_auto_outlined,
-                  title: '跟随系统',
-                  subtitle: '根据系统外观自动切换',
+                  title: '跟随系统'.tr,
+                  subtitle: '根据系统外观自动切换'.tr,
                   selected: controller.themeMode == ThemeMode.system,
                   onTap: () => controller.updateThemeMode(ThemeMode.system),
                 ),
                 SettingsChoiceTile(
                   icon: Icons.light_mode_outlined,
-                  title: '亮色模式',
+                  title: '亮色模式'.tr,
                   selected: controller.themeMode == ThemeMode.light,
                   onTap: () => controller.updateThemeMode(ThemeMode.light),
                 ),
                 SettingsChoiceTile(
                   icon: Icons.dark_mode_outlined,
-                  title: '暗色模式',
+                  title: '暗色模式'.tr,
                   selected: controller.themeMode == ThemeMode.dark,
                   onTap: () => controller.updateThemeMode(ThemeMode.dark),
                 ),
@@ -204,12 +207,12 @@ class _MainSettingsState extends State<MainSettings> {
             ),
           ),
           SettingsSection(
-            title: '语言',
+            title: '语言'.tr,
             icon: Icons.translate,
             children: [
               SettingsChoiceTile(
                 icon: Icons.translate,
-                title: '简体中文',
+                title: '简体中文'.tr,
                 selected: appLocale.languageCode == 'zh',
                 onTap: () => _updateLocale(const Locale('zh', 'CN')),
               ),
@@ -228,7 +231,7 @@ class _MainSettingsState extends State<MainSettings> {
             ],
           ),
           SettingsSection(
-            title: '播放',
+            title: '播放设置'.tr,
             icon: Icons.play_circle_outline,
             children: [
               GetBuilder<MusicController>(
@@ -266,17 +269,18 @@ class _MainSettingsState extends State<MainSettings> {
               GetBuilder<MusicController>(
                 builder: (controller) => SettingsActionTile(
                   icon: Icons.bedtime_outlined,
-                  title: '睡眠定时',
+                  title: '睡眠定时'.tr,
                   subtitle: controller.sleepTimerActive
-                      ? '剩余 ${controller.sleepRemainingLabel}，点击修改或取消'
-                      : '播放指定时间后自动暂停',
+                      ? '剩余 @time，点击修改或取消'.trParams(
+                          {'time': controller.sleepRemainingLabel})
+                      : '播放指定时间后自动暂停'.tr,
                   onTap: () => _showSleepTimerDialog(),
                 ),
               ),
               SettingsSwitchTile(
                 icon: Icons.play_circle_outline,
-                title: '自动播放',
-                subtitle: '进入音乐页后自动恢复播放',
+                title: '自动播放'.tr,
+                subtitle: '进入音乐页后自动恢复播放'.tr,
                 value: autoPlay,
                 onChanged: (value) {
                   setState(() => autoPlay = value);
@@ -285,8 +289,8 @@ class _MainSettingsState extends State<MainSettings> {
               ),
               SettingsSwitchTile(
                 icon: Icons.notifications_active_outlined,
-                title: '播放通知',
-                subtitle: '切歌时显示当前播放提示',
+                title: '播放通知'.tr,
+                subtitle: '切歌时显示当前播放提示'.tr,
                 value: musicNotification,
                 onChanged: (value) {
                   setState(() => musicNotification = value);
@@ -295,9 +299,9 @@ class _MainSettingsState extends State<MainSettings> {
               ),
               SettingsSwitchTile(
                 icon: Icons.cached,
-                title: '缓存优先',
-                subtitle:
-                    '已缓存 ${_formatCacheSize(_cacheBytes)} · 优先使用本地缓存，关闭后直接在线播放',
+                title: '缓存优先'.tr,
+                subtitle: '已缓存 @size · 优先使用本地缓存，关闭后直接在线播放'
+                    .trParams({'size': _formatCacheSize(_cacheBytes)}),
                 value: cacheFirst,
                 onChanged: (value) {
                   setState(() => cacheFirst = value);
@@ -307,21 +311,21 @@ class _MainSettingsState extends State<MainSettings> {
             ],
           ),
           SettingsSection(
-            title: '存储与重置',
+            title: '存储与重置'.tr,
             icon: Icons.storage_outlined,
             margin: EdgeInsets.zero,
             children: [
               SettingsActionTile(
                 icon: Icons.cleaning_services_outlined,
-                title: '清除音乐缓存',
-                subtitle:
-                    '当前占用 ${_formatCacheSize(_cacheBytes)}，清除不会影响歌曲和歌单',
+                title: '清除音乐缓存'.tr,
+                subtitle: '当前占用 @size，清除不会影响歌曲和歌单'
+                    .trParams({'size': _formatCacheSize(_cacheBytes)}),
                 onTap: _clearMusicCache,
               ),
               SettingsActionTile(
                 icon: Icons.restart_alt,
-                title: '恢复默认设置',
-                subtitle: '不会影响已保存的歌曲和歌单',
+                title: '恢复默认设置'.tr,
+                subtitle: '不会影响已保存的歌曲和歌单'.tr,
                 onTap: _resetSettings,
               ),
             ],

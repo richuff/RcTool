@@ -62,7 +62,7 @@ class _Album extends State<Album> {
       await _loadData();
       Get.snackbar(
         '已创建',
-        '新歌单已经建好了，点进去添加歌曲吧',
+        '新歌单已经建好了，点进去添加歌曲吧'.tr,
         snackPosition: SnackPosition.BOTTOM,
       );
     }
@@ -71,16 +71,17 @@ class _Album extends State<Album> {
   Future<void> _deletePlaylist(Playlist playlist) async {
     final confirmed = await Get.dialog<bool>(
           AlertDialog(
-            title: const Text('删除歌单'),
-            content: Text('确定删除「${playlist.name}」吗？歌单中的歌曲不会从曲库移除。'),
+            title: Text('删除歌单'.tr),
+            content: Text('确定删除「@name」吗？歌单中的歌曲不会从曲库移除。'
+                .trParams({'name': playlist.name})),
             actions: [
               TextButton(
                 onPressed: () => Get.back(result: false),
-                child: const Text('取消'),
+                child: Text('取消'.tr),
               ),
               FilledButton(
                 onPressed: () => Get.back(result: true),
-                child: const Text('删除'),
+                child: Text('删除'.tr),
               ),
             ],
           ),
@@ -89,7 +90,8 @@ class _Album extends State<Album> {
     if (!confirmed) return;
     await PlaylistConn.deletePlaylist(playlist.id!);
     await _loadData();
-    Get.snackbar('已删除', '歌单「${playlist.name}」已删除',
+    Get.snackbar('已删除'.tr,
+        '歌单「@name」已删除'.trParams({'name': playlist.name}),
         snackPosition: SnackPosition.BOTTOM);
   }
 
@@ -100,7 +102,7 @@ class _Album extends State<Album> {
       title: '歌单'.tr,
       actions: [
         IconButton(
-          tooltip: '新建歌单',
+          tooltip: '新建歌单'.tr,
           padding: EdgeInsets.zero,
           visualDensity: VisualDensity.compact,
           constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -125,13 +127,13 @@ class _Album extends State<Album> {
                   children: [
                     SlideFadeIn(
                       child: SettingsSection(
-                        title: '默认歌单',
+                        title: '默认歌单'.tr,
                         icon: Icons.favorite_rounded,
                         children: [
                           _PlaylistRow(
                             icon: Icons.favorite_rounded,
                             title: kFavoritePlaylistName,
-                            subtitle: '收藏的歌曲都会汇总到这里',
+                            subtitle: '收藏的歌曲都会汇总到这里'.tr,
                             count: favoriteCount,
                             highlight: true,
                             onTap: () => _openPlaylist(
@@ -144,14 +146,14 @@ class _Album extends State<Album> {
                     SlideFadeIn(
                       delay: const Duration(milliseconds: 90),
                       child: SettingsSection(
-                        title: '我的歌单',
+                        title: '我的歌单'.tr,
                         icon: Icons.queue_music_rounded,
                         children: [
                           if (playlists.isEmpty)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
                               child: Text(
-                                '还没有自建歌单，点右上角的「+」新建一个吧',
+                                '还没有自建歌单，点右上角的「+」新建一个吧'.tr,
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   color: scheme.onSurfaceVariant,
@@ -163,7 +165,10 @@ class _Album extends State<Album> {
                               (playlist) => _PlaylistRow(
                                 icon: Icons.queue_music_rounded,
                                 title: playlist.name,
-                                subtitle: '创建于 ${_formatDate(playlist.createdAt)}',
+                                subtitle: '创建于 @date'
+                                    .trParams({
+                                  'date': _formatDate(playlist.createdAt)
+                                }),
                                 count: playlist.musicCount,
                                 onTap: () => _openPlaylist(playlist),
                                 onDelete: () => _deletePlaylist(playlist),
@@ -176,7 +181,7 @@ class _Album extends State<Album> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Text(
-                        '歌单只保存在本机，歌曲从曲库中添加，不会重复占用存储。',
+                        '歌单只保存在本机，歌曲从曲库中添加，不会重复占用存储。'.tr,
                         style: TextStyle(
                           fontSize: 11.5,
                           height: 1.5,
@@ -257,7 +262,7 @@ class _PlaylistRow extends StatelessWidget {
         children: [
           if (onDelete != null)
             IconButton(
-              tooltip: '删除歌单',
+              tooltip: '删除歌单'.tr,
               visualDensity: VisualDensity.compact,
               onPressed: onDelete,
               icon: Icon(
@@ -296,11 +301,11 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
     if (_submitting) return;
     final name = _controller.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = '请输入歌单名称');
+      setState(() => _error = '请输入歌单名称'.tr);
       return;
     }
     if (name.length > 30) {
-      setState(() => _error = '名称太长啦，30 个字以内');
+      setState(() => _error = '名称太长啦，30 个字以内'.tr);
       return;
     }
     setState(() {
@@ -311,7 +316,7 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _error = '已经有同名歌单了，换个名字试试';
+        _error = '已经有同名歌单了，换个名字试试'.tr;
       });
       return;
     }
@@ -334,8 +339,8 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
           children: [
             SettingsHeader(
               icon: Icons.queue_music_rounded,
-              title: '新建歌单',
-              subtitle: '给这个歌单取一个名字',
+              title: '新建歌单'.tr,
+              subtitle: '给这个歌单取一个名字'.tr,
               onClose: () => Navigator.of(context).pop(false),
             ),
             const SizedBox(height: 16),
@@ -349,8 +354,8 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
                 if (_error != null) setState(() => _error = null);
               },
               decoration: InputDecoration(
-                labelText: '歌单名称',
-                hintText: '比如：深夜循环',
+                labelText: '歌单名称'.tr,
+                hintText: '比如：深夜循环'.tr,
                 errorText: _error,
                 counterText: '',
                 filled: true,
@@ -377,14 +382,14 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('取消'),
+                    child: Text('取消'.tr),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: FilledButton(
                     onPressed: _submitting ? null : _submit,
-                    child: Text(_submitting ? '创建中…' : '创建'),
+                    child: Text(_submitting ? '创建中…'.tr : '创建'.tr),
                   ),
                 ),
               ],

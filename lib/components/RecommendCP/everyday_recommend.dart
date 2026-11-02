@@ -176,7 +176,7 @@ class _EverydayList extends State<EverydayList> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '$count 首',
+                  '@count 首'.trParams({'count': '$count'}),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -372,8 +372,8 @@ class _EverydayList extends State<EverydayList> {
     final ids = _todayIds;
     if (ids.isEmpty) {
       Get.snackbar(
-        '暂时无法收藏',
-        '今日推荐还没有准备好，稍后再试',
+        '暂时无法收藏'.tr,
+        '今日推荐还没有准备好，稍后再试'.tr,
         snackPosition: SnackPosition.BOTTOM,
       );
       return;

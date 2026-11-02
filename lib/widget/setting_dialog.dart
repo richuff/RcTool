@@ -34,7 +34,7 @@ class SettingDialog extends StatelessWidget {
               SettingsHeader(
                 icon: Icons.settings_outlined,
                 title: '设置'.tr,
-                subtitle: '外观、播放与存储偏好',
+                subtitle: '外观、播放与存储偏好'.tr,
                 onClose: () => Navigator.of(context).pop(),
               ),
               const SizedBox(height: 6),
@@ -53,7 +53,7 @@ class SettingDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '设置仅保存在本机',
+                    '设置仅保存在本机'.tr,
                     style: TextStyle(
                       fontSize: 11,
                       color: scheme.onSurfaceVariant,

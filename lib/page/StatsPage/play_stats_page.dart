@@ -107,7 +107,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                                 child: _summaryCard(
                                   icon: Icons.play_circle_outline_rounded,
                                   value: overview['total'] ?? 0,
-                                  label: '总播放',
+                                  label: '总播放'.tr,
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -115,7 +115,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                                 child: _summaryCard(
                                   icon: Icons.library_music_outlined,
                                   value: overview['unique'] ?? 0,
-                                  label: '不同歌曲',
+                                  label: '不同歌曲'.tr,
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -123,7 +123,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                                 child: _summaryCard(
                                   icon: Icons.today_outlined,
                                   value: overview['today'] ?? 0,
-                                  label: '今日播放',
+                                  label: '今日播放'.tr,
                                 ),
                               ),
                             ],
@@ -143,7 +143,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                                   color: scheme.primary),
                               const SizedBox(width: 8),
                               Text(
-                                '常听歌曲',
+                                '常听歌曲'.tr,
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                             ],
@@ -210,7 +210,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '你的音乐足迹',
+                  '你的音乐足迹'.tr,
                   style: TextStyle(
                     fontSize: 19,
                     fontWeight: FontWeight.w800,
@@ -219,7 +219,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '统计数据仅来自这台设备上的播放历史',
+                  '统计数据仅来自这台设备上的播放历史'.tr,
                   style: TextStyle(
                     fontSize: 11.5,
                     color: scheme.onPrimaryContainer.withOpacity(0.72),
@@ -307,11 +307,12 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
         children: [
           Row(
             children: [
-              Text('近 7 天播放',
+              Text('近 7 天播放'.tr,
                   style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
               Text(
-                '日均 ${average.toStringAsFixed(1)} 次',
+                '日均 @count 次'
+                    .trParams({'count': average.toStringAsFixed(1)}),
                 style: TextStyle(
                   fontSize: 11.5,
                   color: scheme.onSurfaceVariant,
@@ -389,7 +390,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
   }
 
   Widget _timeOfDayCard(ColorScheme scheme) {
-    const labels = ['凌晨', '上午', '下午', '晚上'];
+    final labels = ['凌晨'.tr, '上午'.tr, '下午'.tr, '晚上'.tr];
     const ranges = ['0-6', '6-12', '12-18', '18-24'];
     final total = hourBuckets.fold<int>(0, (sum, count) => sum + count);
     final maxCount =
@@ -402,10 +403,14 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
         children: [
           Row(
             children: [
-              Text('听歌时段', style: Theme.of(context).textTheme.titleMedium),
+              Text('听歌时段'.tr,
+                  style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
               Text(
-                total == 0 ? '暂无数据' : '近 7 天 $total 次播放',
+                total == 0
+                    ? '暂无数据'.tr
+                    : '近 7 天 @count 次播放'
+                        .trParams({'count': '$total'}),
                 style: TextStyle(
                   fontSize: 11.5,
                   color: scheme.onSurfaceVariant,
@@ -451,7 +456,10 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                 SizedBox(
                   width: 62,
                   child: Text(
-                    '${hourBuckets[index]} 次 · ${ranges[index]}',
+                    '@count 次 · @range'.trParams({
+                      'count': '${hourBuckets[index]}',
+                      'range': ranges[index]
+                    }),
                     textAlign: TextAlign.end,
                     style: TextStyle(
                       fontSize: 10.5,
@@ -476,10 +484,11 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
         children: [
           Row(
             children: [
-              Text('常听歌手', style: Theme.of(context).textTheme.titleMedium),
+              Text('常听歌手'.tr,
+                  style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
               Text(
-                '按播放次数',
+                '按播放次数'.tr,
                 style: TextStyle(
                   fontSize: 11.5,
                   color: scheme.onSurfaceVariant,
@@ -588,13 +597,16 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          '${item.music.decoration} · 播放 ${item.playCount} 次',
+          '@artist · 播放 @count 次'.trParams({
+            'artist': item.music.decoration,
+            'count': '${item.playCount}'
+          }),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
         trailing: IconButton(
-          tooltip: '播放',
+          tooltip: '播放'.tr,
           onPressed: () => musicController.playOrPauseMusic(item.music),
           icon: Icon(
             playing ? Icons.pause_circle_filled : Icons.play_circle_outline,
@@ -625,7 +637,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                 size: 52, color: scheme.onSurfaceVariant),
             const SizedBox(height: 12),
             Text(
-              '播放几首歌曲后，这里会生成你的常听榜单',
+              '播放几首歌曲后，这里会生成你的常听榜单'.tr,
               style: TextStyle(color: scheme.onSurfaceVariant),
             ),
           ],

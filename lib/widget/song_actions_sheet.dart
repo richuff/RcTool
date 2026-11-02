@@ -107,8 +107,8 @@ class _SongActionsSheet extends StatelessWidget {
             _tile(
               context,
               icon: Icons.playlist_add_rounded,
-              title: '添加到歌单',
-              subtitle: '加入「我的喜欢」或自建歌单',
+              title: '添加到歌单'.tr,
+              subtitle: '加入「我的喜欢」或自建歌单'.tr,
               onTap: () => _openPlaylistPicker(context),
             ),
             GetBuilder<FavoriteController>(
@@ -120,12 +120,12 @@ class _SongActionsSheet extends StatelessWidget {
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
                   iconColor: isFavorite ? scheme.error : null,
-                  title: isFavorite ? '取消收藏' : '收藏到我的喜欢',
+                  title: isFavorite ? '取消收藏'.tr : '收藏到我的喜欢'.tr,
                   onTap: () async {
                     await controller.toggle(music.id);
                     if (Get.isBottomSheetOpen ?? false) Get.back();
                     Get.snackbar(
-                      isFavorite ? '已取消收藏' : '收藏成功',
+                      isFavorite ? '已取消收藏'.tr : '收藏成功'.tr,
                       music.songName,
                       snackPosition: SnackPosition.BOTTOM,
                     );
@@ -285,7 +285,9 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
     }
     await _load();
     Get.snackbar(
-      wasThere ? '已从「${playlist.name}」移出' : '已加入「${playlist.name}」',
+      wasThere
+          ? '已从「@name」移出'.trParams({'name': playlist.name})
+          : '已加入「@name」'.trParams({'name': playlist.name}),
       widget.music.songName,
       snackPosition: SnackPosition.BOTTOM,
       duration: const Duration(seconds: 2),
@@ -297,7 +299,7 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
     await favoriteController.toggle(_musicId);
     await _load();
     Get.snackbar(
-      wasFavorite ? '已取消收藏' : '已加入「我的喜欢」',
+      wasFavorite ? '已取消收藏'.tr : '已加入「我的喜欢」'.tr,
       widget.music.songName,
       snackPosition: SnackPosition.BOTTOM,
       duration: const Duration(seconds: 2),
@@ -308,22 +310,22 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
     final controller = TextEditingController();
     final name = await Get.dialog<String>(
       AlertDialog(
-        title: const Text('新建歌单'),
+        title: Text('新建歌单'.tr),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLength: 30,
-          decoration: const InputDecoration(
-            labelText: '歌单名称',
+          decoration: InputDecoration(
+            labelText: '歌单名称'.tr,
             counterText: '',
           ),
           onSubmitted: (value) => Get.back(result: value.trim()),
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('取消')),
+          TextButton(onPressed: () => Get.back(), child: Text('取消'.tr)),
           FilledButton(
             onPressed: () => Get.back(result: controller.text.trim()),
-            child: const Text('创建'),
+            child: Text('创建'.tr),
           ),
         ],
       ),
@@ -331,14 +333,15 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
     controller.dispose();
     if (name == null || name.isEmpty) return;
     if (await PlaylistConn.existsByName(name)) {
-      Get.snackbar('已有同名歌单', '换个名字试试',
+      Get.snackbar('已有同名歌单'.tr, '换个名字试试'.tr,
           snackPosition: SnackPosition.BOTTOM);
       return;
     }
     final id = await PlaylistConn.insertPlaylist(name);
     await PlaylistConn.addMusic(id, _musicId);
     await _load();
-    Get.snackbar('已创建', '「$name」已建好，这首歌也加进去了',
+    Get.snackbar('已创建'.tr,
+        '「@name」已建好，这首歌也加进去了'.trParams({'name': name}),
         snackPosition: SnackPosition.BOTTOM);
   }
 
@@ -413,7 +416,7 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(8, 18, 8, 8),
                             child: Text(
-                              '还没有自建歌单，点右上角「新建」建一个吧',
+                              '还没有自建歌单，点右上角「新建」建一个吧'.tr,
                               style: TextStyle(
                                 fontSize: 12.5,
                                 color: scheme.onSurfaceVariant,
@@ -426,7 +429,8 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
                               context,
                               icon: Icons.queue_music_rounded,
                               title: playlist.name,
-                              subtitle: '${playlist.musicCount} 首',
+                              subtitle: '@count 首'
+                                  .trParams({'count': '${playlist.musicCount}'}),
                               selected: _contained.contains(playlist.id),
                               onTap: () => _togglePlaylist(playlist),
                             ),

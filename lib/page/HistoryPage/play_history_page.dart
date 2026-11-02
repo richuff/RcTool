@@ -47,16 +47,16 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
   Future<void> _clearHistory() async {
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title: const Text('清空最近播放'),
-        content: const Text('将删除全部播放记录和统计数据，歌曲与歌单不会受影响。'),
+        title: Text('清空最近播放'.tr),
+        content: Text('将删除全部播放记录和统计数据，歌曲与歌单不会受影响。'.tr),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
           FilledButton(
             onPressed: () => Get.back(result: true),
-            child: const Text('清空'),
+            child: Text('清空'.tr),
           ),
         ],
       ),
@@ -64,7 +64,8 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
     if (confirmed != true) return;
     await PlayHistoryConn.clear();
     await _loadHistory();
-    Get.snackbar('已清空', '播放历史已删除', snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('已清空'.tr, '播放历史已删除'.tr,
+        snackPosition: SnackPosition.BOTTOM);
   }
 
   @override
@@ -75,7 +76,7 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
       actions: [
         if (history.isNotEmpty)
           IconButton(
-            tooltip: '清空历史',
+            tooltip: '清空历史'.tr,
             onPressed: _clearHistory,
             icon: const Icon(Icons.delete_sweep_outlined),
           ),
@@ -97,14 +98,14 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
                         const SizedBox(height: 16),
                         Center(
                           child: Text(
-                            '还没有播放记录',
+                            '还没有播放记录'.tr,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Center(
                           child: Text(
-                            '开始播放后，歌曲会自动出现在这里',
+                            '开始播放后，歌曲会自动出现在这里'.tr,
                             style: TextStyle(color: scheme.onSurfaceVariant),
                           ),
                         ),
@@ -128,7 +129,10 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        '共 ${history.length} 条记录，按最近播放排序',
+                                        '共 @count 条记录，按最近播放排序'
+                                            .trParams({
+                                          'count': '${history.length}'
+                                        }),
                                         style: TextStyle(
                                           color: scheme.onSurfaceVariant,
                                         ),
@@ -148,8 +152,7 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
                               ),
                               child: SongRow(
                                 music: music,
-                                detail:
-                                    '${music.songName}  ·  ${_formatPlayedAt(item.playedAt)}',
+                                subtitle: _formatPlayedAt(item.playedAt),
                                 playing: controller.isPlayingMusic(music),
                                 onPlayToggle: () => controller.playOrPauseMusic(
                                   music,
@@ -159,7 +162,7 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
                                 onMore: () => showSongActions(
                                   context,
                                   music,
-                                  removeLabel: '删除这条记录',
+                                  removeLabel: '删除这条记录'.tr,
                                   onRemove: () => _deleteHistory(item),
                                 ),
                               ),
@@ -178,8 +181,10 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
     final day = DateTime(value.year, value.month, value.day);
     final time =
         '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-    if (day == today) return '今天 $time';
-    if (day == today.subtract(const Duration(days: 1))) return '昨天 $time';
+    if (day == today) return '今天 @time'.trParams({'time': time});
+    if (day == today.subtract(const Duration(days: 1))) {
+      return '昨天 @time'.trParams({'time': time});
+    }
     return '${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')} $time';
   }
 }

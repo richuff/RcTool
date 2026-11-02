@@ -102,7 +102,7 @@ class _MusicCard extends State<MusicPlayer> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              '队列 $count 首',
+              '队列 @count 首'.trParams({'count': '$count'}),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
@@ -182,7 +182,7 @@ class _MusicCard extends State<MusicPlayer> {
                     null,
                     "",
                     "",
-                    "未选择播放的歌曲",
+                    "您还未选择播放的歌曲".tr,
                     "",
                     width: cardWidth,
                     height: cardHeight,

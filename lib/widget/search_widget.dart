@@ -98,7 +98,7 @@ class _SearchWidget extends State<SearchWidget> {
           hoverColor: scheme.primaryContainer,
           focusColor: scheme.primaryContainer,
           highlightColor: scheme.secondaryContainer,
-          tooltip: '全局设置',
+          tooltip: '全局设置'.tr,
           onPressed: () {
             _loadAutoPlay();
             _loadCacheSize();
@@ -132,7 +132,7 @@ class _SearchWidget extends State<SearchWidget> {
                               SettingsHeader(
                                 icon: Icons.tune,
                                 title: "全局设置".tr,
-                                subtitle: '快捷调整外观与播放',
+                                subtitle: '快捷调整外观与播放'.tr,
                                 onClose: () => Get.back(),
                               ),
                               const SizedBox(height: 14),
@@ -140,7 +140,7 @@ class _SearchWidget extends State<SearchWidget> {
                               const SizedBox(height: 12),
                               Obx(
                                 () => SettingsSection(
-                                  title: '主题',
+                                  title: '主题'.tr,
                                   icon: Icons.palette_outlined,
                                   children: [
                                     SettingsChoiceTile(
@@ -180,7 +180,7 @@ class _SearchWidget extends State<SearchWidget> {
                                 ),
                               ),
                               SettingsSection(
-                                title: '语言',
+                                title: '语言'.tr,
                                 icon: Icons.translate,
                                 children: [
                                   SettingsChoiceTile(
@@ -219,13 +219,13 @@ class _SearchWidget extends State<SearchWidget> {
                                 ],
                               ),
                               SettingsSection(
-                                title: '播放',
+                                title: '播放设置'.tr,
                                 icon: Icons.play_circle_outline,
                                 children: [
                                   SettingsSwitchTile(
                                     icon: Icons.play_circle_outline,
-                                    title: "自动播放",
-                                    subtitle: "进入音乐页后自动恢复播放",
+                                    title: "自动播放".tr,
+                                    subtitle: "进入音乐页后自动恢复播放".tr,
                                     value: autoPlay,
                                     onChanged: (value) async {
                                       await _updateBoolSetting(
@@ -235,7 +235,7 @@ class _SearchWidget extends State<SearchWidget> {
                                   ),
                                   SettingsSwitchTile(
                                     icon: Icons.notifications_active_outlined,
-                                    title: "播放通知",
+                                    title: "播放通知".tr,
                                     subtitle: "切歌时显示当前播放提示",
                                     value: musicNotification,
                                     onChanged: (value) async {
@@ -246,7 +246,7 @@ class _SearchWidget extends State<SearchWidget> {
                                   ),
                                   SettingsSwitchTile(
                                     icon: Icons.cached,
-                                    title: "缓存优先",
+                                    title: "缓存优先".tr,
                                     subtitle:
                                         "已缓存 ${formatBytes(_cacheBytes)} · 优先使用本地缓存",
                                     value: cacheFirst,
@@ -259,7 +259,7 @@ class _SearchWidget extends State<SearchWidget> {
                                 ],
                               ),
                               SettingsSection(
-                                title: '更多',
+                                title: '更多'.tr,
                                 icon: Icons.settings_outlined,
                                 margin: EdgeInsets.zero,
                                 children: [
