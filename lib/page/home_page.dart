@@ -29,25 +29,25 @@ class HomePage extends StatelessWidget {
                 const SlideFadeIn(child: _WelcomeCard()),
                 const SizedBox(height: 20),
                 _sectionLabel(context, '快速开始'.tr),
-                const SlideFadeIn(
-                  delay: Duration(milliseconds: 80),
+                SlideFadeIn(
+                  delay: const Duration(milliseconds: 80),
                   child: Row(
                     children: [
                       Expanded(
                         child: _EntryTile(
                           icon: Icons.music_note_rounded,
-                          title: '听音乐',
-                          subtitle: '曲库 · 队列 · 收藏',
+                          title: '听音乐'.tr,
+                          subtitle: '曲库 · 队列 · 收藏'.tr,
                           route: RoutePath.MUSIC,
                           primary: true,
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _EntryTile(
                           icon: Icons.face_retouching_natural,
-                          title: 'Live2D',
-                          subtitle: '与 Haru 互动',
+                          title: 'Live2D'.tr,
+                          subtitle: '与 Haru 互动'.tr,
                           route: RoutePath.LIVETOD,
                         ),
                       ),
@@ -70,21 +70,21 @@ class HomePage extends StatelessWidget {
                         _MenuRow(
                           icon: Icons.auto_awesome_rounded,
                           title: '每日推荐'.tr,
-                          subtitle: '每天为你准备一组歌曲',
+                          subtitle: '每天为你准备一组歌曲'.tr,
                           route: RoutePath.RECOMMEND,
                         ),
                         _divider(scheme),
                         _MenuRow(
                           icon: Icons.emoji_events_rounded,
                           title: '排行榜'.tr,
-                          subtitle: '看看哪些歌最热门',
+                          subtitle: '看看哪些歌最热门'.tr,
                           route: RoutePath.RANKING,
                         ),
                         _divider(scheme),
                         _MenuRow(
                           icon: Icons.favorite_rounded,
                           title: '我的喜欢'.tr,
-                          subtitle: '默认歌单，收藏都汇总在这里',
+                          subtitle: '默认歌单，收藏都汇总在这里'.tr,
                           onTap: () => Get.toNamed(
                             RoutePath.PLAYLIST,
                             arguments: favoritePlaylist(),
@@ -94,14 +94,14 @@ class HomePage extends StatelessWidget {
                         _MenuRow(
                           icon: Icons.queue_music_rounded,
                           title: '歌单'.tr,
-                          subtitle: '整理自己的播放列表',
+                          subtitle: '整理自己的播放列表'.tr,
                           route: RoutePath.ALBUM,
                         ),
                         _divider(scheme),
                         _MenuRow(
                           icon: Icons.insights_rounded,
                           title: '播放统计'.tr,
-                          subtitle: '最近 7 天与常听榜单',
+                          subtitle: '最近 7 天与常听榜单'.tr,
                           route: RoutePath.STATS,
                         ),
                       ],
@@ -257,7 +257,7 @@ class _WelcomeCard extends StatelessWidget {
   }
 }
 
-/// 快速开始大卡片
+/// 快速开始大卡片：多层渐变 + 装饰光斑 + 图标徽章 + 箭头，避免整块纯色
 class _EntryTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -276,70 +276,131 @@ class _EntryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final background = primary ? scheme.primary : scheme.secondary;
+    final isDark = scheme.brightness == Brightness.dark;
+
+    // 两张卡片各用一套更丰富的三色渐变，暗色下自动压暗
+    final base = primary ? scheme.primary : scheme.secondary;
+    final accent = primary ? scheme.tertiary : scheme.primary;
+    final colors = <Color>[
+      base,
+      Color.alphaBlend(accent.withOpacity(0.55), base),
+      Color.alphaBlend(
+        Colors.black.withOpacity(isDark ? 0.34 : 0.14),
+        Color.alphaBlend(accent.withOpacity(0.7), base),
+      ),
+    ];
     final foreground = primary ? scheme.onPrimary : scheme.onSecondary;
+
     return SizedBox(
-      height: 118,
+      height: 122,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           onTap: () => Get.toNamed(route),
           child: Ink(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(20),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  background,
-                  Color.alphaBlend(
-                    Colors.black.withOpacity(0.18),
-                    background,
-                  ),
-                ],
+                colors: colors,
+                stops: const [0, 0.55, 1],
+              ),
+              border: Border.all(
+                color: Colors.white.withOpacity(isDark ? 0.06 : 0.28),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: background.withOpacity(0.28),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
+                  color: base.withOpacity(isDark ? 0.32 : 0.26),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
                 children: [
-                  Icon(icon, size: 26, color: foreground),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: foreground,
+                  // 装饰光斑
+                  Positioned(
+                    right: -26,
+                    top: -32,
+                    child: _circle(96, Colors.white.withOpacity(0.14)),
+                  ),
+                  Positioned(
+                    right: 26,
+                    bottom: -40,
+                    child: _circle(76, foreground.withOpacity(0.10)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 14, 12, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.20),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.28),
+                                ),
+                              ),
+                              child: Icon(icon, size: 21, color: foreground),
+                            ),
+                            const Spacer(),
+                            Container(
+                              width: 22,
+                              height: 22,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.18),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.arrow_outward_rounded,
+                                size: 14,
+                                color: foreground.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: foreground.withOpacity(0.82),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 16,
+                                height: 1.15,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.2,
+                                color: foreground,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                color: foreground.withOpacity(0.84),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -347,6 +408,14 @@ class _EntryTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _circle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 }

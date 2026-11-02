@@ -57,7 +57,14 @@ class AppScaffold extends StatelessWidget {
             ),
           ),
         ),
-        title: title == null ? null : Text(title!),
+        title: title == null
+            ? null
+            : Text(
+                title!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
+              ),
         centerTitle: false,
         actions: [
           const SearchWidget(),
@@ -68,7 +75,19 @@ class AppScaffold extends StatelessWidget {
       body: SizedBox.expand(
         child: DecoratedBox(
           decoration: background.decoration,
-          child: body,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 暗色下给背景图压一层深色蒙层，避免亮图把整页照得发白
+              if (Theme.of(context).brightness == Brightness.dark)
+                IgnorePointer(
+                  child: ColoredBox(
+                    color: scheme.surface.withOpacity(0.62),
+                  ),
+                ),
+              body,
+            ],
+          ),
         ),
       ),
       floatingActionButton: floatingActionButton,

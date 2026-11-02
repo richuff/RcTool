@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/widget/setting_dialog.dart';
 
+import '../constant/app_info.dart';
 import '../iconfont/rc_icon.dart';
 import '../routers/route_path.dart';
 
@@ -29,7 +30,7 @@ class MainDrawer extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                 children: [
-                  _DrawerSectionLabel(text: "导航"),
+                  _DrawerSectionLabel(text: "导航".tr),
                   _DrawerItem(
                     icon: Icons.home,
                     title: '主页'.tr,
@@ -49,16 +50,16 @@ class MainDrawer extends StatelessWidget {
                     route: RoutePath.RECOMMEND,
                     closeDrawer: closeDrawer,
                   ),
-                  _DrawerSectionLabel(text: "音乐库"),
+                  _DrawerSectionLabel(text: "音乐库".tr),
                   _DrawerItem(
                     icon: Icons.history,
-                    title: '最近播放',
+                    title: '最近播放'.tr,
                     route: RoutePath.HISTORY,
                     closeDrawer: closeDrawer,
                   ),
                   _DrawerItem(
                     icon: Icons.insights,
-                    title: '播放统计',
+                    title: '播放统计'.tr,
                     route: RoutePath.STATS,
                     closeDrawer: closeDrawer,
                   ),
@@ -75,10 +76,10 @@ class MainDrawer extends StatelessWidget {
                     closeDrawer: closeDrawer,
                     selectedColor: scheme.secondaryContainer,
                   ),
-                  _DrawerSectionLabel(text: "其他"),
+                  _DrawerSectionLabel(text: "其他".tr),
                   _DrawerItem(
                     icon: RcIcon.livetod,
-                    title: 'Live2d',
+                    title: 'Live2D'.tr,
                     route: RoutePath.LIVETOD,
                     closeDrawer: closeDrawer,
                   ),
@@ -111,59 +112,169 @@ class _DrawerHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 20),
       decoration: BoxDecoration(
-        color: scheme.primaryContainer,
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
+          bottomLeft: Radius.circular(26),
+          bottomRight: Radius.circular(26),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              color: scheme.surface.withOpacity(0.88),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: scheme.shadow.withOpacity(0.14),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            scheme.primaryContainer,
+            Color.alphaBlend(
+              scheme.secondaryContainer.withOpacity(0.72),
+              scheme.primaryContainer,
             ),
-            padding: const EdgeInsets.all(8),
-            child: Image.asset("image/RcTool.png", fit: BoxFit.contain),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "RcTool",
-                  style: TextStyle(
-                    color: scheme.onPrimaryContainer,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Music & Live2D",
-                  style: TextStyle(
-                    color: scheme.onPrimaryContainer.withOpacity(0.72),
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
+            scheme.surfaceContainerHighest.withOpacity(0.9),
+          ],
+          stops: const [0, 0.58, 1],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.shadow.withOpacity(0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // 装饰光斑，让头部不再是纯色块
+          Positioned(
+            right: -38,
+            top: -46,
+            child: _glowBall(118, scheme.surface.withOpacity(0.16)),
+          ),
+          Positioned(
+            right: 34,
+            bottom: -54,
+            child: _glowBall(96, scheme.primary.withOpacity(0.14)),
+          ),
+          Row(
+            children: [
+              // 渐变描边 + 内白的 Logo，比纯色底板更有质感
+              Container(
+                width: 58,
+                height: 58,
+                padding: const EdgeInsets.all(1.6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      scheme.surface.withOpacity(0.95),
+                      scheme.primary.withOpacity(0.55),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: scheme.shadow.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.4),
+                    color: scheme.surface.withOpacity(0.94),
+                  ),
+                  child: Image.asset("image/RcTool.png", fit: BoxFit.contain),
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 渐变标题
+                    ShaderMask(
+                      shaderCallback: (bounds) => LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          scheme.onPrimaryContainer,
+                          Color.alphaBlend(
+                            scheme.primary.withOpacity(0.85),
+                            scheme.onPrimaryContainer,
+                          ),
+                        ],
+                      ).createShader(bounds),
+                      child: Text(
+                        "RcTool",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 23,
+                          height: 1.1,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.surface.withOpacity(0.55),
+                            borderRadius: BorderRadius.circular(7),
+                            border: Border.all(
+                              color: scheme.surface.withOpacity(0.5),
+                            ),
+                          ),
+                          child: Text(
+                            AppInfo.displayVersion,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                              color: scheme.onPrimaryContainer
+                                  .withOpacity(0.86),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        Flexible(
+                          child: Text(
+                            "MUSIC · LIVE2D",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.4,
+                              color: scheme.onPrimaryContainer
+                                  .withOpacity(0.66),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _glowBall(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 }
