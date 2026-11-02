@@ -7,6 +7,7 @@ import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/widget/app_scaffold.dart';
+import 'package:rctool/widget/play_all_button.dart';
 import 'package:rctool/widget/slide_fade_in.dart';
 
 /// 前三名奖牌配色（金 / 银 / 铜）
@@ -25,8 +26,7 @@ class Ranking extends StatefulWidget {
 
 class _Ranking extends State<Ranking> {
   final MusicController musicController = Get.find<MusicController>();
-  final FavoriteController favoriteController =
-      Get.find<FavoriteController>();
+  final FavoriteController favoriteController = Get.find<FavoriteController>();
 
   List<Music> allMusic = [];
 
@@ -46,11 +46,12 @@ class _Ranking extends State<Ranking> {
 
   @override
   Widget build(BuildContext context) {
-    final queueMusic =
-        musicController.musiclist.whereType<Music>().toList();
+    final queueMusic = musicController.musiclist.whereType<Music>().toList();
     final latestMusic = allMusic.reversed.take(20).toList();
 
     return AppScaffold(
+      // 榜单和播放强相关，底部常驻迷你播放条
+      nowPlaying: true,
       body: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(
           scrollbars: false,
@@ -60,7 +61,7 @@ class _Ranking extends State<Ranking> {
           },
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -70,7 +71,7 @@ class _Ranking extends State<Ranking> {
               ),
               const SizedBox(height: 4),
               Text(
-                "为你整理的实时榜单",
+                "为你整理的实时榜单".tr,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -78,12 +79,12 @@ class _Ranking extends State<Ranking> {
               const SizedBox(height: 12),
               GetBuilder<FavoriteController>(
                 builder: (controller) => _RankingSection(
-                  title: "收藏热榜",
+                  title: "收藏热榜".tr,
                   icon: Icons.favorite,
                   musicList: controller.favoriteMusic,
-                  emptyText: "收藏歌曲后会出现在这里",
-                  onPlayAll: () =>
-                      musicController.addMusicListToQueue(controller.favoriteMusic),
+                  emptyText: "收藏歌曲后会出现在这里".tr,
+                  onPlayAll: () => musicController
+                      .addMusicListToQueue(controller.favoriteMusic),
                   onPlayMusic: (music) {
                     musicController.playOrPauseMusic(
                       music,
@@ -96,10 +97,10 @@ class _Ranking extends State<Ranking> {
               ),
               const SizedBox(height: 14),
               _RankingSection(
-                title: "最近加入",
+                title: "最近加入".tr,
                 icon: Icons.new_releases,
                 musicList: latestMusic,
-                emptyText: "还没有加入歌曲",
+                emptyText: "还没有加入歌曲".tr,
                 onPlayAll: () =>
                     musicController.addMusicListToQueue(latestMusic),
                 onPlayMusic: (music) {
@@ -113,10 +114,10 @@ class _Ranking extends State<Ranking> {
               ),
               const SizedBox(height: 14),
               _RankingSection(
-                title: "当前队列",
+                title: "当前队列".tr,
                 icon: Icons.queue_music,
                 musicList: queueMusic,
-                emptyText: "当前播放队列为空",
+                emptyText: "当前播放队列为空".tr,
                 onPlayAll: () =>
                     musicController.addMusicListToQueue(queueMusic),
                 onPlayMusic: (music) {
@@ -163,8 +164,15 @@ class _RankingSection extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: scheme.surface.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outline.withOpacity(0.35)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outline.withOpacity(0.28)),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.shadow.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -180,24 +188,23 @@ class _RankingSection extends StatelessWidget {
               ),
               Container(
                 margin: const EdgeInsets.only(right: 8),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: scheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  "${musicList.length}",
+                  "共 @count 首".trParams({'count': '${musicList.length}'}),
                   style: TextStyle(
+                    fontSize: 11,
                     color: scheme.onSecondaryContainer,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              FilledButton.icon(
+              PlayAllButton(
+                dense: true,
                 onPressed: musicList.isEmpty ? null : onPlayAll,
-                icon: const Icon(Icons.play_arrow),
-                label: const Text("播放全部"),
               ),
             ],
           ),
@@ -228,7 +235,7 @@ class _RankingSection extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
                     color: scheme.surfaceVariant.withOpacity(0.72),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: isTop3
                         ? [
                             BoxShadow(
@@ -275,7 +282,7 @@ class _RankingSection extends StatelessWidget {
                     title: Text(music.songName),
                     subtitle: Text(music.decoration),
                     trailing: IconButton(
-                      tooltip: "播放",
+                      tooltip: "播放".tr,
                       onPressed: () => onPlayMusic(music),
                       icon: GetBuilder<MusicController>(
                         builder: (_) {

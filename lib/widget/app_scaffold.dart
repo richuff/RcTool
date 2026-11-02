@@ -5,6 +5,7 @@ import 'package:rctool/routers/route_path.dart';
 import 'package:rctool/controller/wallpaper_controller.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/main_drawer.dart';
+import 'package:rctool/widget/now_playing_bar.dart';
 import 'package:rctool/widget/search_widget.dart';
 
 /// @ClassName AppScaffold
@@ -21,6 +22,9 @@ class AppScaffold extends StatelessWidget {
   final bool resizeToAvoidBottomInset;
   final bool extendBodyBehindAppBar;
 
+  /// 是否在页面底部挂迷你播放条（队列为空时播放条自己消失）
+  final bool nowPlaying;
+
   const AppScaffold({
     super.key,
     required this.body,
@@ -30,6 +34,7 @@ class AppScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.resizeToAvoidBottomInset = true,
     this.extendBodyBehindAppBar = false,
+    this.nowPlaying = false,
   });
 
   @override
@@ -53,7 +58,7 @@ class AppScaffold extends StatelessWidget {
               hoverColor: scheme.primaryContainer,
               focusColor: scheme.primaryContainer,
               highlightColor: scheme.secondaryContainer,
-              tooltip: '菜单',
+              tooltip: '菜单'.tr,
               alignment: Alignment.bottomCenter,
               icon: Icon(Icons.menu, size: 26, color: scheme.onSurface),
               onPressed: () => Scaffold.of(context).openDrawer(),
@@ -66,7 +71,8 @@ class AppScaffold extends StatelessWidget {
                 title!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
+                style:
+                    const TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
               ),
         centerTitle: false,
         actions: [
@@ -82,8 +88,8 @@ class AppScaffold extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               constraints: const BoxConstraints.tightFor(width: 40, height: 40),
               onPressed: () => Get.toNamed(RoutePath.SEARCH),
-              icon: Icon(Icons.search_rounded,
-                  size: 22, color: scheme.onSurface),
+              icon:
+                  Icon(Icons.search_rounded, size: 22, color: scheme.onSurface),
             ),
           ),
           const SearchWidget(),
@@ -107,7 +113,13 @@ class AppScaffold extends StatelessWidget {
                       color: scheme.surface.withOpacity(0.62),
                     ),
                   ),
-                body,
+                Column(
+                  children: [
+                    Expanded(child: body),
+                    // 迷你播放条：队列为空时不占位
+                    if (nowPlaying) const NowPlayingBar(),
+                  ],
+                ),
               ],
             ),
           ),
