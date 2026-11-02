@@ -5,12 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/locale_controller.dart';
+import 'package:rctool/repository/SqlLiteConn/play_history_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/service/live2d_model_library.dart';
 import 'package:rctool/utils/lrc_parser.dart';
 import 'package:rctool/utils/my_message.dart';
 import 'package:rctool/widget/play_all_button.dart';
 import 'package:rctool/widget/song_row.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// 轻量布局冒烟测试：确认新组件在常见尺寸下不会溢出、
 /// 点击区域能正常触发，以及 LRC 解析的边界行为。
@@ -201,5 +203,49 @@ void main() {
     // 坏数据直接丢弃，不会污染队列
     expect(Music.fromJson({'songName': 'no url'}), isNull);
     expect(Music.fromJson('nope'), isNull);
+  });
+
+  test('最近播放按歌曲去重，同一首歌只留最近一次', () async {
+    sqfliteFfiInit();
+    final db = await databaseFactoryFfi.openDatabase(':memory:');
+    addTearDown(db.close);
+    await db.execute('''
+      CREATE TABLE play_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        url TEXT NOT NULL,
+        imageUrl TEXT NOT NULL,
+        songName TEXT NOT NULL,
+        decoration TEXT NOT NULL,
+        playedAt INTEGER NOT NULL
+      )
+    ''');
+
+    Future<void> add(String url, String name, int at) {
+      return db.insert('play_history', {
+        'url': url,
+        'imageUrl': 'cover.jpg',
+        'songName': name,
+        'decoration': '',
+        'playedAt': at,
+      });
+    }
+
+    await add('a.mp3', 'A 第一次', 1000);
+    await add('b.mp3', 'B', 2000);
+    await add('a.mp3', 'A 第三次', 3000);
+    await add('a.mp3', 'A 第二次', 2500); // 乱序写入也要取时间最大的那条
+
+    final rows = await db.rawQuery(PlayHistoryConn.recentQuery, [200]);
+    expect(rows.length, 2, reason: '同一首歌只占一行');
+    expect(rows.first['url'], 'a.mp3');
+    expect(rows.first['songName'], 'A 第三次');
+    expect(rows.last['url'], 'b.mp3');
+  });
+
+  test('同一首歌几秒内重复触发视为同一次播放', () {
+    const now = 1000000;
+    expect(PlayHistoryConn.isDuplicatePlay(now - 300, now), isTrue);
+    expect(PlayHistoryConn.isDuplicatePlay(now - 5000, now), isTrue);
+    expect(PlayHistoryConn.isDuplicatePlay(now - 5001, now), isFalse);
   });
 }

@@ -37,9 +37,7 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
   }
 
   Future<void> _deleteHistory(PlayHistory item) async {
-    final id = item.id;
-    if (id == null) return;
-    await PlayHistoryConn.delete(id);
+    await PlayHistoryConn.deleteByUrl(item.url);
     await _loadHistory();
   }
 
@@ -128,7 +126,7 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        '共 @count 条记录，按最近播放排序'.trParams(
+                                        '共 @count 首'.trParams(
                                             {'count': '${history.length}'}),
                                         style: TextStyle(
                                           color: scheme.onSurfaceVariant,
