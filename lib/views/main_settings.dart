@@ -102,7 +102,6 @@ class _MainSettingsState extends State<MainSettings> {
     await musicController.updateCacheSetting(true);
     await themeController.updateThemeMode(ThemeMode.light);
     await _updateLocale(const Locale('zh', 'CN'));
-    await musicController.changePlayMode(PlayMode.loop);
     await musicController.changeVolume(1.0);
     musicController.cancelSleepTimer();
     if (mounted) {
@@ -234,34 +233,6 @@ class _MainSettingsState extends State<MainSettings> {
             children: [
               GetBuilder<MusicController>(
                 builder: (controller) => Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '默认播放模式',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        children: [
-                          _modeChip(controller, PlayMode.loop, '列表循环'),
-                          _modeChip(controller, PlayMode.single, '单曲循环'),
-                          _modeChip(controller, PlayMode.random, '随机播放'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              GetBuilder<MusicController>(
-                builder: (controller) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Row(
                     children: [
@@ -357,31 +328,6 @@ class _MainSettingsState extends State<MainSettings> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _modeChip(
-    MusicController controller,
-    PlayMode mode,
-    String label,
-  ) {
-    final scheme = Theme.of(context).colorScheme;
-    final selected = controller.playMode.value == mode;
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      showCheckmark: false,
-      labelStyle: TextStyle(
-        fontSize: 13,
-        color: selected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-      ),
-      selectedColor: scheme.primaryContainer,
-      backgroundColor: scheme.surfaceContainerHighest.withOpacity(0.5),
-      side: BorderSide(
-        color: selected ? scheme.primary.withOpacity(0.5) : Colors.transparent,
-      ),
-      onSelected: (_) => controller.changePlayMode(mode),
     );
   }
 }
