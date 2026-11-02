@@ -52,9 +52,8 @@ class _LyricEditorSheetState extends State<_LyricEditorSheet> {
       _record = record;
       _controller.text = record?.content ?? '';
       _offsetMs = record?.offsetMs ?? 0;
-      _lineCount = record == null
-          ? 0
-          : LyricSheet.parse(record.content).lines.length;
+      _lineCount =
+          record == null ? 0 : LyricSheet.parse(record.content).lines.length;
       _loading = false;
     });
   }
@@ -214,9 +213,9 @@ class _LyricEditorSheetState extends State<_LyricEditorSheet> {
                           decoration: InputDecoration(
                             filled: false,
                             border: InputBorder.none,
-                            hintText:
-                                '[00:12.34] 第一句歌词\n[00:18.00] 第二句歌词\n\n'
-                                '支持一行多个时间戳、[offset:] 偏移，纯文本也能保存',
+                            hintText: '[00:12.34] ${'第一句歌词'.tr}\n'
+                                '[00:18.00] ${'第二句歌词'.tr}\n\n'
+                                '${'支持一行多个时间戳、[offset:] 偏移，纯文本也能保存'.tr}',
                             hintStyle: TextStyle(
                               fontSize: 12,
                               height: 1.6,

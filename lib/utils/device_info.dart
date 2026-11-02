@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+
+import 'my_message.dart';
 
 /// @ClassName DeviceInfo
 /// @Description 设备信息快照（机型、系统、CPU、内存等），用于「全局设置 - 设备信息」面板。
@@ -39,7 +42,7 @@ class DeviceInfo {
   String get deviceLabel {
     final brand = manufacturer.trim();
     final name = model.trim().isNotEmpty ? model.trim() : board.trim();
-    if (brand.isEmpty && name.isEmpty) return '未知设备';
+    if (brand.isEmpty && name.isEmpty) return '未知设备'.tr;
     if (name.isEmpty) return brand;
     if (brand.isEmpty) return name;
     if (name.toLowerCase().startsWith(brand.toLowerCase())) return name;
@@ -62,26 +65,29 @@ class DeviceInfo {
   /// 例如 "8 核 · 最高 2.40 GHz · arm64-v8a"
   String get cpuLabel {
     final parts = <String>[
-      cpuCores > 0 ? '$cpuCores 核' : '核心数未知',
+      cpuCores > 0 ? '@count 核'.trParams({'count': '$cpuCores'}) : '核心数未知'.tr,
     ];
     if (cpuMaxGhz != null && cpuMaxGhz! > 0) {
-      parts.add('最高 ${cpuMaxGhz!.toStringAsFixed(2)} GHz');
+      parts.add('最高 @ghz GHz'.trParams({'ghz': cpuMaxGhz!.toStringAsFixed(2)}));
     }
     if (abi.isNotEmpty) parts.add(abi);
-    if (is64Bit) parts.add('64 位');
+    if (is64Bit) parts.add('64 位'.tr);
     return parts.join(' · ');
   }
 
-  String get ramLabel => '${formatMb(totalRamMb)} 总内存';
+  String get ramLabel => '@size 总内存'.trParams({'size': formatMb(totalRamMb)});
 
   String get ramUsageLabel {
-    if (totalRamMb <= 0) return '未知';
+    if (totalRamMb <= 0) return '未知'.tr;
     final used = (totalRamMb - availableRamMb).clamp(0, totalRamMb);
-    return '已用 ${formatMb(used)} / 可用 ${formatMb(availableRamMb)}';
+    return '已用 @used / 可用 @free'.trParams({
+      'used': formatMb(used),
+      'free': formatMb(availableRamMb),
+    });
   }
 
   static String formatMb(int mb) {
-    if (mb <= 0) return '未知';
+    if (mb <= 0) return '未知'.tr;
     if (mb >= 1024) return '${(mb / 1024).toStringAsFixed(1)} GB';
     return '$mb MB';
   }
@@ -135,8 +141,8 @@ class DeviceInfoService {
         broad,
         _asText(native['socManufacturer']),
       ]),
-      cpuCores: (native['cpuCores'] as num?)?.toInt() ??
-          Platform.numberOfProcessors,
+      cpuCores:
+          (native['cpuCores'] as num?)?.toInt() ?? Platform.numberOfProcessors,
       cpuMaxGhz: _readCpuMaxGhz(),
       totalRamMb: totalRam,
       availableRamMb: availRam,
@@ -148,8 +154,7 @@ class DeviceInfoService {
     return info;
   }
 
-  static String _asText(dynamic value) =>
-      value is String ? value.trim() : '';
+  static String _asText(dynamic value) => value is String ? value.trim() : '';
 
   /// 过滤机型/主板字段里的占位值（个别机型会返回 "0" 或 "unknown"）。
   static String _cleanModelText(String raw) {

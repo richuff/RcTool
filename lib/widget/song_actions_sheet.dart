@@ -96,7 +96,7 @@ class _SongActionsSheet extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: '关闭',
+                  tooltip: '关闭'.tr,
                   onPressed: () => Get.back(),
                   icon: Icon(Icons.close_rounded,
                       size: 20, color: scheme.onSurfaceVariant),
@@ -150,8 +150,9 @@ class _SongActionsSheet extends StatelessWidget {
                     subtitle: busy
                         ? '正在下载…'.tr
                         : cached
-                            ? '已占用 @size · 删除后需联网播放'.trParams(
-                                {'size': formatBytes(offline.sizeOf(music.url))})
+                            ? '已占用 @size · 删除后需联网播放'.trParams({
+                                'size': formatBytes(offline.sizeOf(music.url))
+                              })
                             : '下载后可离线收听'.tr,
                     onTap: () async {
                       if (busy) return;
@@ -166,7 +167,8 @@ class _SongActionsSheet extends StatelessWidget {
                   );
                 },
               ),
-            if (removeLabel != null && onRemove != null)              _tile(
+            if (removeLabel != null && onRemove != null)
+              _tile(
                 context,
                 icon: Icons.remove_circle_outline_rounded,
                 iconColor: scheme.error,
@@ -226,8 +228,8 @@ class _SongActionsSheet extends StatelessWidget {
           color: scheme.primaryContainer.withOpacity(0.6),
           borderRadius: BorderRadius.circular(11),
         ),
-        child: Icon(icon,
-            size: 20, color: iconColor ?? scheme.onPrimaryContainer),
+        child:
+            Icon(icon, size: 20, color: iconColor ?? scheme.onPrimaryContainer),
       ),
       title: Text(
         title,
@@ -252,8 +254,8 @@ class _SongActionsSheet extends StatelessWidget {
     final musicId = music.id;
     if (musicId == null) {
       Get.snackbar(
-        '无法添加',
-        '这首歌还没有保存到曲库，先播放一次再添加吧',
+        '无法添加'.tr,
+        '这首歌还没有保存到曲库，先播放一次再添加吧'.tr,
         snackPosition: SnackPosition.BOTTOM,
       );
       return;
@@ -277,8 +279,7 @@ class _PlaylistPickerSheet extends StatefulWidget {
 }
 
 class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
-  final FavoriteController favoriteController =
-      Get.find<FavoriteController>();
+  final FavoriteController favoriteController = Get.find<FavoriteController>();
 
   List<Playlist> _playlists = [];
   Set<int> _contained = {};
@@ -371,8 +372,7 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
     final id = await PlaylistConn.insertPlaylist(name);
     await PlaylistConn.addMusic(id, _musicId);
     await _load();
-    Get.snackbar('已创建'.tr,
-        '「@name」已建好，这首歌也加进去了'.trParams({'name': name}),
+    Get.snackbar('已创建'.tr, '「@name」已建好，这首歌也加进去了'.trParams({'name': name}),
         snackPosition: SnackPosition.BOTTOM);
   }
 
@@ -407,7 +407,7 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '添加到歌单',
+                    '添加到歌单'.tr,
                     style: TextStyle(
                       fontSize: 15.5,
                       fontWeight: FontWeight.w700,
@@ -418,7 +418,7 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
                 TextButton.icon(
                   onPressed: _createPlaylist,
                   icon: const Icon(Icons.add_rounded, size: 18),
-                  label: const Text('新建', style: TextStyle(fontSize: 12.5)),
+                  label: Text('新建'.tr, style: const TextStyle(fontSize: 12.5)),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: const Size(0, 32),
@@ -438,8 +438,8 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
                               ? Icons.favorite_rounded
                               : Icons.favorite_border_rounded,
                           iconColor: _favorite ? scheme.error : null,
-                          title: kFavoritePlaylistName,
-                          subtitle: '默认歌单 · 收藏的歌曲都会汇总到这里',
+                          title: playlistDisplayName(kFavoritePlaylistName),
+                          subtitle: '默认歌单 · 收藏的歌曲都会汇总到这里'.tr,
                           selected: _favorite,
                           onTap: _toggleFavorite,
                         ),
@@ -460,8 +460,8 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
                               context,
                               icon: Icons.queue_music_rounded,
                               title: playlist.name,
-                              subtitle: '@count 首'
-                                  .trParams({'count': '${playlist.musicCount}'}),
+                              subtitle: '@count 首'.trParams(
+                                  {'count': '${playlist.musicCount}'}),
                               selected: _contained.contains(playlist.id),
                               onTap: () => _togglePlaylist(playlist),
                             ),
@@ -495,8 +495,8 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
           color: scheme.primaryContainer.withOpacity(0.55),
           borderRadius: BorderRadius.circular(11),
         ),
-        child: Icon(icon,
-            size: 19, color: iconColor ?? scheme.onPrimaryContainer),
+        child:
+            Icon(icon, size: 19, color: iconColor ?? scheme.onPrimaryContainer),
       ),
       title: Text(
         title,

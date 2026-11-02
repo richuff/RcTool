@@ -195,7 +195,9 @@ class _Live2DModelSheetState extends State<Live2DModelSheet> {
                     Text(
                       model.builtIn
                           ? '随包内置'.tr
-                          : '外部目录 · ${model.id.replaceFirst('ext:', '')}',
+                          : '外部目录 · @path'.trParams({
+                              'path': model.id.replaceFirst('ext:', ''),
+                            }),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

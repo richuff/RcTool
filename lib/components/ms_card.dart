@@ -37,8 +37,7 @@ class MSCard extends StatefulWidget {
 class _MSCard extends State<MSCard> {
   final NotificationHelper notificationHelper = NotificationHelper();
   final MusicController musicController = Get.find<MusicController>();
-  final FavoriteController favoriteController =
-      Get.find<FavoriteController>();
+  final FavoriteController favoriteController = Get.find<FavoriteController>();
 
   /// 本地收藏态：点击时立刻翻转，避免等待数据库与控制器刷新才变红。
   bool _isFavorite = false;
@@ -192,7 +191,7 @@ class _MSCard extends State<MSCard> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  _isEmpty ? '未选择播放的歌曲' : widget.songName,
+                  _isEmpty ? '未选择播放的歌曲'.tr : widget.songName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -210,7 +209,7 @@ class _MSCard extends State<MSCard> {
                   children: [
                     Expanded(
                       child: Text(
-                        _isEmpty ? '从下面的列表里挑一首吧' : widget.decoration,
+                        _isEmpty ? '从下面的列表里挑一首吧'.tr : widget.decoration,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

@@ -159,7 +159,7 @@ class _MusicList extends State<MusicList> {
                             return Text(
                               buffering
                                   ? '缓存中 · 首次播放需要下载'.tr
-                                  : (current?.decoration ?? "未知歌手"),
+                                  : (current?.decoration ?? "未知歌手".tr),
                               style: TextStyle(
                                 color: buffering
                                     ? scheme.primary

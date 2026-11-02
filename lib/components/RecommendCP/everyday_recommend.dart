@@ -166,8 +166,7 @@ class _EverydayList extends State<EverydayList> {
               ),
               const SizedBox(width: 10),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
                   color: scheme.primaryContainer.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(20),
@@ -307,7 +306,8 @@ class _EverydayList extends State<EverydayList> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 iconWidget ??
-                    Icon(icon, size: label == null ? 22 : 24, color: foreground),
+                    Icon(icon,
+                        size: label == null ? 22 : 24, color: foreground),
                 if (label != null) ...[
                   const SizedBox(width: 6),
                   Flexible(
@@ -394,10 +394,10 @@ class _EverydayList extends State<EverydayList> {
     setState(() => _favorite = _computeFavorite());
 
     Get.snackbar(
-      _favorite ? "收藏成功" : "已取消收藏",
+      _favorite ? "收藏成功".tr : "已取消收藏".tr,
       _favorite
-          ? "今日推荐的 ${ids.length} 首歌曲已加入「我的喜欢」"
-          : "已从「我的喜欢」移除今日推荐的 ${ids.length} 首歌曲",
+          ? "今日推荐的 @count 首歌曲已加入「我的喜欢」".trParams({'count': '${ids.length}'})
+          : "已从「我的喜欢」移除今日推荐的 @count 首歌曲".trParams({'count': '${ids.length}'}),
       snackPosition: SnackPosition.BOTTOM,
     );
   }
@@ -450,7 +450,7 @@ class _RecommendHistorySheet extends StatelessWidget {
               Icon(Icons.history, color: scheme.primary),
               const SizedBox(width: 8),
               Text(
-                "每日推荐历史",
+                "每日推荐历史".tr,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ],
@@ -460,7 +460,7 @@ class _RecommendHistorySheet extends StatelessWidget {
             child: histories.isEmpty
                 ? Center(
                     child: Text(
-                      "暂无历史记录",
+                      "暂无历史记录".tr,
                       style: TextStyle(color: scheme.onSurfaceVariant),
                     ),
                   )
@@ -471,7 +471,8 @@ class _RecommendHistorySheet extends StatelessWidget {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
-                          color: scheme.surfaceContainerHighest.withOpacity(0.5),
+                          color:
+                              scheme.surfaceContainerHighest.withOpacity(0.5),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: ListTile(
@@ -484,9 +485,13 @@ class _RecommendHistorySheet extends StatelessWidget {
                             child: const Icon(Icons.calendar_month),
                           ),
                           title: Text(history.recommendDate),
-                          subtitle: Text("${history.musicCount} 首歌曲"),
+                          subtitle: Text(
+                            "@count 首歌曲".trParams({
+                              "count": "${history.musicCount}",
+                            }),
+                          ),
                           trailing: IconButton(
-                            tooltip: "播放这天的推荐",
+                            tooltip: "播放这天的推荐".tr,
                             icon: const Icon(Icons.play_arrow),
                             onPressed: () => onPlayHistory(history),
                           ),
@@ -525,7 +530,7 @@ class _RecommendHistorySheet extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: () => onPlayHistory(history),
                   icon: const Icon(Icons.play_arrow),
-                  label: const Text("播放"),
+                  label: Text("播放".tr),
                 ),
               ],
             ),
@@ -541,7 +546,7 @@ class _RecommendHistorySheet extends StatelessWidget {
                   if (musicList.isEmpty) {
                     return Center(
                       child: Text(
-                        "这天还没有歌曲记录",
+                        "这天还没有歌曲记录".tr,
                         style: TextStyle(color: scheme.onSurfaceVariant),
                       ),
                     );

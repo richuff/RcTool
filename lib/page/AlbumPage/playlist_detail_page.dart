@@ -32,8 +32,7 @@ class PlaylistDetailPage extends StatefulWidget {
 
 class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
   final MusicController musicController = Get.find<MusicController>();
-  final FavoriteController favoriteController =
-      Get.find<FavoriteController>();
+  final FavoriteController favoriteController = Get.find<FavoriteController>();
 
   List<Music> _musicList = [];
   bool _loading = true;
@@ -82,7 +81,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
     final scheme = Theme.of(context).colorScheme;
     return AppScaffold(
       // 歌单名称直接作为页面标题，页面内不再重复展示「歌单信息」卡片
-      title: _playlist.name,
+      title: playlistDisplayName(_playlist.name),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 4),
@@ -133,9 +132,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
         child: Row(
           children: [
             Icon(
-              _isFavorite
-                  ? Icons.favorite_rounded
-                  : Icons.queue_music_rounded,
+              _isFavorite ? Icons.favorite_rounded : Icons.queue_music_rounded,
               size: 14,
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -168,9 +165,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                   onMore: () => showSongActions(
                     context,
                     music,
-                    removeLabel: _isFavorite
-                        ? '从我的喜欢移除'.tr
-                        : '从歌单移除'.tr,
+                    removeLabel: _isFavorite ? '从我的喜欢移除'.tr : '从歌单移除'.tr,
                     onRemove: () => _removeMusic(music),
                   ).then((_) => _load()),
                 ),

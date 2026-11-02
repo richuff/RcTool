@@ -79,6 +79,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return AppScaffold(
+      nowPlaying: true,
       title: '播放统计'.tr,
       body: loading
           ? const Center(child: CircularProgressIndicator())
@@ -153,8 +154,8 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                           else
                             ...topSongs.take(5).toList().asMap().entries.map(
                                   (entry) => SlideFadeIn(
-                                    delay: Duration(
-                                        milliseconds: entry.key * 60),
+                                    delay:
+                                        Duration(milliseconds: entry.key * 60),
                                     child: _topSongCard(
                                         scheme, entry.key, entry.value),
                                   ),
@@ -199,8 +200,8 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
               color: scheme.surface.withOpacity(0.85),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.graphic_eq_rounded,
-                color: scheme.primary, size: 24),
+            child:
+                Icon(Icons.graphic_eq_rounded, color: scheme.primary, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -295,7 +296,15 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
       0,
       (max, count) => count > max ? count : max,
     );
-    const weekdays = ['一', '二', '三', '四', '五', '六', '日'];
+    final weekdays = [
+      '周一'.tr,
+      '周二'.tr,
+      '周三'.tr,
+      '周四'.tr,
+      '周五'.tr,
+      '周六'.tr,
+      '周日'.tr,
+    ];
     final total = dailyCounts.fold<int>(0, (sum, count) => sum + count);
     final average = dailyCounts.isEmpty ? 0.0 : total / dailyCounts.length;
 
@@ -310,8 +319,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                   style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
               Text(
-                '日均 @count 次'
-                    .trParams({'count': average.toStringAsFixed(1)}),
+                '日均 @count 次'.trParams({'count': average.toStringAsFixed(1)}),
                 style: TextStyle(
                   fontSize: 11.5,
                   color: scheme.onSurfaceVariant,
@@ -367,7 +375,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        index == 6 ? '今' : weekdays[day.weekday - 1],
+                        index == 6 ? '今天'.tr : weekdays[day.weekday - 1],
                         style: TextStyle(
                           color: index == 6
                               ? scheme.primary
@@ -402,14 +410,12 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
         children: [
           Row(
             children: [
-              Text('听歌时段'.tr,
-                  style: Theme.of(context).textTheme.titleMedium),
+              Text('听歌时段'.tr, style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
               Text(
                 total == 0
                     ? '暂无数据'.tr
-                    : '近 7 天 @count 次播放'
-                        .trParams({'count': '$total'}),
+                    : '近 7 天 @count 次播放'.trParams({'count': '$total'}),
                 style: TextStyle(
                   fontSize: 11.5,
                   color: scheme.onSurfaceVariant,
@@ -483,8 +489,7 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
         children: [
           Row(
             children: [
-              Text('常听歌手'.tr,
-                  style: Theme.of(context).textTheme.titleMedium),
+              Text('常听歌手'.tr, style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
               Text(
                 '按播放次数'.tr,
@@ -566,9 +571,8 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                   '${index + 1}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: index < 3
-                        ? rankColors[index]
-                        : scheme.onSurfaceVariant,
+                    color:
+                        index < 3 ? rankColors[index] : scheme.onSurfaceVariant,
                     fontWeight: FontWeight.w800,
                     fontSize: 18,
                   ),
@@ -596,10 +600,8 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          '@artist · 播放 @count 次'.trParams({
-            'artist': item.music.decoration,
-            'count': '${item.playCount}'
-          }),
+          '@artist · 播放 @count 次'.trParams(
+              {'artist': item.music.decoration, 'count': '${item.playCount}'}),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),

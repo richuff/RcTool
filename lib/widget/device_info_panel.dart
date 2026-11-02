@@ -52,7 +52,7 @@ class _DeviceInfoPanelState extends State<DeviceInfoPanel> {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      '正在读取设备信息…',
+                      '正在读取设备信息…'.tr,
                       style: TextStyle(
                         fontSize: 12.5,
                         color: scheme.onSurfaceVariant,
@@ -80,7 +80,7 @@ class _DeviceInfoPanelState extends State<DeviceInfoPanel> {
               SettingsInfoTile(
                 icon: Icons.developer_board_rounded,
                 label: '型号'.tr,
-                value: info.cpuModel.isEmpty ? '系统未开放读取' : info.cpuModel,
+                value: info.cpuModel.isEmpty ? '系统未开放读取'.tr : info.cpuModel,
               ),
               SettingsInfoTile(
                 icon: Icons.storage_rounded,
@@ -104,7 +104,7 @@ class _DeviceInfoPanelState extends State<DeviceInfoPanel> {
                   child: TextButton.icon(
                     onPressed: _refresh,
                     icon: const Icon(Icons.refresh_rounded, size: 16),
-                    label: const Text('刷新', style: TextStyle(fontSize: 12)),
+                    label: Text('刷新'.tr, style: const TextStyle(fontSize: 12)),
                     style: TextButton.styleFrom(
                       foregroundColor: scheme.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 10),

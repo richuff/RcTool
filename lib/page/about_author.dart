@@ -24,10 +24,10 @@ class AboutAuthor extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          const SlideFadeIn(
+          SlideFadeIn(
             child: _HeroCard(
               name: 'richuff',
-              role: 'Flutter Developer · RcTool 作者',
+              role: 'Flutter Developer · RcTool 作者'.tr,
               tags: const ['Flutter', 'GetX', 'Live2D', 'SQLite'],
             ),
           ),
@@ -199,8 +199,8 @@ class _HeroCard extends StatelessWidget {
                             role,
                             style: TextStyle(
                               fontSize: 12,
-                              color: scheme.onPrimaryContainer
-                                  .withOpacity(0.78),
+                              color:
+                                  scheme.onPrimaryContainer.withOpacity(0.78),
                             ),
                           ),
                         ],
@@ -336,12 +336,12 @@ class _ProjectCard extends StatelessWidget {
                   color: scheme.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.apps_rounded,
-                    size: 18, color: scheme.primary),
+                child:
+                    Icon(Icons.apps_rounded, size: 18, color: scheme.primary),
               ),
               const SizedBox(width: 10),
               Text(
-                '项目信息',
+                '项目信息'.tr,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -351,18 +351,18 @@ class _ProjectCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          _InfoRow(label: '版本', value: 'v$version'),
-          const _InfoRow(label: '技术栈', value: 'Flutter · GetX · SQLite'),
-          const _InfoRow(
-            label: '功能',
-            value: '音乐播放 · 每日推荐 · 排行榜 · Live2D',
+          _InfoRow(label: '版本'.tr, value: 'v$version'),
+          _InfoRow(label: '技术栈'.tr, value: 'Flutter · GetX · SQLite'),
+          _InfoRow(
+            label: '功能'.tr,
+            value: '音乐播放 · 每日推荐 · 排行榜 · Live2D'.tr,
           ),
           Divider(color: scheme.outline.withOpacity(0.16)),
           ListTile(
             contentPadding: EdgeInsets.zero,
             dense: true,
             leading: Icon(Icons.link_rounded, color: scheme.secondary),
-            title: const Text('复制仓库地址'),
+            title: Text('复制仓库地址'.tr),
             subtitle: Text(
               repoUrl,
               maxLines: 1,
@@ -373,7 +373,7 @@ class _ProjectCard extends StatelessWidget {
             onTap: () async {
               await Clipboard.setData(ClipboardData(text: repoUrl));
               Get.snackbar(
-                '已复制',
+                '已复制'.tr,
                 repoUrl,
                 snackPosition: SnackPosition.BOTTOM,
                 duration: const Duration(seconds: 2),

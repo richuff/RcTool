@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/controller/locale_controller.dart';
 import 'package:rctool/controller/is_dark_controller.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/feature/theme/type_value.dart';
@@ -79,6 +80,11 @@ class _SearchWidget extends State<SearchWidget> {
   }
 
   Future<void> _updateLocale(Locale locale) async {
+    if (Get.isRegistered<LocaleController>()) {
+      await Get.find<LocaleController>().change(locale);
+      return;
+    }
+    // 兜底（例如单测里没有注册控制器）
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(languageCodeKey, locale.languageCode);
     await prefs.setString(countryCodeKey, locale.countryCode ?? "");
@@ -145,7 +151,7 @@ class _SearchWidget extends State<SearchWidget> {
                                   children: [
                                     SettingsChoiceTile(
                                       icon: Icons.brightness_auto_outlined,
-                                      title: "跟随系统",
+                                      title: "跟随系统".tr,
                                       selected: isDarkController.themeMode ==
                                           ThemeMode.system,
                                       onTap: () {
@@ -156,7 +162,7 @@ class _SearchWidget extends State<SearchWidget> {
                                     ),
                                     SettingsChoiceTile(
                                       icon: Icons.sunny,
-                                      title: "亮色",
+                                      title: "亮色模式".tr,
                                       selected: isDarkController.themeMode ==
                                           ThemeMode.light,
                                       onTap: () {
@@ -167,7 +173,7 @@ class _SearchWidget extends State<SearchWidget> {
                                     ),
                                     SettingsChoiceTile(
                                       icon: Icons.nightlight,
-                                      title: "暗色",
+                                      title: "暗色模式".tr,
                                       selected: isDarkController.themeMode ==
                                           ThemeMode.dark,
                                       onTap: () {
@@ -185,34 +191,28 @@ class _SearchWidget extends State<SearchWidget> {
                                 children: [
                                   SettingsChoiceTile(
                                     icon: RcIcon.chinese,
-                                    title: "简体中文",
-                                    selected:
-                                        Get.locale?.languageCode == "zh",
+                                    title: "简体中文".tr,
+                                    selected: Get.locale?.languageCode == "zh",
                                     onTap: () {
-                                      _updateLocale(
-                                          const Locale("zh", "CN"));
+                                      _updateLocale(const Locale("zh", "CN"));
                                       setSheetState(() {});
                                     },
                                   ),
                                   SettingsChoiceTile(
                                     icon: RcIcon.english,
                                     title: "English",
-                                    selected:
-                                        Get.locale?.languageCode == "en",
+                                    selected: Get.locale?.languageCode == "en",
                                     onTap: () {
-                                      _updateLocale(
-                                          const Locale("en", "US"));
+                                      _updateLocale(const Locale("en", "US"));
                                       setSheetState(() {});
                                     },
                                   ),
                                   SettingsChoiceTile(
                                     icon: RcIcon.japanese,
                                     title: "日本語",
-                                    selected:
-                                        Get.locale?.languageCode == "ja",
+                                    selected: Get.locale?.languageCode == "ja",
                                     onTap: () {
-                                      _updateLocale(
-                                          const Locale("ja", "JP"));
+                                      _updateLocale(const Locale("ja", "JP"));
                                       setSheetState(() {});
                                     },
                                   ),
@@ -228,15 +228,14 @@ class _SearchWidget extends State<SearchWidget> {
                                     subtitle: "进入音乐页后自动恢复播放".tr,
                                     value: autoPlay,
                                     onChanged: (value) async {
-                                      await _updateBoolSetting(
-                                          playKey, value);
+                                      await _updateBoolSetting(playKey, value);
                                       setSheetState(() {});
                                     },
                                   ),
                                   SettingsSwitchTile(
                                     icon: Icons.notifications_active_outlined,
                                     title: "播放通知".tr,
-                                    subtitle: "切歌时显示当前播放提示",
+                                    subtitle: "切歌时显示当前播放提示".tr,
                                     value: musicNotification,
                                     onChanged: (value) async {
                                       await _updateBoolSetting(
@@ -247,8 +246,10 @@ class _SearchWidget extends State<SearchWidget> {
                                   SettingsSwitchTile(
                                     icon: Icons.cached,
                                     title: "缓存优先".tr,
-                                    subtitle:
-                                        "已缓存 ${formatBytes(_cacheBytes)} · 优先使用本地缓存",
+                                    subtitle: "已缓存 @size · 优先使用本地缓存，关闭后直接在线播放"
+                                        .trParams({
+                                      "size": formatBytes(_cacheBytes),
+                                    }),
                                     value: cacheFirst,
                                     onChanged: (value) async {
                                       await _updateBoolSetting(
@@ -265,8 +266,8 @@ class _SearchWidget extends State<SearchWidget> {
                                 children: [
                                   SettingsActionTile(
                                     icon: Icons.settings,
-                                    title: "完整设置",
-                                    subtitle: "播放模式、音量、睡眠定时与缓存管理",
+                                    title: "完整设置".tr,
+                                    subtitle: "播放模式、音量、睡眠定时与缓存管理".tr,
                                     onTap: () {
                                       Get.back();
                                       showDialog(

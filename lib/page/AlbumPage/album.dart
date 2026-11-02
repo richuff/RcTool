@@ -61,7 +61,7 @@ class _Album extends State<Album> {
     if (created == true) {
       await _loadData();
       Get.snackbar(
-        '已创建',
+        '已创建'.tr,
         '新歌单已经建好了，点进去添加歌曲吧'.tr,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -90,8 +90,7 @@ class _Album extends State<Album> {
     if (!confirmed) return;
     await PlaylistConn.deletePlaylist(playlist.id!);
     await _loadData();
-    Get.snackbar('已删除'.tr,
-        '歌单「@name」已删除'.trParams({'name': playlist.name}),
+    Get.snackbar('已删除'.tr, '歌单「@name」已删除'.trParams({'name': playlist.name}),
         snackPosition: SnackPosition.BOTTOM);
   }
 
@@ -99,6 +98,7 @@ class _Album extends State<Album> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return AppScaffold(
+      nowPlaying: true,
       title: '歌单'.tr,
       actions: [
         IconButton(
@@ -132,7 +132,7 @@ class _Album extends State<Album> {
                         children: [
                           _PlaylistRow(
                             icon: Icons.favorite_rounded,
-                            title: kFavoritePlaylistName,
+                            title: playlistDisplayName(kFavoritePlaylistName),
                             subtitle: '收藏的歌曲都会汇总到这里'.tr,
                             count: favoriteCount,
                             highlight: true,
@@ -151,7 +151,8 @@ class _Album extends State<Album> {
                         children: [
                           if (playlists.isEmpty)
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 10, 16, 14),
                               child: Text(
                                 '还没有自建歌单，点右上角的「+」新建一个吧'.tr,
                                 style: TextStyle(
@@ -164,11 +165,9 @@ class _Album extends State<Album> {
                             ...playlists.map(
                               (playlist) => _PlaylistRow(
                                 icon: Icons.queue_music_rounded,
-                                title: playlist.name,
-                                subtitle: '创建于 @date'
-                                    .trParams({
-                                  'date': _formatDate(playlist.createdAt)
-                                }),
+                                title: playlistDisplayName(playlist.name),
+                                subtitle: '创建于 @date'.trParams(
+                                    {'date': _formatDate(playlist.createdAt)}),
                                 count: playlist.musicCount,
                                 onTap: () => _openPlaylist(playlist),
                                 onDelete: () => _deletePlaylist(playlist),
@@ -252,7 +251,10 @@ class _PlaylistRow extends StatelessWidget {
         style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
-        '$subtitle · $count 首',
+        '@name · @count 首'.trParams({
+          'name': subtitle,
+          'count': '$count',
+        }),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),

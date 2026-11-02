@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controller/is_dark_controller.dart';
+import '../controller/locale_controller.dart';
 import '../controller/music_controller.dart';
 import '../controller/offline_controller.dart';
 import '../controller/wallpaper_controller.dart';
@@ -29,7 +30,6 @@ class _MainSettingsState extends State<MainSettings> {
   bool autoPlay = false;
   bool musicNotification = true;
   bool cacheFirst = true;
-  Locale appLocale = const Locale('zh', 'CN');
 
   /// 音乐缓存占用（字节），由 flutter_cache_manager 统计
   int _cacheBytes = 0;
@@ -60,10 +60,6 @@ class _MainSettingsState extends State<MainSettings> {
       autoPlay = prefs.getBool(playKey) ?? false;
       musicNotification = prefs.getBool(notificationKey) ?? true;
       cacheFirst = prefs.getBool(cacheFirstKey) ?? true;
-      appLocale = Locale(
-        prefs.getString(languageCodeKey) ?? 'zh',
-        prefs.getString(countryCodeKey) ?? 'CN',
-      );
     });
   }
 
@@ -73,11 +69,9 @@ class _MainSettingsState extends State<MainSettings> {
   }
 
   Future<void> _updateLocale(Locale locale) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(languageCodeKey, locale.languageCode);
-    await prefs.setString(countryCodeKey, locale.countryCode ?? '');
-    await Get.updateLocale(locale);
-    if (mounted) setState(() => appLocale = locale);
+    // 统一走 LocaleController：它负责持久化，并让 GetMaterialApp 重建整棵树
+    await Get.find<LocaleController>().change(locale);
+    if (mounted) setState(() {});
   }
 
   Future<void> _clearMusicCache() async {
@@ -90,8 +84,7 @@ class _MainSettingsState extends State<MainSettings> {
     // 走 OfflineController 清空，顺带把「已缓存」角标一起刷新掉
     await Get.find<OfflineController>().clearAll();
     await _readCacheSize();
-    Get.snackbar('清除完成'.tr, '音乐缓存已清除'.tr,
-        snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('清除完成'.tr, '音乐缓存已清除'.tr, snackPosition: SnackPosition.BOTTOM);
   }
 
   /// 展示 Live2D 模型目录：可直接复制路径，或跳到 Live2D 页切换模型
@@ -125,8 +118,7 @@ class _MainSettingsState extends State<MainSettings> {
               if (path.isEmpty) return;
               await Clipboard.setData(ClipboardData(text: path));
               Get.back();
-              Get.snackbar('已复制'.tr, path,
-                  snackPosition: SnackPosition.BOTTOM);
+              Get.snackbar('已复制'.tr, path, snackPosition: SnackPosition.BOTTOM);
             },
             child: Text('复制路径'.tr),
           ),
@@ -164,8 +156,7 @@ class _MainSettingsState extends State<MainSettings> {
         cacheFirst = true;
       });
     }
-    Get.snackbar('已恢复'.tr, '设置已恢复为默认值'.tr,
-        snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('已恢复'.tr, '设置已恢复为默认值'.tr, snackPosition: SnackPosition.BOTTOM);
   }
 
   Future<bool> _confirm({
@@ -213,8 +204,7 @@ class _MainSettingsState extends State<MainSettings> {
     if (minutes == null) return;
     if (minutes == 0) {
       musicController.cancelSleepTimer();
-      Get.snackbar('睡眠定时'.tr, '已取消定时'.tr,
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('睡眠定时'.tr, '已取消定时'.tr, snackPosition: SnackPosition.BOTTOM);
       return;
     }
     musicController.startSleepTimer(Duration(minutes: minutes));
@@ -289,19 +279,19 @@ class _MainSettingsState extends State<MainSettings> {
               SettingsChoiceTile(
                 icon: Icons.translate,
                 title: '简体中文'.tr,
-                selected: appLocale.languageCode == 'zh',
+                selected: Get.locale?.languageCode == 'zh',
                 onTap: () => _updateLocale(const Locale('zh', 'CN')),
               ),
               SettingsChoiceTile(
                 icon: Icons.language,
                 title: 'English',
-                selected: appLocale.languageCode == 'en',
+                selected: Get.locale?.languageCode == 'en',
                 onTap: () => _updateLocale(const Locale('en', 'US')),
               ),
               SettingsChoiceTile(
                 icon: Icons.language,
                 title: '日本語',
-                selected: appLocale.languageCode == 'ja',
+                selected: Get.locale?.languageCode == 'ja',
                 onTap: () => _updateLocale(const Locale('ja', 'JP')),
               ),
             ],
@@ -334,7 +324,8 @@ class _MainSettingsState extends State<MainSettings> {
                           '${(controller.volume.value * 100).round()}%',
                           textAlign: TextAlign.end,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -347,8 +338,8 @@ class _MainSettingsState extends State<MainSettings> {
                   icon: Icons.bedtime_outlined,
                   title: '睡眠定时'.tr,
                   subtitle: controller.sleepTimerActive
-                      ? '剩余 @time，点击修改或取消'.trParams(
-                          {'time': controller.sleepRemainingLabel})
+                      ? '剩余 @time，点击修改或取消'
+                          .trParams({'time': controller.sleepRemainingLabel})
                       : '播放指定时间后自动暂停'.tr,
                   onTap: () => _showSleepTimerDialog(),
                 ),
@@ -391,6 +382,12 @@ class _MainSettingsState extends State<MainSettings> {
             icon: Icons.storage_outlined,
             margin: EdgeInsets.zero,
             children: [
+              SettingsActionTile(
+                icon: Icons.inventory_2_outlined,
+                title: '备份与恢复'.tr,
+                subtitle: '把歌单、收藏和设置导出成文件，换机时一键恢复'.tr,
+                onTap: () => Get.toNamed(RoutePath.BACKUP),
+              ),
               GetBuilder<OfflineController>(
                 builder: (offline) => SettingsActionTile(
                   icon: Icons.offline_pin_outlined,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// @ClassName SettingsSection
 /// @Description 设置分组卡片：统一的圆角、描边、分组标题与图标。
@@ -123,7 +124,7 @@ class SettingsHeader extends StatelessWidget {
         ),
         if (onClose != null)
           IconButton(
-            tooltip: '关闭',
+            tooltip: '关闭'.tr,
             onPressed: onClose,
             icon: const Icon(Icons.close),
           ),
@@ -334,7 +335,8 @@ class _SettingsIcon extends StatelessWidget {
       child: Icon(
         icon,
         size: 19,
-        color: color ?? (active ? scheme.onPrimaryContainer : scheme.onSurfaceVariant),
+        color: color ??
+            (active ? scheme.onPrimaryContainer : scheme.onSurfaceVariant),
       ),
     );
   }

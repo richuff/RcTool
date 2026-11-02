@@ -63,15 +63,15 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
     if (confirmed != true) return;
     await PlayHistoryConn.clear();
     await _loadHistory();
-    Get.snackbar('已清空'.tr, '播放历史已删除'.tr,
-        snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('已清空'.tr, '播放历史已删除'.tr, snackPosition: SnackPosition.BOTTOM);
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return AppScaffold(
-      title: '最近播放',
+      nowPlaying: true,
+      title: '最近播放'.tr,
       actions: [
         if (history.isNotEmpty)
           IconButton(
@@ -128,10 +128,8 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        '共 @count 条记录，按最近播放排序'
-                                            .trParams({
-                                          'count': '${history.length}'
-                                        }),
+                                        '共 @count 条记录，按最近播放排序'.trParams(
+                                            {'count': '${history.length}'}),
                                         style: TextStyle(
                                           color: scheme.onSurfaceVariant,
                                         ),
@@ -147,7 +145,8 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
                             final music = musicList[itemIndex];
                             return SlideFadeIn(
                               delay: Duration(
-                                milliseconds: (itemIndex * 35).clamp(0, 280).toInt(),
+                                milliseconds:
+                                    (itemIndex * 35).clamp(0, 280).toInt(),
                               ),
                               child: SongRow(
                                 music: music,

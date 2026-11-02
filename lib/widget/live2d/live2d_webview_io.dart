@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart' as system_webview;
 import 'package:webview_windows/webview_windows.dart' as windows_webview;
 
@@ -108,7 +109,7 @@ class _Live2DWebViewState extends State<Live2DWebView> {
     _timeoutTimer = Timer(_loadTimeout, () {
       if (!mounted || _ready) return;
       setState(() {
-        _error = '模型加载超时，请检查网络或点击重试。';
+        _error = '模型加载超时，请检查网络或点击重试。'.tr;
       });
     });
   }
@@ -125,12 +126,12 @@ class _Live2DWebViewState extends State<Live2DWebView> {
       }
       if (!mounted) return;
       setState(() {
-        _error = '当前平台暂不支持 Live2D 展示。';
+        _error = '当前平台暂不支持 Live2D 展示。'.tr;
       });
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = 'Live2D 初始化失败：$error';
+        _error = 'Live2D 初始化失败：@error'.trParams({'error': '$error'});
       });
     }
   }
@@ -175,7 +176,8 @@ class _Live2DWebViewState extends State<Live2DWebView> {
             if (error.isForMainFrame == false) return;
             if (!mounted) return;
             setState(() {
-              _error = '页面加载失败：${error.description}';
+              _error =
+                  '页面加载失败：@error'.trParams({'error': '${error.description}'});
             });
           },
         ),
@@ -192,7 +194,7 @@ class _Live2DWebViewState extends State<Live2DWebView> {
     if (version == null) {
       if (!mounted) return;
       setState(() {
-        _error = '需要安装 Microsoft Edge WebView2 Runtime 才能显示 Live2D。';
+        _error = '需要安装 Microsoft Edge WebView2 Runtime 才能显示 Live2D。'.tr;
       });
       return;
     }
@@ -284,7 +286,7 @@ class _Live2DWebViewState extends State<Live2DWebView> {
       await _systemController?.loadRequest(uri);
     } catch (error) {
       if (!mounted) return;
-      setState(() => _error = '重试失败：$error');
+      setState(() => _error = '重试失败：@error'.trParams({'error': '$error'}));
     }
   }
 
@@ -378,9 +380,8 @@ class _Live2DOverlay extends StatelessWidget {
                           height: 30,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.6,
-                            value: progress > 0 && progress < 1
-                                ? progress
-                                : null,
+                            value:
+                                progress > 0 && progress < 1 ? progress : null,
                             valueColor:
                                 AlwaysStoppedAnimation<Color>(scheme.primary),
                           ),
@@ -389,7 +390,7 @@ class _Live2DOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                isError ? 'Haru 没能加载出来' : '正在唤醒 Haru',
+                isError ? 'Haru 没能加载出来'.tr : '正在唤醒 Haru'.tr,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
@@ -398,9 +399,7 @@ class _Live2DOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                isError
-                    ? error!
-                    : '首次加载需要解码约 4MB 模型资源，请稍候…',
+                isError ? error! : '首次加载需要解码约 4MB 模型资源，请稍候…'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
@@ -413,7 +412,7 @@ class _Live2DOverlay extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: onRetry,
                   icon: const Icon(Icons.refresh_rounded, size: 18),
-                  label: const Text('重新加载'),
+                  label: Text('重新加载'.tr),
                 )
               else
                 SizedBox(
@@ -424,8 +423,7 @@ class _Live2DOverlay extends StatelessWidget {
                       value: progress > 0 && progress < 1 ? progress : null,
                       minHeight: 4,
                       backgroundColor: scheme.surfaceContainerHighest,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(scheme.primary),
+                      valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
                     ),
                   ),
                 ),
