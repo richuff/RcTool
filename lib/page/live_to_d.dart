@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 import 'package:rctool/widget/live2d/live2d_webview.dart';
@@ -134,7 +135,7 @@ class _LiveTodState extends State<LiveTod> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    '互动提示',
+                                    '互动提示'.tr,
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
@@ -143,7 +144,7 @@ class _LiveTodState extends State<LiveTod> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '拖动模型身体可以切换动作，视线会跟随指针',
+                                    '拖动模型身体可以切换动作，视线会跟随指针'.tr,
                                     style: TextStyle(
                                       fontSize: 11.5,
                                       height: 1.4,
@@ -154,7 +155,7 @@ class _LiveTodState extends State<LiveTod> {
                               ),
                             ),
                             IconButton(
-                              tooltip: '重新加载',
+                              tooltip: '重新加载'.tr,
                               onPressed: () {
                                 setState(() {
                                   _reloadToken++;
@@ -165,7 +166,7 @@ class _LiveTodState extends State<LiveTod> {
                                   color: scheme.onSurfaceVariant),
                             ),
                             IconButton(
-                              tooltip: '收起提示',
+                              tooltip: '收起提示'.tr,
                               onPressed: () => setState(() => _showTips = false),
                               icon: Icon(Icons.close_rounded,
                                   size: 20, color: scheme.onSurfaceVariant),
@@ -190,7 +191,7 @@ class _LiveTodState extends State<LiveTod> {
                 elevation: 3,
                 shadowColor: scheme.shadow,
                 child: IconButton(
-                  tooltip: '互动提示',
+                  tooltip: '互动提示'.tr,
                   onPressed: () => setState(() => _showTips = true),
                   icon: Icon(Icons.help_outline_rounded, color: scheme.primary),
                 ),

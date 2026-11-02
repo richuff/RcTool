@@ -1,24 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>RcTool Live2D Viewer</title>
+  <script>
+    // 早于所有库记录错误：脚本加载失败 / 运行时报错都能回传给宿主
+    window.__rcErrors = [];
+    window.__rcPost = function (payload) {
+      var json = JSON.stringify(payload);
+      try {
+        if (window.RcLive2DBridge && window.RcLive2DBridge.postMessage) {
+          window.RcLive2DBridge.postMessage(json);
+          return;
+        }
+        if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {
+          window.chrome.webview.postMessage(json);
+        }
+      } catch (e) {
+        /* 宿主通道不可用时忽略 */
+      }
+    };
+    window.addEventListener('error', function (event) {
+      var target = event && event.target;
+      var message = (target && target.src)
+        ? '资源加载失败: ' + target.src
+        : ((event && event.message) || '未知脚本错误');
+      window.__rcErrors.push(message);
+      window.__rcPost({ type: 'error', message: message });
+    }, true);
+    window.addEventListener('unhandledrejection', function (event) {
+      var reason = event && event.reason;
+      var message = (reason && (reason.message || reason)) || '未知异步错误';
+      window.__rcErrors.push(String(message));
+      window.__rcPost({ type: 'error', message: String(message) });
+    });
+  </script>
   <style>
     html,
     body {
       width: 100%;
       height: 100%;
       margin: 0;
+      padding: 0;
       overflow: hidden;
       background: transparent;
-      color: #f9fbff;
+      -webkit-tap-highlight-color: transparent;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     body {
       display: grid;
       place-items: center;
+      touch-action: none;
     }
 
     .stage {
@@ -26,46 +60,50 @@
       height: 100vh;
       position: relative;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.22), transparent 34%),
-        linear-gradient(160deg, rgba(82, 111, 134, 0.24), rgba(200, 86, 127, 0.18));
+      background: transparent;
     }
 
     #live2d-canvas {
       width: 100%;
       height: 100%;
       display: block;
+      background: transparent;
     }
 
+    /* 兜底提示：Flutter 侧浮层正常时它会被浮层遮住，只在浮层失效时可见 */
     .status {
       position: absolute;
       left: 16px;
       right: 16px;
       bottom: 16px;
       padding: 10px 12px;
-      border-radius: 8px;
-      background: rgba(15, 20, 28, 0.58);
-      color: rgba(249, 251, 255, 0.9);
+      border-radius: 10px;
+      background: rgba(15, 20, 28, 0.66);
+      color: rgba(249, 251, 255, 0.92);
       font-size: 13px;
       line-height: 1.45;
       pointer-events: none;
-      transition: opacity 180ms ease;
+      transition: opacity 200ms ease;
     }
 
     .status.ready {
       opacity: 0;
     }
+
+    .status.error {
+      background: rgba(120, 24, 40, 0.78);
+    }
   </style>
-  <script src="./vendor/live2dcubismcore.min.js"></script>
-  <script src="./vendor/pixi.min.js"></script>
-  <script src="./vendor/pixi-live2d-display-cubism4.min.js"></script>
 </head>
 <body>
   <main class="stage">
     <canvas id="live2d-canvas"></canvas>
-    <div id="live2d-status" class="status">Loading Live2D runtime...</div>
+    <div id="live2d-status" class="status">正在加载 Live2D 运行时…</div>
   </main>
 
+  <script src="./vendor/live2dcubismcore.min.js"></script>
+  <script src="./vendor/pixi.min.js"></script>
+  <script src="./vendor/pixi-live2d-display-cubism4.min.js"></script>
   <script src="./main.js"></script>
 </body>
 </html>
