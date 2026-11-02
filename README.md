@@ -4,62 +4,6 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/richuff/RcTool)
 [![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/richuff/badge.svg)](https://hub.xerj.org/contributors/richuff)
 
-一个基于 **Flutter** 的音乐播放器及 Live2D 项目。
-
-## 项目介绍
-
-rctool 是一个跨平台的音乐播放器应用，支持 Android端 设备
-项目结合了 Flutter 的高性能 UI 渲染能力和 Get 的状态管理功能，同时集成了 Live2D 技术，为用户提供更多互动体验。
-
-项目的主要目标是：
-- 提供流畅的音乐播放体验
-- 支持本地音乐库管理和播放
-- 集成 Live2D 角色互动功能
-- 提供通知和锁屏控制
-
-## 功能特点
-
-### 音乐播放功能
-- 流畅的音乐播放和暂停控制
-- 支持播放列表管理和切换
-- 音乐搜索和分类浏览
-- 锁屏控制和通知显示
-- 歌词同步显示
-
-### Live2D 互动
-- 集成 Live2D 角色显示
-- 角色动画随音乐节奏变化
-- 触摸交互触发角色动作
-- 多角色切换功能
-
-### 数据管理
-- 本地音乐库扫描和管理
-- 播放历史记录
-- 收藏功能
-- 数据持久化存储
-
-### 系统集成
-- 通知中心集成
-- 蓝牙耳机断连检测
-- 权限管理（存储、通知等）
-
-## 技术栈
-
-### 核心框架
-- **Flutter**：用于跨平台 UI 开发
-- **Get**：用于状态管理和路由导航
-
-### 依赖库
-- **audioplayers**: 音频播放功能
-- **flutter_cache_manager**: 缓存管理
-- **flutter_local_notifications**: 本地通知
-- **permission_handler**: 权限管理
-- **sqflite**: 本地数据库存储
-- **path**: 文件路径处理
-- **headset_connection_event**: 蓝牙耳机断连检测
-- **fluttertoast**: 提示信息显示
-- **cupertino_icons**: iOS 风格图标库
-
 ## Getting Started
 
 ### 安装 Flutter
@@ -91,6 +35,16 @@ flutter run
 ```bash
 flutter pub get
 ```
+
+## 文档
+
+更详细的开发、架构、数据库与 Live2D 设计文档请查看 [`docs/`](docs/README.md) 目录：
+
+- [开发入门](docs/01-getting-started.md)
+- [整体架构](docs/02-architecture.md)
+- [功能模块](docs/03-features.md)
+- [数据库设计](docs/04-database.md)
+- [Live2D 集成](docs/05-live2d.md)
 
 ## 资源链接
 
