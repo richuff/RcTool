@@ -11,6 +11,7 @@ import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/repository/entity/playlist.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 import 'package:rctool/widget/now_playing_bar.dart';
+import 'package:rctool/widget/play_all_button.dart';
 import 'package:rctool/widget/slide_fade_in.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
@@ -82,7 +83,19 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
     return AppScaffold(
       // 歌单名称直接作为页面标题，页面内不再重复展示「歌单信息」卡片
       title: _playlist.name,
-      actions: [_playAllAction(scheme)],
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 4),
+          child: Center(
+            child: PlayAllButton(
+              dense: true,
+              onPressed: _musicList.isEmpty
+                  ? null
+                  : () => musicController.addMusicListToQueue(_musicList),
+            ),
+          ),
+        ),
+      ],
       body: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(
           scrollbars: false,
@@ -108,50 +121,6 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
             ),
             const NowPlayingBar(),
           ],
-        ),
-      ),
-    );
-  }
-
-  /// 右上角「播放全部」按钮：直接加入队列并从头播放
-  Widget _playAllAction(ColorScheme scheme) {
-    final enabled = _musicList.isNotEmpty;
-    final radius = BorderRadius.circular(18);
-    return Padding(
-      padding: const EdgeInsets.only(top: 9, bottom: 9, right: 2),
-      child: Opacity(
-        opacity: enabled ? 1 : 0.42,
-        child: Material(
-          color: scheme.primary,
-          borderRadius: radius,
-          child: InkWell(
-            borderRadius: radius,
-            onTap: enabled
-                ? () => musicController.addMusicListToQueue(_musicList)
-                : null,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 5, 12, 5),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.play_arrow_rounded,
-                    size: 19,
-                    color: scheme.onPrimary,
-                  ),
-                  const SizedBox(width: 2),
-                  Text(
-                    '播放全部'.tr,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: scheme.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

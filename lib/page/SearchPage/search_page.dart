@@ -5,6 +5,7 @@ import 'package:rctool/feature/theme/type_value.dart';
 import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import 'package:rctool/widget/play_all_button.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -291,21 +292,14 @@ class _SearchPageState extends State<SearchPage> {
       title: '找到 @count 首'.trParams({'count': '${_results.length}'}),
       action: _results.isEmpty
           ? null
-          : TextButton.icon(
-              onPressed: () {
-                _rememberQuery(_query);
-                musicController.playMusicList(_results, startIndex: 0);
-              },
-              style: TextButton.styleFrom(
-                minimumSize: const Size(0, 30),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                visualDensity: VisualDensity.compact,
-              ),
-              icon: Icon(Icons.play_arrow_rounded,
-                  size: 18, color: scheme.primary),
-              label: Text(
-                '播放全部'.tr,
-                style: TextStyle(fontSize: 12, color: scheme.primary),
+          : Padding(
+              padding: const EdgeInsets.only(left: 6),
+              child: PlayAllButton(
+                dense: true,
+                onPressed: () {
+                  _rememberQuery(_query);
+                  musicController.playMusicList(_results, startIndex: 0);
+                },
               ),
             ),
     );

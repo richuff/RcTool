@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/entity/Music.dart';
-import 'package:rctool/widget/slide_fade_in.dart';
+import 'package:rctool/widget/play_all_button.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
 
@@ -210,27 +210,11 @@ class MusicChooseList extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: SizedBox(
-                  height: 38,
-                  child: FilledButton.icon(
-                    onPressed: count == 0
-                        ? null
-                        : () => controller.playMusicList(list, startIndex: 0),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                    label: Text(
-                      '播放全部'.tr,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
+                child: PlayAllButton(
+                  count: count,
+                  onPressed: count == 0
+                      ? null
+                      : () => controller.playMusicList(list, startIndex: 0),
                 ),
               ),
               const SizedBox(width: 10),
@@ -242,11 +226,11 @@ class MusicChooseList extends StatelessWidget {
     );
   }
 
-  /// 紧凑图标式播放模式：只保留图标，高度压到 38
+  /// 紧凑图标式播放模式：只保留图标，高度与「播放全部」按钮对齐
   Widget _modeSwitch(BuildContext context, MusicController controller) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      height: 38,
+      height: 40,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withOpacity(0.6),
