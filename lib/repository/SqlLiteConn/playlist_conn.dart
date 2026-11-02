@@ -13,6 +13,18 @@ class PlaylistConn {
     );
   }
 
+  static Future<int> ensurePlaylist(String name) async {
+    final db = await SqlLiteConn.dataBase;
+    final rows = await db.query(
+      'playlist',
+      where: 'name = ?',
+      whereArgs: [name],
+      limit: 1,
+    );
+    if (rows.isNotEmpty) return rows.first['id'] as int;
+    return insertPlaylist(name);
+  }
+
   static Future<List<Playlist>> queryPlaylists() async {
     final db = await SqlLiteConn.dataBase;
     final rows = await db.rawQuery('''
@@ -62,6 +74,29 @@ class PlaylistConn {
     );
   }
 
+  static Future<void> replaceMusicList(
+      int playlistId, List<Music> musicList) async {
+    final db = await SqlLiteConn.dataBase;
+    await db.delete(
+      'playlist_music',
+      where: 'playlistId = ?',
+      whereArgs: [playlistId],
+    );
+    for (int i = 0; i < musicList.length; i++) {
+      final musicId = musicList[i].id;
+      if (musicId == null) continue;
+      await db.insert(
+        'playlist_music',
+        {
+          'playlistId': playlistId,
+          'musicId': musicId,
+          'sortOrder': i,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    }
+  }
+
   static Future<void> removeMusic(int playlistId, int musicId) async {
     final db = await SqlLiteConn.dataBase;
     await db.delete(
@@ -89,6 +124,57 @@ class PlaylistConn {
           row['imageUrl'] as String,
           row['songName'] as String,
           row['decoration'] as String,
+        ),
+    ];
+  }
+
+  static Future<void> insertFavoritePlaylist(int playlistId) async {
+    final db = await SqlLiteConn.dataBase;
+    await db.insert(
+      'favorite_playlist',
+      {'playlistId': playlistId},
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  static Future<void> deleteFavoritePlaylist(int playlistId) async {
+    final db = await SqlLiteConn.dataBase;
+    await db.delete(
+      'favorite_playlist',
+      where: 'playlistId = ?',
+      whereArgs: [playlistId],
+    );
+  }
+
+  static Future<bool> queryByPlaylistAndCheckFavorite(int playlistId) async {
+    final db = await SqlLiteConn.dataBase;
+    final rows = await db.query(
+      'favorite_playlist',
+      where: 'playlistId = ?',
+      whereArgs: [playlistId],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
+  }
+
+  static Future<List<Playlist>> queryFavoritePlaylists() async {
+    final db = await SqlLiteConn.dataBase;
+    final rows = await db.rawQuery('''
+      SELECT p.id, p.name, p.createdAt, COUNT(pm.musicId) AS musicCount
+      FROM favorite_playlist fp
+      INNER JOIN playlist p ON p.id = fp.playlistId
+      LEFT JOIN playlist_music pm ON pm.playlistId = p.id
+      GROUP BY p.id
+      ORDER BY fp.id DESC
+    ''');
+
+    return [
+      for (final row in rows)
+        Playlist(
+          row['id'] as int,
+          row['name'] as String,
+          row['createdAt'] as int,
+          musicCount: row['musicCount'] as int,
         ),
     ];
   }

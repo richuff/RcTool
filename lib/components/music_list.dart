@@ -97,6 +97,7 @@ class _MusicList extends State<MusicList> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Stack(
       children: [
         Container(
@@ -106,19 +107,19 @@ class _MusicList extends State<MusicList> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: Colors.pink[200],
-            gradient: const LinearGradient(
+            color: scheme.primaryContainer,
+            gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                Color.fromRGBO(255, 20, 147, 0.4),
-                Color.fromRGBO(255, 80, 107, 0.4),
-                Color.fromRGBO(255, 105, 180, 0.4)
+                scheme.primaryContainer.withOpacity(0.9),
+                scheme.secondaryContainer.withOpacity(0.78),
+                scheme.tertiary.withOpacity(0.24),
               ],
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color.fromRGBO(255, 105, 180, 0.4),
+                color: scheme.shadow.withOpacity(0.18),
                 blurRadius: 10.0,
               )
             ],
@@ -135,7 +136,7 @@ class _MusicList extends State<MusicList> {
                     image: NetworkImage(
                         "https://img.meituan.net/csc/d05518606ba7064dd445508e3cf3d4c42860983.png"),
                     fit: BoxFit.cover),
-                color: Colors.pink[100],
+                color: scheme.surfaceVariant,
                 borderRadius: const BorderRadius.all(Radius.circular(10)),
               ),
             )),

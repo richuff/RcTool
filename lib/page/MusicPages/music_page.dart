@@ -8,7 +8,7 @@ import '../../controller/music_controller.dart';
 import '../../feature/design/icon_button_no_ripple.dart';
 import '../../views/music_player.dart';
 import '../../widget/main_drawer.dart';
-import 'package:rctool/feature/Theme/type_value.dart';
+import 'package:rctool/feature/theme/type_value.dart';
 
 class MusicPage extends StatefulWidget {
   const MusicPage({super.key});
@@ -52,6 +52,7 @@ class _MusicPage extends State<MusicPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       key: scaffoldKey,
       drawerScrimColor: Colors.transparent,
@@ -59,22 +60,22 @@ class _MusicPage extends State<MusicPage> {
         scaffoldKey.currentState?.closeDrawer();
       }),
       appBar: AppBar(
-          backgroundColor: Colors.pink[50],
+          backgroundColor: scheme.surface,
           leading: Builder(builder: (context) {
             return Column(children: [
               const Padding(padding: EdgeInsets.only(top: 8)),
               Padding(
                 padding: const EdgeInsets.only(left: 10),
                 child: IconButtonNoRipple(
-                  hoverColor: Colors.pink[100],
-                  focusColor: Colors.pink[100],
-                  highlightColor: Colors.pink[200],
+                  hoverColor: scheme.primaryContainer,
+                  focusColor: scheme.primaryContainer,
+                  highlightColor: scheme.secondaryContainer,
                   alignment: Alignment.bottomCenter,
                   icon: const Icon(
                     Icons.menu,
                     size: 26,
                   ),
-                  color: Colors.black,
+                  color: scheme.onSurface,
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },
