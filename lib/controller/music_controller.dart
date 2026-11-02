@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
 import 'package:rctool/repository/entity/music_old.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../feature/theme/type_value.dart';
+import '../repository/SqlLiteConn/play_history_conn.dart';
 import '../repository/entity/Music.dart';
 import '../utils/notification_helper.dart';
 
@@ -17,18 +22,105 @@ class MusicController extends GetxController {
   var isplay = false.obs;
   var position = 0.obs;
   var playMode = PlayMode.loop.obs;
+  var volume = 1.0.obs;
+  var sleepRemainingSeconds = 0.obs;
   final player = AudioPlayer();
   Duration? totalDuration;
 
   final cacheManager = DefaultCacheManager();
   final NotificationHelper notificationHelper = NotificationHelper();
   int _randomSeed = DateTime.now().millisecondsSinceEpoch;
+  bool _cacheFirst = true;
+  bool _musicNotification = true;
+  Timer? _sleepTimer;
 
+  bool get sleepTimerActive => sleepRemainingSeconds.value > 0;
+
+  String get sleepRemainingLabel {
+    final seconds = sleepRemainingSeconds.value;
+    final minutes = seconds ~/ 60;
+    final remain = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remain.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadPlaybackSettings();
+  }
+
+  Future<void> _loadPlaybackSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedMode = prefs.getString(playModeKey);
+    playMode.value = PlayMode.values.firstWhere(
+      (mode) => mode.name == savedMode,
+      orElse: () => PlayMode.loop,
+    );
+    volume.value =
+        (prefs.getDouble(volumeKey) ?? 1.0).clamp(0.0, 1.0).toDouble();
+    _cacheFirst = prefs.getBool(cacheFirstKey) ?? true;
+    _musicNotification = prefs.getBool(notificationKey) ?? true;
+    await player.setVolume(volume.value);
+    update();
+  }
+
+  Future<void> updateCacheSetting(bool value) async {
+    _cacheFirst = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(cacheFirstKey, value);
+  }
+
+  Future<void> updateNotificationSetting(bool value) async {
+    _musicNotification = value;
+    if (!value) await notificationHelper.cancelAll();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(notificationKey, value);
+  }
+
+  Future<void> changeVolume(double value) async {
+    volume.value = value.clamp(0.0, 1.0).toDouble();
+    await player.setVolume(volume.value);
+    update();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(volumeKey, volume.value);
+  }
+
+  void startSleepTimer(Duration duration) {
+    cancelSleepTimer();
+    if (duration.inSeconds <= 0) return;
+
+    sleepRemainingSeconds.value = duration.inSeconds;
+    update();
+    _sleepTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final remaining = sleepRemainingSeconds.value - 1;
+      if (remaining <= 0) {
+        timer.cancel();
+        _sleepTimer = null;
+        sleepRemainingSeconds.value = 0;
+        onPause();
+        Get.snackbar(
+          '睡眠定时',
+          '时间到了，已自动暂停播放',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+      sleepRemainingSeconds.value = remaining;
+    });
+  }
+
+  void cancelSleepTimer() {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+    sleepRemainingSeconds.value = 0;
+    update();
+  }
 
   @override
   void dispose() {
-    super.dispose();
+    _sleepTimer?.cancel();
     player.dispose();
+    super.dispose();
   }
 
   @override
@@ -41,12 +133,27 @@ class MusicController extends GetxController {
     });
   }
 
-  Future<void> playCachedAudio(String url) async {
-    // 获取缓存文件
-    var file = await cacheManager.getSingleFile(url);
+  Future<void> playCachedAudio(
+    Music music, {
+    bool recordHistory = true,
+  }) async {
+    await player.setVolume(volume.value);
+    if (_cacheFirst) {
+      // 已缓存时直接播放本地文件，未缓存时下载并写入缓存。
+      final file = await cacheManager.getSingleFile(music.url);
+      await player.play(UrlSource(file.path));
+    } else {
+      // 关闭缓存优先后直接播放地址，不主动写入音乐缓存。
+      await player.play(UrlSource(music.url));
+    }
 
-    // 播放缓存文件
-    await player.play(UrlSource(file.path));
+    if (recordHistory) {
+      try {
+        await PlayHistoryConn.record(music);
+      } catch (_) {
+        // 历史记录失败不应影响正常播放。
+      }
+    }
   }
 
   inc(int? id,String url,String imageUrl,String songName,String decoration) async {
@@ -104,7 +211,8 @@ class MusicController extends GetxController {
       return;
     }
     if (isplay.isFalse) {
-      playLocal();
+      // 队列本身没有新增歌曲时，这里只可能是恢复暂停，不重复计数。
+      playLocal(recordHistory: player.state != PlayerState.paused);
     }
   }
 
@@ -139,7 +247,8 @@ class MusicController extends GetxController {
       return;
     }
     if (isCurrentMusic(music)) {
-      playLocal();
+      // 暂停后继续不新增记录；首次从停止状态启动仍算一次播放。
+      playLocal(recordHistory: player.state != PlayerState.paused);
       return;
     }
     final matchedIndex = musiclist.indexWhere(
@@ -157,9 +266,11 @@ class MusicController extends GetxController {
     playLocal();
   }
 
-  changePlayMode(PlayMode mode) {
+  Future<void> changePlayMode(PlayMode mode) async {
     playMode.value = mode;
     update();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(playModeKey, mode.name);
   }
 
   int _nextIndex() {
@@ -198,12 +309,13 @@ class MusicController extends GetxController {
     update();
   }
 
-  playLocal() async {
+  playLocal({bool recordHistory = true}) async {
     if (musiclist.isNotEmpty){
+      final music = musiclist[position.value] as Music;
       if (isplay.isFalse) {
         isplay.value = true;
         update();
-        await playCachedAudio(musiclist[position.value].url);
+        await playCachedAudio(music, recordHistory: recordHistory);
       } else {
         onPause();
       }
@@ -218,7 +330,11 @@ class MusicController extends GetxController {
     if (musiclist.isNotEmpty){
       isplay.value = true;
       update();
-      await playCachedAudio(musiclist[position.value].url);
+      // 进入页面时恢复上次播放，不重复记录历史。
+      await playCachedAudio(
+        musiclist[position.value] as Music,
+        recordHistory: false,
+      );
       totalDuration = await player.getDuration();
       player.onDurationChanged.listen((Duration duration) {
         totalDuration = duration;
@@ -232,7 +348,7 @@ class MusicController extends GetxController {
       if (item is Music && _isSameMusic(item, music)){
         if (position.value == i){
           if (isplay.isFalse) {
-            playLocal();
+            playLocal(recordHistory: player.state != PlayerState.paused);
           }
           return;
         }
@@ -287,15 +403,20 @@ class MusicController extends GetxController {
       if (isplay.isFalse && (musiclist.length > 1 || playMode.value == PlayMode.single)) {
         isplay.value = true;
         position.value = _nextIndex();
-        await playCachedAudio(musiclist[position.value].url);
+        await playCachedAudio(musiclist[position.value] as Music);
 
         update();
       } else {
         onPause();
       }
 
-      //通知栏显示要播放的下一首歌
-      notificationHelper.showNewMusicNotification(title: "当前正在播放".tr, body: "${musiclist[position.value].songName}  -----  ${musiclist[position.value].decoration}");
+      // 通知栏显示要播放的下一首歌。
+      if (_musicNotification) {
+        notificationHelper.showNewMusicNotification(
+          title: "当前正在播放".tr,
+          body: "${musiclist[position.value].songName}  -----  ${musiclist[position.value].decoration}",
+        );
+      }
 
       //监视播放进度s
       totalDuration = await player.getDuration();

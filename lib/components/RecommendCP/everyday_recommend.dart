@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/controller/favorite_controller.dart';
+import 'package:rctool/controller/music_controller.dart';
+import 'package:rctool/repository/SqlLiteConn/favorite_conn.dart';
 import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
-import 'package:rctool/repository/SqlLiteConn/playlist_conn.dart';
 import 'package:rctool/repository/SqlLiteConn/recommend_history_conn.dart';
-import 'package:rctool/utils/comm_util.dart';
+import 'package:rctool/widget/now_playing_bar.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
+import 'package:rctool/widget/song_row.dart';
 
-import '../../controller/favorite_controller.dart';
-import '../../controller/is_dark_controller.dart';
-import '../../controller/music_controller.dart';
 import '../../repository/entity/Music.dart';
-import '../../repository/entity/recommend_history.dart';
 import '../../repository/entity/musicEntity/music_list.dart';
-import '../../utils/notification_helper.dart';
+import '../../repository/entity/recommend_history.dart';
 
+/// @ClassName EverydayList
+/// @Description 每日推荐：头部渐变标题 + 统一高度操作按钮，
+///             爱心点击后**图标本身变红**（再次点击取消收藏），
+///             收藏落到「我的喜欢」默认歌单，底部常驻迷你播放条。
+/// @Author richuff
+/// @Version 3.0
 class EverydayList extends StatefulWidget {
   const EverydayList({super.key});
 
@@ -21,266 +27,302 @@ class EverydayList extends StatefulWidget {
 }
 
 class _EverydayList extends State<EverydayList> {
-  MusicController musicController = Get.put(MusicController());
-  FavoriteController favoriteController = Get.put(FavoriteController());
-  IsDarkController isDarkController = Get.put(IsDarkController());
-  final NotificationHelper notificationHelper = NotificationHelper();
+  final MusicController musicController = Get.put(MusicController());
+  final FavoriteController favoriteController = Get.put(FavoriteController());
 
-  bool inDark = false;
+  /// 今日推荐的歌曲（已写入曲库，带真实 id），收藏/播放都基于它
+  List<Music> _todayMusic = [];
+  bool _preparing = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _saveTodayRecommend();
+      _prepare();
       favoriteController.ensureLoaded();
     });
-    isDarkController.addListener(() {
-      setState(() {
-        inDark = isDarkController.isDark.value;
-      });
+  }
+
+  Future<void> _prepare() async {
+    final list = await _saveTodayRecommend();
+    if (!mounted) return;
+    setState(() {
+      _todayMusic = list;
+      _preparing = false;
     });
+  }
+
+  List<int> get _todayIds =>
+      _todayMusic.map((music) => music.id).whereType<int>().toList();
+
+  bool get _isAllFavorite {
+    final ids = _todayIds;
+    if (ids.isEmpty) return false;
+    return ids.every(favoriteController.isFavorite);
   }
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            padding: const EdgeInsets.fromLTRB(2, 6, 2, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _header(context),
+                const SizedBox(height: 14),
+                _actionBar(context),
+                const SizedBox(height: 14),
+                if (_preparing)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40),
+                    child: CircularProgressIndicator(),
+                  )
+                else
+                  GetBuilder<FavoriteController>(
+                    builder: (_) => GetBuilder<MusicController>(
+                      builder: (controller) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (var index = 0;
+                              index < _todayMusic.length;
+                              index++)
+                            _buildRow(context, controller, index),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 4),
+              ],
+            ),
+          ),
+        ),
+        // 底部迷你播放条：队列为空时自动隐藏
+        const NowPlayingBar(),
+      ],
+    );
+  }
+
+  Widget _buildRow(
+    BuildContext context,
+    MusicController controller,
+    int index,
+  ) {
+    final music = _todayMusic[index];
+    return SlideFadeIn(
+      delay: Duration(milliseconds: (index * 40).clamp(0, 320)),
+      offset: const Offset(0, 14),
+      child: SongRow(
+        music: music,
+        playing: controller.isPlayingMusic(music),
+        onPlayToggle: () => musicController.playOrPauseMusic(
+          music,
+          list: _todayMusic,
+          startIndex: index,
+        ),
+      ),
+    );
+  }
+
+  Widget _header(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: const EdgeInsets.fromLTRB(5, 5, 0, 5),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "每日推荐".tr,
-                style: const TextStyle(
-                  fontSize: 30,
+    final count = _preparing ? allmusiclist.length : _todayMusic.length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [scheme.primary, scheme.secondary],
+                ).createShader(bounds),
+                child: Text(
+                  "每日推荐".tr,
+                  style: const TextStyle(
+                    fontSize: 27,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.6,
+                  ),
                 ),
-                textAlign: TextAlign.left,
               ),
-            ),
-            Container(
-              margin: const EdgeInsets.fromLTRB(5, 5, 0, 12),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Hi~ 为你准备了以下歌曲，请开始你的音乐之旅吧!".tr,
-                style: TextStyle(
-                    fontSize: 16,
-                    color: inDark
-                        ? const Color.fromARGB(140, 255, 255, 255)
-                        : const Color.fromARGB(140, 0, 0, 0)),
-                textAlign: TextAlign.left,
+              const SizedBox(width: 10),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$count 首',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onPrimaryContainer,
+                  ),
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "Hi~ 为你准备了以下歌曲，请开始你的音乐之旅吧!".tr,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.45,
+              color: scheme.onSurfaceVariant,
             ),
-            SizedBox(
-              height: 56,
-              child: Row(
-                children: [
-                  Flexible(
-                    flex: 2,
-                    child: _recommendActionButton(
-                      context,
-                      icon: Icons.play_arrow_sharp,
-                      label: "播放全部",
-                      backgroundColor: scheme.secondary,
-                      foregroundColor: scheme.onSecondary,
-                      margin: const EdgeInsets.fromLTRB(8, 5, 2, 4),
-                      onTap: () async {
-                        final musicList = await _saveTodayRecommend();
-                        musicController.addMusicListToQueue(musicList);
-                      },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionBar(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: _actionButton(
+              icon: Icons.play_arrow_rounded,
+              label: "播放全部".tr,
+              background: scheme.primary,
+              foreground: scheme.onPrimary,
+              gradient: true,
+              onTap: () async {
+                if (_todayMusic.isEmpty) await _prepare();
+                if (_todayMusic.isEmpty) return;
+                musicController.addMusicListToQueue(_todayMusic);
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _actionButton(
+              icon: Icons.history_rounded,
+              background: scheme.surface,
+              foreground: scheme.onSurface,
+              border: scheme.outline.withOpacity(0.3),
+              onTap: () => _showRecommendHistory(context),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: GetBuilder<FavoriteController>(
+              builder: (controller) {
+                final isFavorite = _isAllFavorite;
+                // 爱心图标本身变红（不是按钮底色变红），再点一次取消
+                return _actionButton(
+                  iconWidget: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    transitionBuilder: (child, animation) =>
+                        ScaleTransition(scale: animation, child: child),
+                    child: Icon(
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      key: ValueKey(isFavorite),
+                      size: 22,
+                      color: isFavorite ? scheme.error : scheme.onSurfaceVariant,
                     ),
                   ),
+                  background: scheme.surface,
+                  foreground: scheme.onSurface,
+                  border: isFavorite
+                      ? scheme.error.withOpacity(0.55)
+                      : scheme.outline.withOpacity(0.3),
+                  onTap: _toggleFavorite,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 统一高度的操作按钮，避免"播放全部"带文字而比图标按钮更高的错位问题。
+  Widget _actionButton({
+    required Color background,
+    required Color foreground,
+    required VoidCallback onTap,
+    IconData? icon,
+    Widget? iconWidget,
+    String? label,
+    bool gradient = false,
+    Color? border,
+  }) {
+    return SizedBox(
+      height: 46,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(12),
+              border: border == null ? null : Border.all(color: border),
+              gradient: gradient
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        background,
+                        Color.alphaBlend(
+                          Colors.black.withOpacity(0.12),
+                          background,
+                        ),
+                      ],
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                iconWidget ??
+                    Icon(icon, size: label == null ? 22 : 24, color: foreground),
+                if (label != null) ...[
+                  const SizedBox(width: 6),
                   Flexible(
-                    flex: 1,
-                    child: _recommendActionButton(
-                      context,
-                      icon: Icons.access_time_outlined,
-                      backgroundColor: scheme.secondaryContainer,
-                      foregroundColor: scheme.onSecondaryContainer,
-                      margin: const EdgeInsets.fromLTRB(5, 5, 2, 4),
-                      onTap: () => _showRecommendHistory(context),
-                    ),
-                  ),
-                  Flexible(
-                    flex: 1,
-                    child: GetBuilder<FavoriteController>(
-                      builder: (controller) {
-                        final isFavoriteToday =
-                            controller.favoritePlaylists.any(
-                          (playlist) => playlist.name == _todayPlaylistName(),
-                        );
-                        return _recommendActionButton(
-                          context,
-                          icon: isFavoriteToday
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          backgroundColor: isFavoriteToday
-                              ? scheme.primary
-                              : scheme.primaryContainer,
-                          foregroundColor: isFavoriteToday
-                              ? scheme.onPrimary
-                              : scheme.onPrimaryContainer,
-                          margin: const EdgeInsets.fromLTRB(5, 5, 6, 4),
-                          onTap: () => _favoriteTodayRecommend(context),
-                        );
-                      },
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: foreground,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: allmusiclist.map((element) {
-                  final elementMusic = Music(
-                    null,
-                    element['url'] ?? "",
-                    element['imageUrl'] ?? "",
-                    element['songName'] ?? "",
-                    element['decoration'] ?? "",
-                  );
-                  return Stack(
-                    children: [
-                      const SizedBox(
-                        height: 80,
-                      ),
-                      Container(
-                        margin: const EdgeInsets.fromLTRB(8, 20, 0, 12),
-                        width: double.infinity,
-                        height: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: scheme.primaryContainer,
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              scheme.primaryContainer.withOpacity(0.86),
-                              scheme.secondaryContainer.withOpacity(0.78),
-                              scheme.tertiary.withOpacity(0.24),
-                            ],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: scheme.shadow.withOpacity(0.16),
-                              blurRadius: 10.0,
-                            )
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                          left: 8,
-                          top: 0,
-                          child: Container(
-                            width: 75,
-                            height: 75,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: NetworkImage(element['imageUrl']!),
-                                  fit: BoxFit.cover),
-                              color: scheme.surfaceVariant,
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(10)),
-                            ),
-                          )),
-                      Positioned(
-                        left: 90,
-                        bottom: 30,
-                        child: Text(
-                            "${element['songName']}  -----  ${element['decoration']}"),
-                      ),
-                      Positioned(
-                          right: 10,
-                          bottom: 18,
-                          child: GetBuilder<MusicController>(
-                            builder: (controller) {
-                              final playing =
-                                  controller.isPlayingMusic(elementMusic);
-                              return Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: playing
-                                      ? scheme.primary
-                                      : scheme.secondary,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: scheme.shadow.withOpacity(0.16),
-                                      blurRadius: 6,
-                                    )
-                                  ],
-                                ),
-                                child: IconButton(
-                                    padding: EdgeInsets.zero,
-                                    onPressed: () {
-                                      () async {
-                                        try {
-                                          if (playing) {
-                                            controller.onPause();
-                                            return;
-                                          }
-                                          final url = element['url'];
-                                          final imageUrl = element['imageUrl'];
-                                          final songName = element['songName'];
-                                          final decoration =
-                                              element['decoration'];
-
-                                          if (url == null ||
-                                              imageUrl == null ||
-                                              songName == null ||
-                                              decoration == null) {
-                                            return;
-                                          }
-
-                                          int? insertId = await MusicConn
-                                              .queryByNameAndInsertMusic(
-                                            url,
-                                            imageUrl,
-                                            songName,
-                                            decoration,
-                                          );
-
-                                          controller.playOrPauseMusic(Music(
-                                            insertId,
-                                            url,
-                                            imageUrl,
-                                            songName,
-                                            decoration,
-                                          ));
-
-                                          notificationHelper
-                                              .showNewMusicNotification(
-                                            title: "当前正在播放".tr,
-                                            body: "$songName - $decoration",
-                                          );
-                                        } catch (e) {}
-                                      }();
-                                    },
-                                    icon: Icon(
-                                      playing
-                                          ? Icons.pause
-                                          : Icons.play_arrow_sharp,
-                                      color: playing
-                                          ? scheme.onPrimary
-                                          : scheme.onSecondary,
-                                    )),
-                              );
-                            },
-                          )),
-                    ],
-                  );
-                }).toList())
-          ],
-        ));
+          ),
+        ),
+      ),
+    );
   }
 
   String _todayKey() {
@@ -288,10 +330,6 @@ class _EverydayList extends State<EverydayList> {
     final month = now.month.toString().padLeft(2, '0');
     final day = now.day.toString().padLeft(2, '0');
     return "${now.year}-$month-$day";
-  }
-
-  String _todayPlaylistName() {
-    return "每日推荐 ${_todayKey()}";
   }
 
   Future<List<Music>> _saveTodayRecommend() async {
@@ -320,16 +358,31 @@ class _EverydayList extends State<EverydayList> {
     return musicList;
   }
 
-  Future<void> _favoriteTodayRecommend(BuildContext context) async {
-    final musicList = await _saveTodayRecommend();
-    final playlistName = _todayPlaylistName();
-    final playlistId = await PlaylistConn.ensurePlaylist(playlistName);
-    await PlaylistConn.replaceMusicList(playlistId, musicList);
-    await favoriteController.addPlaylist(playlistId);
-    if (!context.mounted) return;
+  /// 收藏 / 取消收藏今日推荐：收藏落到「我的喜欢」默认歌单。
+  Future<void> _toggleFavorite() async {
+    if (_preparing) return;
+    final ids = _todayIds;
+    if (ids.isEmpty) return;
+
+    await favoriteController.ensureLoaded();
+    final wasFavorite = ids.every(favoriteController.isFavorite);
+
+    if (wasFavorite) {
+      for (final id in ids) {
+        await FavoriteConn.deleteByMusicId(id);
+      }
+    } else {
+      for (final id in ids) {
+        await FavoriteConn.insertFavoriteMusic(id);
+      }
+    }
+    await favoriteController.refresh();
+
     Get.snackbar(
-      "收藏成功",
-      "已收藏歌单：$playlistName（${musicList.length} 首歌曲）",
+      wasFavorite ? "已取消收藏" : "收藏成功",
+      wasFavorite
+          ? "已从「我的喜欢」移除今日推荐的 ${ids.length} 首歌曲"
+          : "今日推荐的 ${ids.length} 首歌曲已加入「我的喜欢」",
       snackPosition: SnackPosition.BOTTOM,
     );
   }
@@ -349,83 +402,8 @@ class _EverydayList extends State<EverydayList> {
         },
       ),
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
     );
-  }
-
-  Widget _recommendActionButton(
-    BuildContext context, {
-    required IconData icon,
-    required Color backgroundColor,
-    required Color foregroundColor,
-    required EdgeInsets margin,
-    required VoidCallback onTap,
-    String? label,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          margin: margin,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: scheme.shadow.withOpacity(0.14),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              )
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment:
-                label == null ? MainAxisAlignment.center : MainAxisAlignment.start,
-            children: [
-              Icon(icon, size: label == null ? 30 : 34, color: foregroundColor),
-              if (label != null) ...[
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: foregroundColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @Deprecated("不使用controller插入")
-  void incMusicOld(Map<String, String> element) {
-    musicController.incOld(
-        element['url']!,
-        element['imageUrl']!,
-        element['songName']!,
-        element['decoration']!,
-        CommUtil.parseBool(element['isFavorite']));
-    notificationHelper.showNewMusicNotification(
-        title: "当前正在播放".tr,
-        body: "${element['songName']}  -----  ${element['decoration']}");
-    MusicConn.queryByUrlAndInsert(
-        element['url']!,
-        element['imageUrl']!,
-        element['songName']!,
-        element['decoration']!,
-        CommUtil.parseBool(element['isFavorite']));
-    Get.back();
   }
 }
 
@@ -447,14 +425,14 @@ class _RecommendHistorySheet extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
       decoration: BoxDecoration(
         color: scheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.history, color: scheme.secondary),
+              Icon(Icons.history, color: scheme.primary),
               const SizedBox(width: 8),
               Text(
                 "每日推荐历史",
@@ -478,13 +456,16 @@ class _RecommendHistorySheet extends StatelessWidget {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
-                          color: scheme.surfaceVariant.withOpacity(0.72),
-                          borderRadius: BorderRadius.circular(8),
+                          color: scheme.surfaceContainerHighest.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           leading: CircleAvatar(
-                            backgroundColor: scheme.secondaryContainer,
-                            foregroundColor: scheme.onSecondaryContainer,
+                            backgroundColor: scheme.primaryContainer,
+                            foregroundColor: scheme.onPrimaryContainer,
                             child: const Icon(Icons.calendar_month),
                           ),
                           title: Text(history.recommendDate),
@@ -513,7 +494,7 @@ class _RecommendHistorySheet extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
         decoration: BoxDecoration(
           color: scheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,6 +553,7 @@ class _RecommendHistorySheet extends StatelessWidget {
         ),
       ),
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
     );
   }
 }
