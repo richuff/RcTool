@@ -6,11 +6,15 @@ import 'package:rctool/controller/favorite_controller.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
-import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import 'package:rctool/widget/app_scaffold.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 
-import '../../feature/design/icon_button_no_ripple.dart';
-import '../../widget/main_drawer.dart';
-import '../../widget/search_widget.dart';
+/// 前三名奖牌配色（金 / 银 / 铜）
+const List<Color> _medalColors = [
+  Color(0xFFF5B800),
+  Color(0xFFC7CDD4),
+  Color(0xFFCD7F32),
+];
 
 class Ranking extends StatefulWidget {
   const Ranking({super.key});
@@ -20,7 +24,6 @@ class Ranking extends StatefulWidget {
 }
 
 class _Ranking extends State<Ranking> {
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   final MusicController musicController =
       Get.put(MusicController(), permanent: true);
   final FavoriteController favoriteController =
@@ -44,117 +47,92 @@ class _Ranking extends State<Ranking> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final queueMusic = musicController.musiclist.whereType<Music>().toList();
+    final queueMusic =
+        musicController.musiclist.whereType<Music>().toList();
     final latestMusic = allMusic.reversed.take(20).toList();
-    return Scaffold(
-      key: scaffoldKey,
-      drawerScrimColor: Colors.transparent,
-      drawer: MainDrawer(() {
-        scaffoldKey.currentState?.closeDrawer();
-      }),
-      appBar: AppBar(
-          backgroundColor: scheme.surface,
-          leading: Builder(builder: (context) {
-            return Column(children: [
-              const Padding(padding: EdgeInsets.only(top: 8)),
-              Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: IconButtonNoRipple(
-                  hoverColor: scheme.primaryContainer,
-                  focusColor: scheme.primaryContainer,
-                  highlightColor: scheme.secondaryContainer,
-                  alignment: Alignment.bottomCenter,
-                  icon: const Icon(
-                    Icons.menu,
-                    size: 26,
-                  ),
-                  color: scheme.onSurface,
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
+
+    return AppScaffold(
+      body: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          scrollbars: false,
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+          },
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "排行榜".tr,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "为你整理的实时榜单",
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              GetBuilder<FavoriteController>(
+                builder: (controller) => _RankingSection(
+                  title: "收藏热榜",
+                  icon: Icons.favorite,
+                  musicList: controller.favoriteMusic,
+                  emptyText: "收藏歌曲后会出现在这里",
+                  onPlayAll: () =>
+                      musicController.addMusicListToQueue(controller.favoriteMusic),
+                  onPlayMusic: (music) {
+                    musicController.playOrPauseMusic(
+                      music,
+                      list: controller.favoriteMusic,
+                      startIndex: controller.favoriteMusic.indexOf(music),
+                    );
                   },
+                  isPlayingMusic: musicController.isPlayingMusic,
                 ),
               ),
-            ]);
-          }),
-          actions: const [SearchWidget()]),
-      body: Container(
-          width: double.infinity,
-          decoration: BackGroundEnum.musicBackGround.decoration,
-          child: ScrollConfiguration(
-              behavior: ScrollConfiguration.of(context)
-                  .copyWith(scrollbars: false, dragDevices: {
-                PointerDeviceKind.touch,
-                PointerDeviceKind.mouse,
-              }),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "排行榜".tr,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 12),
-                    GetBuilder<FavoriteController>(
-                      builder: (controller) {
-                        final favoriteMusic = controller.favoriteMusic;
-                        return _RankingSection(
-                          title: "收藏热榜",
-                          icon: Icons.favorite,
-                          musicList: favoriteMusic,
-                          emptyText: "收藏歌曲后会出现在这里",
-                          onPlayAll: () =>
-                              musicController.addMusicListToQueue(favoriteMusic),
-                          onPlayMusic: (music) {
-                            musicController.playOrPauseMusic(
-                              music,
-                              list: favoriteMusic,
-                              startIndex: favoriteMusic.indexOf(music),
-                            );
-                          },
-                          isPlayingMusic: musicController.isPlayingMusic,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    _RankingSection(
-                      title: "最近加入",
-                      icon: Icons.new_releases,
-                      musicList: latestMusic,
-                      emptyText: "还没有加入歌曲",
-                      onPlayAll: () =>
-                          musicController.addMusicListToQueue(latestMusic),
-                      onPlayMusic: (music) {
-                        musicController.playOrPauseMusic(
-                          music,
-                          list: latestMusic,
-                          startIndex: latestMusic.indexOf(music),
-                        );
-                      },
-                      isPlayingMusic: musicController.isPlayingMusic,
-                    ),
-                    const SizedBox(height: 14),
-                    _RankingSection(
-                      title: "当前队列",
-                      icon: Icons.queue_music,
-                      musicList: queueMusic,
-                      emptyText: "当前播放队列为空",
-                      onPlayAll: () =>
-                          musicController.addMusicListToQueue(queueMusic),
-                      onPlayMusic: (music) {
-                        musicController.playOrPauseMusic(
-                          music,
-                          list: queueMusic,
-                          startIndex: queueMusic.indexOf(music),
-                        );
-                      },
-                      isPlayingMusic: musicController.isPlayingMusic,
-                    ),
-                  ],
-                ),
-              ))),
+              const SizedBox(height: 14),
+              _RankingSection(
+                title: "最近加入",
+                icon: Icons.new_releases,
+                musicList: latestMusic,
+                emptyText: "还没有加入歌曲",
+                onPlayAll: () =>
+                    musicController.addMusicListToQueue(latestMusic),
+                onPlayMusic: (music) {
+                  musicController.playOrPauseMusic(
+                    music,
+                    list: latestMusic,
+                    startIndex: latestMusic.indexOf(music),
+                  );
+                },
+                isPlayingMusic: musicController.isPlayingMusic,
+              ),
+              const SizedBox(height: 14),
+              _RankingSection(
+                title: "当前队列",
+                icon: Icons.queue_music,
+                musicList: queueMusic,
+                emptyText: "当前播放队列为空",
+                onPlayAll: () =>
+                    musicController.addMusicListToQueue(queueMusic),
+                onPlayMusic: (music) {
+                  musicController.playOrPauseMusic(
+                    music,
+                    list: queueMusic,
+                    startIndex: queueMusic.indexOf(music),
+                  );
+                },
+                isPlayingMusic: musicController.isPlayingMusic,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -203,7 +181,8 @@ class _RankingSection extends StatelessWidget {
               ),
               Container(
                 margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: scheme.secondaryContainer,
                   borderRadius: BorderRadius.circular(16),
@@ -236,37 +215,78 @@ class _RankingSection extends StatelessWidget {
             )
           else
             ...musicList.asMap().entries.map((entry) {
-              final index = entry.key + 1;
+              final index = entry.key;
               final music = entry.value;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceVariant.withOpacity(0.72),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: index <= 3
-                        ? scheme.primary
-                        : scheme.secondaryContainer,
-                    foregroundColor: index <= 3
-                        ? scheme.onPrimary
-                        : scheme.onSecondaryContainer,
-                    child: Text("$index"),
+              final isTop3 = index < 3;
+              final rankColor =
+                  isTop3 ? _medalColors[index] : scheme.secondaryContainer;
+              final rankTextColor =
+                  isTop3 ? Colors.white : scheme.onSecondaryContainer;
+
+              return SlideFadeIn(
+                delay: Duration(milliseconds: 50 * index),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceVariant.withOpacity(0.72),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: isTop3
+                        ? [
+                            BoxShadow(
+                              color: rankColor.withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            )
+                          ]
+                        : null,
                   ),
-                  title: Text(music.songName),
-                  subtitle: Text(music.decoration),
-                  trailing: IconButton(
-                    tooltip: "播放",
-                    onPressed: () => onPlayMusic(music),
-                    icon: GetBuilder<MusicController>(
-                      builder: (_) {
-                        final playing = isPlayingMusic(music);
-                        return Icon(
-                          playing ? Icons.pause : Icons.play_arrow,
-                          color: playing ? scheme.primary : null,
-                        );
-                      },
+                  child: ListTile(
+                    leading: SizedBox(
+                      width: 92,
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: rankColor,
+                            foregroundColor: rankTextColor,
+                            child: Text("${index + 1}"),
+                          ),
+                          const SizedBox(width: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              music.imageUrl,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 40,
+                                height: 40,
+                                color: scheme.primaryContainer,
+                                child: Icon(
+                                  Icons.music_note,
+                                  size: 20,
+                                  color: scheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    title: Text(music.songName),
+                    subtitle: Text(music.decoration),
+                    trailing: IconButton(
+                      tooltip: "播放",
+                      onPressed: () => onPlayMusic(music),
+                      icon: GetBuilder<MusicController>(
+                        builder: (_) {
+                          final playing = isPlayingMusic(music);
+                          return Icon(
+                            playing ? Icons.pause : Icons.play_arrow,
+                            color: playing ? scheme.primary : null,
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
