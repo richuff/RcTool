@@ -76,6 +76,12 @@ class MainDrawer extends StatelessWidget {
                     closeDrawer: closeDrawer,
                     selectedColor: scheme.secondaryContainer,
                   ),
+                  _DrawerItem(
+                    icon: Icons.offline_pin_outlined,
+                    title: '离线歌曲'.tr,
+                    route: RoutePath.OFFLINE,
+                    closeDrawer: closeDrawer,
+                  ),
                   _DrawerSectionLabel(text: "其他".tr),
                   _DrawerItem(
                     icon: RcIcon.livetod,

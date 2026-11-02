@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/constant/playlist_const.dart';
 import 'package:rctool/controller/favorite_controller.dart';
+import 'package:rctool/controller/offline_controller.dart';
 import 'package:rctool/repository/SqlLiteConn/favorite_conn.dart';
 import 'package:rctool/repository/SqlLiteConn/playlist_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/repository/entity/playlist.dart';
+import 'package:rctool/utils/size_format.dart';
 
 /// 统一的歌曲操作面板（「…」按钮）。
 ///
@@ -133,8 +135,38 @@ class _SongActionsSheet extends StatelessWidget {
                 );
               },
             ),
-            if (removeLabel != null && onRemove != null)
-              _tile(
+            if (Get.isRegistered<OfflineController>())
+              GetBuilder<OfflineController>(
+                builder: (offline) {
+                  final cached = offline.isCached(music.url);
+                  final busy = offline.isDownloading(music.url);
+                  return _tile(
+                    context,
+                    icon: cached
+                        ? Icons.offline_pin_rounded
+                        : Icons.download_rounded,
+                    iconColor: cached ? scheme.primary : null,
+                    title: cached ? '删除离线缓存'.tr : '下载到本地'.tr,
+                    subtitle: busy
+                        ? '正在下载…'.tr
+                        : cached
+                            ? '已占用 @size · 删除后需联网播放'.trParams(
+                                {'size': formatBytes(offline.sizeOf(music.url))})
+                            : '下载后可离线收听'.tr,
+                    onTap: () async {
+                      if (busy) return;
+                      if (cached) {
+                        await offline.removeOffline(music);
+                        return;
+                      }
+                      // 下载可能耗时，先收起面板再在后台进行
+                      if (Get.isBottomSheetOpen ?? false) Get.back();
+                      await offline.download(music);
+                    },
+                  );
+                },
+              ),
+            if (removeLabel != null && onRemove != null)              _tile(
                 context,
                 icon: Icons.remove_circle_outline_rounded,
                 iconColor: scheme.error,

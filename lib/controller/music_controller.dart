@@ -10,6 +10,7 @@ import '../feature/theme/type_value.dart';
 import '../repository/SqlLiteConn/play_history_conn.dart';
 import '../repository/entity/Music.dart';
 import '../utils/notification_helper.dart';
+import 'offline_controller.dart';
 
 enum PlayMode {
   loop,
@@ -176,6 +177,11 @@ class MusicController extends GetxController {
       return;
     } finally {
       _setLoadingUrl('');
+    }
+
+    // 缓存优先模式下播完这段音频本地就有文件了，顺手更新离线角标
+    if (_cacheFirst && Get.isRegistered<OfflineController>()) {
+      Get.find<OfflineController>().markCached(music.url);
     }
 
     if (recordHistory) {

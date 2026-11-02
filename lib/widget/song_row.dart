@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/controller/offline_controller.dart';
 import 'package:rctool/repository/entity/Music.dart';
 
 /// @ClassName SongRow
@@ -165,6 +166,8 @@ class SongRow extends StatelessWidget {
                                 padding: const EdgeInsets.only(left: 6),
                                 child: _BufferingChip(scheme: scheme),
                               ),
+                            if (!loading)
+                              _OfflineMark(url: music.url, scheme: scheme),
                           ],
                         ),
                       ],
@@ -290,6 +293,31 @@ class _BufferingChip extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// 离线条目：已下载到本地时在副标题行尾部显示一个小图标
+class _OfflineMark extends StatelessWidget {
+  final String url;
+  final ColorScheme scheme;
+
+  const _OfflineMark({required this.url, required this.scheme});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!Get.isRegistered<OfflineController>()) return const SizedBox.shrink();
+    final offline = Get.find<OfflineController>();
+    return Obx(() {
+      if (!offline.cachedUrls.contains(url)) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: Icon(
+          Icons.offline_pin_rounded,
+          size: 13,
+          color: scheme.primary.withOpacity(0.85),
+        ),
+      );
+    });
   }
 }
 

@@ -27,4 +27,7 @@ class RoutePath{
 
   /// 曲库搜索
   static const String SEARCH = "/search";
+
+  /// 离线（已下载）歌曲管理
+  static const String OFFLINE = "/offline";
 }

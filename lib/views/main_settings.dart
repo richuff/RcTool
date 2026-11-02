@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controller/is_dark_controller.dart';
 import '../controller/music_controller.dart';
+import '../controller/offline_controller.dart';
 import '../feature/theme/type_value.dart';
+import '../routers/route_path.dart';
 import '../utils/cache_size.dart';
 import '../utils/size_format.dart';
+import '../widget/cache_limit_dialog.dart';
 import '../widget/settings_ui.dart';
 
 class MainSettings extends StatefulWidget {
@@ -82,7 +84,8 @@ class _MainSettingsState extends State<MainSettings> {
       confirmText: '清除'.tr,
     );
     if (!confirmed) return;
-    await DefaultCacheManager().emptyCache();
+    // 走 OfflineController 清空，顺带把「已缓存」角标一起刷新掉
+    await Get.find<OfflineController>().clearAll();
     await _readCacheSize();
     Get.snackbar('清除完成'.tr, '音乐缓存已清除'.tr,
         snackPosition: SnackPosition.BOTTOM);
@@ -313,6 +316,31 @@ class _MainSettingsState extends State<MainSettings> {
             icon: Icons.storage_outlined,
             margin: EdgeInsets.zero,
             children: [
+              GetBuilder<OfflineController>(
+                builder: (offline) => SettingsActionTile(
+                  icon: Icons.offline_pin_outlined,
+                  title: '离线管理'.tr,
+                  subtitle: '已缓存 @count 首 · 音频占用 @size'.trParams({
+                    'count': '${offline.cachedUrls.length}',
+                    'size': formatBytes(offline.totalBytes.value),
+                  }),
+                  onTap: () async {
+                    await Get.toNamed(RoutePath.OFFLINE);
+                    await _readCacheSize();
+                  },
+                ),
+              ),
+              GetBuilder<OfflineController>(
+                builder: (offline) => SettingsActionTile(
+                  icon: Icons.sd_storage_outlined,
+                  title: '音乐缓存上限'.tr,
+                  subtitle: offline.hasLimit
+                      ? '上限 @limit，超出后自动清理最早下载的歌曲'
+                          .trParams({'limit': offline.limitLabel})
+                      : '不限'.tr,
+                  onTap: () => showCacheLimitDialog(context, offline),
+                ),
+              ),
               SettingsActionTile(
                 icon: Icons.cleaning_services_outlined,
                 title: '清除音乐缓存'.tr,

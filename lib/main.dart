@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'controller/favorite_controller.dart';
 import 'controller/is_dark_controller.dart';
 import 'controller/music_controller.dart';
+import 'controller/offline_controller.dart';
 import 'feature/theme/type_value.dart';
 import 'feature/theme/app_theme.dart';
 
@@ -24,6 +25,7 @@ void main() async {
   Get.put(MusicController(), permanent: true);
   Get.put(IsDarkController(), permanent: true);
   Get.put(FavoriteController(), permanent: true);
+  Get.put(OfflineController(), permanent: true);
 
   /// @brief 用户入口
   runApp(const MyApp());
