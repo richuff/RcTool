@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -102,160 +104,182 @@ class _LyricEditorSheetState extends State<_LyricEditorSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final media = MediaQuery.of(context);
-    final available = media.size.height - media.viewInsets.bottom;
-    final height = (available * 0.88).clamp(260.0, media.size.height * 0.92);
+    final keyboard = media.viewInsets.bottom;
+    // 输入法弹起后收掉非必要的行，把高度都留给输入区
+    final compact = keyboard > 0;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
-      child: Container(
-        height: height,
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: scheme.outline.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 外层 Get.bottomSheet 已经替键盘让过一次高度，这里只补差额：
+        // 两层都完整让位（padding 与高度各让一次）会把面板顶出屏幕上沿。
+        final reserved =
+            (media.size.height - constraints.maxHeight).clamp(0.0, keyboard);
+        final gap = keyboard - reserved;
+        final available = math.max(0.0, constraints.maxHeight - gap);
+        final height = math.min(
+            available, math.max(280.0, available * (compact ? 1 : 0.9)));
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: gap),
+          child: Container(
+            height: height,
+            padding:
+                EdgeInsets.fromLTRB(16, compact ? 6 : 10, 16, compact ? 8 : 12),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: scheme.primaryContainer.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(11),
+                  if (!compact)
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: scheme.outline.withOpacity(0.35),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-                    child: Icon(Icons.lyrics_outlined,
-                        size: 19, color: scheme.onPrimaryContainer),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '导入歌词'.tr,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: scheme.onSurface,
-                          ),
-                        ),
-                        Text(
-                          widget.music.songName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _paste,
-                    icon: const Icon(Icons.content_paste_rounded, size: 17),
-                    label: Text('粘贴'.tr),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: const Size(0, 32),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: '关闭'.tr,
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () => Get.back(),
-                    icon: Icon(Icons.close_rounded,
-                        size: 20, color: scheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Container(
+                  SizedBox(height: compact ? 4 : 12),
+                  Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
                         decoration: BoxDecoration(
-                          color: scheme.surfaceContainerHigh.withOpacity(0.55),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: scheme.outlineVariant.withOpacity(0.4),
-                          ),
+                          color: scheme.primaryContainer.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(11),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        child: TextField(
-                          controller: _controller,
-                          onChanged: _updateCount,
-                          maxLines: null,
-                          expands: true,
-                          textAlignVertical: TextAlignVertical.top,
-                          keyboardType: TextInputType.multiline,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            height: 1.5,
-                            fontFamily: 'monospace',
-                            color: scheme.onSurface,
-                          ),
-                          decoration: InputDecoration(
-                            filled: false,
-                            border: InputBorder.none,
-                            hintText: '[00:12.34] ${'第一句歌词'.tr}\n'
-                                '[00:18.00] ${'第二句歌词'.tr}\n\n'
-                                '${'支持一行多个时间戳、[offset:] 偏移，纯文本也能保存'.tr}',
-                            hintStyle: TextStyle(
-                              fontSize: 12,
-                              height: 1.6,
-                              color: scheme.onSurfaceVariant.withOpacity(0.6),
+                        child: Icon(Icons.lyrics_outlined,
+                            size: 19, color: scheme.onPrimaryContainer),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '导入歌词'.tr,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: scheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              widget.music.songName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: _paste,
+                        icon: const Icon(Icons.content_paste_rounded, size: 17),
+                        label: Text('粘贴'.tr),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: const Size(0, 32),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: '关闭'.tr,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => Get.back(),
+                        icon: Icon(Icons.close_rounded,
+                            size: 20, color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: _loading
+                        ? const Center(child: CircularProgressIndicator())
+                        : Container(
+                            decoration: BoxDecoration(
+                              color:
+                                  scheme.surfaceContainerHigh.withOpacity(0.55),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: scheme.outlineVariant.withOpacity(0.4),
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            child: TextField(
+                              controller: _controller,
+                              onChanged: _updateCount,
+                              maxLines: null,
+                              expands: true,
+                              textAlignVertical: TextAlignVertical.top,
+                              keyboardType: TextInputType.multiline,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                height: 1.5,
+                                fontFamily: 'monospace',
+                                color: scheme.onSurface,
+                              ),
+                              decoration: InputDecoration(
+                                filled: false,
+                                border: InputBorder.none,
+                                hintText: '[00:12.34] ${'第一句歌词'.tr}\n'
+                                    '[00:18.00] ${'第二句歌词'.tr}\n\n'
+                                    '${'支持一行多个时间戳、[offset:] 偏移，纯文本也能保存'.tr}',
+                                hintStyle: TextStyle(
+                                  fontSize: 12,
+                                  height: 1.6,
+                                  color:
+                                      scheme.onSurfaceVariant.withOpacity(0.6),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-              ),
-              const SizedBox(height: 10),
-              _offsetRow(scheme),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  if (_record != null)
-                    TextButton.icon(
-                      onPressed: _delete,
-                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                      label: Text('删除歌词'.tr),
-                      style: TextButton.styleFrom(
-                        foregroundColor: scheme.error,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                      ),
-                    ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Get.back(),
-                    child: Text('取消'.tr),
                   ),
-                  const SizedBox(width: 6),
-                  FilledButton(
-                    onPressed: _save,
-                    child: Text('保存'.tr),
+                  if (!compact) ...[
+                    const SizedBox(height: 10),
+                    _offsetRow(scheme),
+                  ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (_record != null)
+                        TextButton.icon(
+                          onPressed: _delete,
+                          icon: const Icon(Icons.delete_outline_rounded,
+                              size: 18),
+                          label: Text('删除歌词'.tr),
+                          style: TextButton.styleFrom(
+                            foregroundColor: scheme.error,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                        ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: Text('取消'.tr),
+                      ),
+                      const SizedBox(width: 6),
+                      FilledButton(
+                        onPressed: _save,
+                        child: Text('保存'.tr),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
