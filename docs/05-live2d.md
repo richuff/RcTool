@@ -54,12 +54,25 @@ export 'live2d_webview_stub.dart'
 - **口型联动**：音频由 Flutter 原生播放器（`audioplayers`）解码，WebView 拿不到音频采样，因此 `main.js` 用「音节包络」模拟说话节奏（快张慢合 + 乐句起伏），在 `internalModel` 的 `beforeModelUpdate` 回调里写入 `ParamMouthOpenY`——此时动作与物理都已算完、`coreModel.update()` 尚未执行，写入才会真正生效。开关在页面右上角（`live2dLipSyncKey` 持久化），只在播放时驱动，暂停后平滑闭嘴。
 - **状态驱动**：`Live2DWebView(lipSync:)` 通过 `window.live2dBridge.setLipSync(bool)` 把播放状态推进页面，`ready` 回调里补一次同步，切换歌曲不会丢失状态。
 
-## 5. 新增模型步骤
+## 5. 新增模型
 
-1. 将新模型目录放到 `assets/live2d/models/<ModelName>/`，确保包含 `.model3.json` 及配套 `moc3 / 贴图 / motions / expressions`。
+### 5.1 外部目录（推荐，无需重新打包）
+
+1. 把模型文件夹（含 `.model3.json` 及其 `moc3 / 贴图 / motions / expressions / physics`）整个复制到 `<外部目录>/Live2D/` 下，支持多层子目录。
+2. 打开 `/livetod`，左上角模型徽标会自动列出扫描到的模型；点开 → 「重新扫描」即可看到新模型，选中后 WebView 以新 `?model=` 重新加载。
+3. 选择结果持久化到 `live2dModelKey`（存相对路径，不含端口，重启依旧有效）；模型被删掉时自动回退到内置 Haru。
+
+实现要点：
+
+- `Live2DModelLibrary.scan()` 递归查找 `*.model3.json`，跳过隐藏目录；展示名取文件名去掉后缀。
+- `Live2DAssetServer` 增加 `/ext/<相对路径>` 路由，直接读磁盘并校验 `p.isWithin`，防止 `../` 越权；响应带 `Cache-Control: no-store`，替换模型后不会读到旧缓存。
+- viewer 启动时读取 `location.search` 的 `model` 参数（`resolveInitialModel()`），没有参数才用内置相对路径 `../models/Haru/Haru.model3.json`。
+
+### 5.2 内置资源（随包发布）
+
+1. 将模型目录放到 `assets/live2d/models/<ModelName>/`。
 2. 在 `pubspec.yaml` 的 `assets` 中声明资源。**注意 Flutter 的目录声明只收该目录下的直接文件，不递归子目录**——必须把 `viewer/vendor/`、`models/<Model>/`、`<Model>.2048/`、`expressions/`、`motions/` 逐个列出，否则运行库与模型不会被打进 APK，页面只会报「运行库未加载」。
-3. 在 viewer 的模型清单（或页面层）中登记新模型，供多角色切换使用。
-4. 若涉及多角色切换 UI，可参考 `main.dart` 中"多角色切换"的产品目标，在 `/livetod` 页面扩展选择逻辑。
+3. 在 `Live2DModelLibrary.builtIn` 所在位置（或 `scan()` 里）登记新的内置模型，页面即可切换。
 
 ## 6. 调试与常见问题
 

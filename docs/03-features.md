@@ -28,7 +28,9 @@
 - **完成监听**：`onPlayerComplete` 自动续播下一首（`playNextLocal()`）。
 - **播放设置**：音量、播放模式、通知开关、缓存优先都会持久化到 `SharedPreferences`，启动时由 `MusicController` 恢复。
 - **控制器单例**：`MusicController` / `FavoriteController` / `IsDarkController` 在 `main()` 里各注册一次（`permanent: true`），页面统一 `Get.find`。此前各页面 `Get.put` 会替换实例，导致进度、收藏、队列跨页面不同步。
-- **全屏播放页**（`lib/page/PlayerPage/now_playing_page.dart`）：点迷你播放条进入，封面虚化取色做背景、大封面 Hero 过渡、进度可拖动、播放模式/上一首/播放暂停/下一首/队列一屏操作，下滑手势收起。
+- **全屏播放页**（`lib/page/PlayerPage/now_playing_page.dart`）：点迷你播放条任意空白处进入，封面虚化取色做背景、大封面 Hero 过渡、进度可拖动、播放模式/上一首/播放暂停/下一首/当前歌单一屏操作，下滑手势收起。右上角只保留「歌词 / 更多」；「正在播放 x/x」这类计数已去掉，避免与底部信息重复。
+- **当前歌单面板**（`lib/widget/queue_sheet.dart`）：播放页「下一首」右侧按钮直接弹底部面板，不跳页。点任意一首立即切歌，右侧按钮移出队列，歌曲数量与当前项实时同步。
+- **收藏即时反馈**：`FavoriteController.toggle()` 先改内存集合并 `update()`，再落库；写入失败回滚。播放页与列表卡片的爱心因此点下即变色，不再等数据库回查。
 - **队列拖拽排序**：播放队列用 `ReorderableListView`，长按任意歌曲即可拖动；`reorderQueue()` 会让播放索引跟随当前歌曲移动，不会串音。移除歌曲后 SnackBar 提供「撤销」（`removeAt` / `insertAt`）。
 - **曲库搜索**（`lib/page/SearchPage/search_page.dart`）：按歌名 / 歌手实时过滤本地曲库，命中关键词高亮（`SongRow.highlight`），记录最近搜索（最多 10 条，可清空），支持整组播放与单曲「…」操作。入口在每页 AppBar 的放大镜。
 
@@ -130,7 +132,8 @@
 - 当前内置模型为 **Haru**（`assets/live2d/models/Haru/`），含表情（expressions）、动作（motions）、物理（physics）与贴图。
 - 支持触摸交互触发角色动作；播放音乐时可由「口型联动」开关驱动角色嘴型（`main.js` 内的音节包络 + `ParamMouthOpenY`）。
 - 右下角缩放条（0.45–1.6，默认 0.8）与右上角口型开关都会持久化到 `SharedPreferences`。
-- 页面叠加：左上角模型徽标、顶部渐隐遮罩、底部毛玻璃「互动提示」卡（可收起），并提供**重新加载**按钮（通过更换 `ValueKey` 重建 WebView）。
+- 页面叠加：左上角模型徽标（点开切换模型）、顶部渐隐遮罩、底部毛玻璃「互动提示」卡（可收起），并提供**重新加载**按钮（通过更换 `ValueKey` 重建 WebView）。
+- **模型自动扫描**：`Live2DModelLibrary` 递归扫描 `<外部目录>/Live2D` 下所有 `*.model3.json`，与内置 Haru 合并成列表；选择面板支持重新扫描、复制目录，选择结果存 `live2dModelKey`。
 
 ## 12. 主题与多语言
 
@@ -156,7 +159,23 @@
 - 缓存上限可选 不限 / 200MB / 500MB / 1GB / 2GB，超出后按下载时间自动清理最旧的音频（设置页与离线页共用同一个选择弹窗）。
 - 音频与封面共用 `DefaultCacheManager`，上限只统计音频文件，避免误删封面后列表全是占位图。
 
-## 15. 关于作者
+## 15. 壁纸与外部资源
+
+页面背景不再写死在代码里，而是「外部目录优先、内置图兜底」：
+
+- 根目录由 `ExternalStorage`（`lib/service/external_storage.dart`）解析：Android 优先 `/storage/emulated/0/RcTool`（需要「所有文件访问权限」，文件管理器可直接进），未授权时退到应用专属目录；桌面端为 `<文档>/RcTool`。
+- 壁纸放在 `RcTool/wallpaper/`，按文件名映射页面：`home` / `live2d` / `music` / `about`，放一张 `default` 则四页统一生效；支持 jpg / jpeg / png / webp / bmp。
+- `WallpaperController` 扫描目录后按槽位匹配，`BackGroundEnum.imageProvider` 在运行期返回 `FileImage` 或内置 `AssetImage`，`AppScaffold` 用 `GetBuilder` 跟随刷新；换图后连同图片缓存一起 `evict`，同名文件改内容也能立刻看到。
+- `/wallpaper` 管理页：显示目录路径（可复制）、是否公共目录、授权入口、四个页面的预览与当前状态；右上角刷新。删掉文件即恢复内置图。
+- 目录结构：
+
+```
+RcTool/
+├── wallpaper/      # home.jpg / live2d.png / music.webp / about.jpg / default.jpg
+└── Live2D/         # 每个模型一个文件夹，内含 xxx.model3.json
+```
+
+## 16. 关于作者
 
 `/about`（`lib/page/about_author.dart`）使用 `AppScaffold` + `aboutBackGround` 背景，包含：
 

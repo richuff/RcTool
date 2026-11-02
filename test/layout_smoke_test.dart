@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:rctool/repository/entity/Music.dart';
+import 'package:rctool/service/live2d_model_library.dart';
 import 'package:rctool/utils/lrc_parser.dart';
 import 'package:rctool/utils/my_message.dart';
 import 'package:rctool/widget/play_all_button.dart';
@@ -99,6 +100,22 @@ void main() {
     // 1000 + offset 500 = 1500 生效时间
     expect(sheet.indexAt(const Duration(milliseconds: 1200)), 0);
     expect(sheet.indexAt(const Duration(milliseconds: 6500)), 1);
+  });
+
+  test('Live2D 模型 id 可还原为可加载的站点路径', () {
+    expect(Live2DModelLibrary.entryFromId(Live2DModelLibrary.builtInId).builtIn,
+        isTrue);
+    final entry = Live2DModelLibrary.entryFromId('ext:Haru/Haru.model3.json');
+    expect(entry.name, 'Haru');
+    expect(entry.modelPath, '/ext/Haru/Haru.model3.json');
+    expect(entry.builtIn, isFalse);
+
+    // 找不到保存的 id 时回退到列表第一个（内置 Haru）
+    final resolved = Live2DModelLibrary.resolve(
+      const [Live2DModelLibrary.builtIn],
+      'ext:gone/model.model3.json',
+    );
+    expect(resolved.id, Live2DModelLibrary.builtInId);
   });
 
   test('纯文本歌词按顺序保留但不作为同步歌词', () {
