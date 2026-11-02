@@ -6,7 +6,6 @@ import 'package:rctool/constant/playlist_const.dart';
 import 'package:rctool/controller/favorite_controller.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/SqlLiteConn/favorite_conn.dart';
-import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/repository/SqlLiteConn/playlist_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/repository/entity/playlist.dart';
@@ -14,6 +13,7 @@ import 'package:rctool/widget/app_scaffold.dart';
 import 'package:rctool/widget/now_playing_bar.dart';
 import 'package:rctool/widget/settings_ui.dart';
 import 'package:rctool/widget/slide_fade_in.dart';
+import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
 
 /// @ClassName PlaylistDetailPage
@@ -32,7 +32,10 @@ class PlaylistDetailPage extends StatefulWidget {
 
 class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
   final MusicController musicController = Get.put(MusicController());
-  final FavoriteController favoriteController = Get.put(FavoriteController());
+  final FavoriteController favoriteController =
+      Get.isRegistered<FavoriteController>()
+          ? Get.find<FavoriteController>()
+          : Get.put(FavoriteController());
 
   List<Music> _musicList = [];
   bool _loading = true;
@@ -73,108 +76,6 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
       music,
       list: _musicList,
       startIndex: _musicList.indexOf(music),
-    );
-  }
-
-  Future<void> _showAddMusicDialog() async {
-    final inPlaylist = _musicList.map((music) => music.id).toSet();
-    final allMusic = await MusicConn.queryAll();
-    if (!mounted) return;
-
-    await showDialog(
-      context: context,
-      builder: (dialogContext) {
-        final scheme = Theme.of(dialogContext).colorScheme;
-        return Dialog(
-          backgroundColor: scheme.surface,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          insetPadding: const EdgeInsets.all(18),
-          child: SizedBox(
-            width: 460,
-            height: 460,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 8, 10),
-                  child: SettingsHeader(
-                    icon: Icons.library_add_rounded,
-                    title: '添加歌曲',
-                    subtitle: '添加到「${_playlist.name}」，已在歌单内的会标记',
-                    onClose: () => Navigator.of(dialogContext).pop(),
-                  ),
-                ),
-                Divider(
-                  height: 1,
-                  color: scheme.outline.withOpacity(0.16),
-                ),
-                Expanded(
-                  child: allMusic.isEmpty
-                      ? Center(
-                          child: Text(
-                            '曲库还没有歌曲',
-                            style: TextStyle(color: scheme.onSurfaceVariant),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          itemCount: allMusic.length,
-                          itemBuilder: (context, index) {
-                            final music = allMusic[index];
-                            final added = inPlaylist.contains(music.id);
-                            return ListTile(
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 14),
-                              leading: _cover(scheme, music, 42),
-                              title: Text(
-                                music.songName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              subtitle: Text(
-                                music.decoration,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              trailing: added
-                                  ? Icon(Icons.check_circle_rounded,
-                                      color: scheme.primary)
-                                  : IconButton(
-                                      tooltip: '添加',
-                                      icon: const Icon(
-                                          Icons.add_circle_outline_rounded),
-                                      onPressed: () async {
-                                        await PlaylistConn.addMusic(
-                                          _playlist.id!,
-                                          music.id!,
-                                        );
-                                        await _load();
-                                        if (dialogContext.mounted) {
-                                          Navigator.of(dialogContext).pop();
-                                        }
-                                      },
-                                    ),
-                              onTap: added
-                                  ? null
-                                  : () async {
-                                      await PlaylistConn.addMusic(
-                                        _playlist.id!,
-                                        music.id!,
-                                      );
-                                      await _load();
-                                      if (dialogContext.mounted) {
-                                        Navigator.of(dialogContext).pop();
-                                      }
-                                    },
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -272,13 +173,6 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
               ? () {}
               : () => musicController.addMusicListToQueue(_musicList),
         ),
-        if (!_isFavorite)
-          SettingsActionTile(
-            icon: Icons.library_add_rounded,
-            title: '添加歌曲',
-            subtitle: '从曲库中选择歌曲加入这个歌单',
-            onTap: _showAddMusicDialog,
-          ),
       ],
     );
   }
@@ -325,12 +219,12 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                   music: music,
                   playing: controller.isPlayingMusic(music),
                   onPlayToggle: () => _playMusic(music),
-                  onRemove: () => _removeMusic(music),
-                  removeIcon:
-                      _isFavorite ? Icons.favorite : Icons.remove_circle_outline,
-                  removeColor: _isFavorite
-                      ? Theme.of(context).colorScheme.error
-                      : null,
+                  onMore: () => showSongActions(
+                    context,
+                    music,
+                    removeLabel: _isFavorite ? '从我的喜欢移除' : '从歌单移除',
+                    onRemove: () => _removeMusic(music),
+                  ).then((_) => _load()),
                 ),
               );
             }).toList(),
@@ -365,37 +259,13 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
             Text(
               _isFavorite
                   ? '还没有收藏歌曲，去每日推荐看看吧'
-                  : '这个歌单还是空的，点「添加歌曲」加几首吧',
+                  : '这个歌单还是空的，在任意歌曲右侧点「…」就能加进来',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _cover(ColorScheme scheme, Music music, double size) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(9),
-      child: music.imageUrl.isNotEmpty
-          ? Image.network(
-              music.imageUrl,
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _coverFallback(scheme, size),
-            )
-          : _coverFallback(scheme, size),
-    );
-  }
-
-  Widget _coverFallback(ColorScheme scheme, double size) {
-    return Container(
-      width: size,
-      height: size,
-      color: scheme.surfaceContainerHighest,
-      child: Icon(Icons.music_note, size: size * 0.45, color: scheme.onSurfaceVariant),
     );
   }
 }

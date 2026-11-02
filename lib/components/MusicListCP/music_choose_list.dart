@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/music_controller.dart';
-import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/widget/slide_fade_in.dart';
+import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
 
 /// @ClassName MusicChooseList
@@ -41,10 +41,12 @@ class MusicChooseList extends StatelessWidget {
                     playing: controller.isPlayingMusic(music),
                     onPlayToggle: () =>
                         musicController.playOrPauseMusic(music),
-                    onRemove: () {
-                      musicController.dec(music);
-                      MusicConn.deleteByUrl(music.url);
-                    },
+                    onMore: () => showSongActions(
+                      context,
+                      music,
+                      removeLabel: '从播放队列移除',
+                      onRemove: () => musicController.dec(music),
+                    ),
                   ),
                 );
               }),

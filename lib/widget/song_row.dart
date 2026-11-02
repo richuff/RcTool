@@ -19,6 +19,9 @@ class SongRow extends StatelessWidget {
   /// 队列序号（可选）。传入后在封面左侧显示序号，用于播放队列等有序场景。
   final int? index;
 
+  /// 右侧「…」更多操作按钮（可选）。点击通常打开歌曲操作面板。
+  final VoidCallback? onMore;
+
   const SongRow({
     super.key,
     required this.music,
@@ -29,6 +32,7 @@ class SongRow extends StatelessWidget {
     this.removeColor,
     this.detail,
     this.index,
+    this.onMore,
   });
 
   @override
@@ -36,6 +40,7 @@ class SongRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final bool hasPlay = onPlayToggle != null;
     final bool hasRemove = onRemove != null;
+    final bool hasMore = onMore != null;
     final bool hasIndex = index != null;
 
     // 序号占位宽度：信息条与封面的左偏移都据此让位
@@ -45,15 +50,19 @@ class SongRow extends StatelessWidget {
     // 信息条与按钮共用的垂直中心：横条 40 高，按钮 38 高
     const double barTop = 18;
     const double buttonTop = 19;
+    const double buttonStep = 44;
+
+    // 从右往左依次摆放：… → 移除 → 播放/暂停
+    double right = 6;
+    final double moreRight = right;
+    if (hasMore) right += buttonStep;
+    final double removeRight = right;
+    if (hasRemove) right += buttonStep;
+    final double playRight = right;
+    if (hasPlay) right += buttonStep;
 
     // 为右侧按钮预留文字空间
-    final double rightPadding = hasPlay && hasRemove
-        ? 92
-        : hasPlay
-            ? 54
-            : hasRemove
-                ? 50
-                : 12;
+    final double rightPadding = hasPlay || hasRemove || hasMore ? right + 4 : 12;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(8, 6, 8, 8),
@@ -76,7 +85,6 @@ class SongRow extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color:
                           playing ? scheme.primary : scheme.onSurfaceVariant,
-                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),
@@ -151,11 +159,10 @@ class SongRow extends StatelessWidget {
             // 播放 / 暂停（与横条垂直居中对齐）
             if (hasPlay)
               Positioned(
-                right: hasRemove ? 44 : 6,
+                right: playRight,
                 top: buttonTop,
                 child: _CircleButton(
-                  backgroundColor:
-                      playing ? scheme.primary : scheme.surface,
+                  backgroundColor: playing ? scheme.primary : scheme.surface,
                   onTap: onPlayToggle,
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 240),
@@ -173,7 +180,7 @@ class SongRow extends StatelessWidget {
             // 移除 / 删除
             if (hasRemove)
               Positioned(
-                right: 6,
+                right: removeRight,
                 top: buttonTop,
                 child: _CircleButton(
                   backgroundColor: scheme.surface,
@@ -182,6 +189,21 @@ class SongRow extends StatelessWidget {
                     removeIcon,
                     size: 18,
                     color: removeColor ?? scheme.onSurface,
+                  ),
+                ),
+              ),
+            // 更多操作
+            if (hasMore)
+              Positioned(
+                right: moreRight,
+                top: buttonTop,
+                child: _CircleButton(
+                  backgroundColor: scheme.surface,
+                  onTap: onMore,
+                  child: Icon(
+                    Icons.more_horiz_rounded,
+                    size: 20,
+                    color: scheme.onSurface,
                   ),
                 ),
               ),

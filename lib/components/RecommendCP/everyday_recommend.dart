@@ -7,6 +7,7 @@ import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/repository/SqlLiteConn/recommend_history_conn.dart';
 import 'package:rctool/widget/now_playing_bar.dart';
 import 'package:rctool/widget/slide_fade_in.dart';
+import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
 
 import '../../repository/entity/Music.dart';
@@ -28,11 +29,17 @@ class EverydayList extends StatefulWidget {
 
 class _EverydayList extends State<EverydayList> {
   final MusicController musicController = Get.put(MusicController());
-  final FavoriteController favoriteController = Get.put(FavoriteController());
+  final FavoriteController favoriteController =
+      Get.isRegistered<FavoriteController>()
+          ? Get.find<FavoriteController>()
+          : Get.put(FavoriteController());
 
   /// 今日推荐的歌曲（已写入曲库，带真实 id），收藏/播放都基于它
   List<Music> _todayMusic = [];
   bool _preparing = true;
+
+  /// 今日推荐是否已整体收藏（本地状态，避免依赖跨页面控制器实例）
+  bool _favorite = false;
 
   @override
   void initState() {
@@ -45,17 +52,19 @@ class _EverydayList extends State<EverydayList> {
 
   Future<void> _prepare() async {
     final list = await _saveTodayRecommend();
+    await favoriteController.ensureLoaded();
     if (!mounted) return;
     setState(() {
       _todayMusic = list;
       _preparing = false;
+      _favorite = _computeFavorite();
     });
   }
 
   List<int> get _todayIds =>
       _todayMusic.map((music) => music.id).whereType<int>().toList();
 
-  bool get _isAllFavorite {
+  bool _computeFavorite() {
     final ids = _todayIds;
     if (ids.isEmpty) return false;
     return ids.every(favoriteController.isFavorite);
@@ -123,6 +132,10 @@ class _EverydayList extends State<EverydayList> {
           list: _todayMusic,
           startIndex: index,
         ),
+        onMore: () => showSongActions(context, music).then((_) {
+          if (!mounted) return;
+          setState(() => _favorite = _computeFavorite());
+        }),
       ),
     );
   }
@@ -220,32 +233,27 @@ class _EverydayList extends State<EverydayList> {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: GetBuilder<FavoriteController>(
-              builder: (controller) {
-                final isFavorite = _isAllFavorite;
-                // 爱心图标本身变红（不是按钮底色变红），再点一次取消
-                return _actionButton(
-                  iconWidget: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    transitionBuilder: (child, animation) =>
-                        ScaleTransition(scale: animation, child: child),
-                    child: Icon(
-                      isFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                      key: ValueKey(isFavorite),
-                      size: 22,
-                      color: isFavorite ? scheme.error : scheme.onSurfaceVariant,
-                    ),
-                  ),
-                  background: scheme.surface,
-                  foreground: scheme.onSurface,
-                  border: isFavorite
-                      ? scheme.error.withOpacity(0.55)
-                      : scheme.outline.withOpacity(0.3),
-                  onTap: _toggleFavorite,
-                );
-              },
+            child: _actionButton(
+              iconWidget: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, animation) =>
+                    ScaleTransition(scale: animation, child: child),
+                // 爱心图标内部填充变红，再点一次取消收藏
+                child: Icon(
+                  _favorite
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  key: ValueKey(_favorite),
+                  size: 22,
+                  color: _favorite ? scheme.error : scheme.onSurfaceVariant,
+                ),
+              ),
+              background: scheme.surface,
+              foreground: scheme.onSurface,
+              border: _favorite
+                  ? scheme.error.withOpacity(0.55)
+                  : scheme.outline.withOpacity(0.3),
+              onTap: _toggleFavorite,
             ),
           ),
         ],
@@ -362,10 +370,18 @@ class _EverydayList extends State<EverydayList> {
   Future<void> _toggleFavorite() async {
     if (_preparing) return;
     final ids = _todayIds;
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) {
+      Get.snackbar(
+        '暂时无法收藏',
+        '今日推荐还没有准备好，稍后再试',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
 
     await favoriteController.ensureLoaded();
-    final wasFavorite = ids.every(favoriteController.isFavorite);
+    // 以实际数据库状态为准，避免本地状态与收藏表不一致
+    final wasFavorite = _computeFavorite();
 
     if (wasFavorite) {
       for (final id in ids) {
@@ -377,12 +393,14 @@ class _EverydayList extends State<EverydayList> {
       }
     }
     await favoriteController.refresh();
+    if (!mounted) return;
+    setState(() => _favorite = _computeFavorite());
 
     Get.snackbar(
-      wasFavorite ? "已取消收藏" : "收藏成功",
-      wasFavorite
-          ? "已从「我的喜欢」移除今日推荐的 ${ids.length} 首歌曲"
-          : "今日推荐的 ${ids.length} 首歌曲已加入「我的喜欢」",
+      _favorite ? "收藏成功" : "已取消收藏",
+      _favorite
+          ? "今日推荐的 ${ids.length} 首歌曲已加入「我的喜欢」"
+          : "已从「我的喜欢」移除今日推荐的 ${ids.length} 首歌曲",
       snackPosition: SnackPosition.BOTTOM,
     );
   }

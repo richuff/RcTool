@@ -119,6 +119,20 @@ class PlaylistConn {
     );
   }
 
+  /// 这首歌当前被哪些歌单收录（用于「…」菜单里显示勾选状态）。
+  static Future<Set<int>> queryPlaylistIdsOfMusic(int musicId) async {
+    final db = await SqlLiteConn.dataBase;
+    final rows = await db.query(
+      'playlist_music',
+      columns: ['playlistId'],
+      where: 'musicId = ?',
+      whereArgs: [musicId],
+    );
+    return {
+      for (final row in rows) row['playlistId'] as int,
+    };
+  }
+
   static Future<List<Music>> queryMusicByPlaylist(int playlistId) async {
     final db = await SqlLiteConn.dataBase;
     final rows = await db.rawQuery('''

@@ -6,6 +6,7 @@ import '../../repository/SqlLiteConn/play_history_conn.dart';
 import '../../repository/entity/play_history.dart';
 import '../../widget/app_scaffold.dart';
 import '../../widget/slide_fade_in.dart';
+import '../../widget/song_actions_sheet.dart';
 import '../../widget/song_row.dart';
 
 class PlayHistoryPage extends StatefulWidget {
@@ -155,8 +156,12 @@ class _PlayHistoryPageState extends State<PlayHistoryPage> {
                                   list: musicList,
                                   startIndex: itemIndex,
                                 ),
-                                onRemove: () => _deleteHistory(item),
-                                removeIcon: Icons.delete_outline,
+                                onMore: () => showSongActions(
+                                  context,
+                                  music,
+                                  removeLabel: '删除这条记录',
+                                  onRemove: () => _deleteHistory(item),
+                                ),
                               ),
                             );
                           },
