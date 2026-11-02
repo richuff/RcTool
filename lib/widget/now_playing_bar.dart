@@ -144,19 +144,30 @@ class _NowPlayingBarState extends State<NowPlayingBar> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    current.decoration,
+                                    controller.loadingUrl.value.isNotEmpty &&
+                                            controller.loadingUrl.value ==
+                                                current.url
+                                        ? '缓存中 · 首次播放需要下载'.tr
+                                        : current.decoration,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: scheme.onSurfaceVariant,
+                                      fontWeight: controller.loadingUrl.value ==
+                                              current.url
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                      color: controller.loadingUrl.value ==
+                                              current.url
+                                          ? scheme.primary
+                                          : scheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              tooltip: isPlaying ? '暂停' : '播放',
+                              tooltip: isPlaying ? '暂停'.tr : '播放'.tr,
                               onPressed: () {
                                 if (isPlaying) {
                                   controller.onPause();
@@ -169,19 +180,33 @@ class _NowPlayingBarState extends State<NowPlayingBar> {
                                 transitionBuilder: (child, animation) =>
                                     ScaleTransition(
                                         scale: animation, child: child),
-                                child: Icon(
-                                  isPlaying
-                                      ? Icons.pause_circle_filled
-                                      : Icons.play_circle_fill,
-                                  key: ValueKey(isPlaying),
-                                  size: 36,
-                                  color: scheme.primary,
-                                ),
+                                child: controller.loadingUrl.value ==
+                                            current.url &&
+                                        controller.loadingUrl.value.isNotEmpty
+                                    ? SizedBox(
+                                        key: const ValueKey('buffering'),
+                                        width: 26,
+                                        height: 26,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.4,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  scheme.primary),
+                                        ),
+                                      )
+                                    : Icon(
+                                        isPlaying
+                                            ? Icons.pause_circle_filled
+                                            : Icons.play_circle_fill,
+                                        key: ValueKey(isPlaying),
+                                        size: 36,
+                                        color: scheme.primary,
+                                      ),
                               ),
                             ),
                             if (widget.showNext)
                               IconButton(
-                                tooltip: '下一首',
+                                tooltip: '下一首'.tr,
                                 onPressed: controller.skipNext,
                                 icon: Icon(Icons.skip_next_rounded,
                                     color: scheme.onSurfaceVariant),

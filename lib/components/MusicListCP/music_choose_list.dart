@@ -23,7 +23,7 @@ class MusicChooseList extends StatelessWidget {
       builder: (controller) {
         final list = controller.musiclist.whereType<Music>().toList();
         return ListView(
-          padding: const EdgeInsets.fromLTRB(0, 10, 0, 18),
+          padding: const EdgeInsets.fromLTRB(6, 10, 6, 18),
           children: [
             _queueCard(context, controller, list),
             if (list.isEmpty)
@@ -39,12 +39,14 @@ class MusicChooseList extends StatelessWidget {
                     music: music,
                     index: entry.key,
                     playing: controller.isPlayingMusic(music),
+                    loading: controller.loadingUrl.value == music.url &&
+                        controller.loadingUrl.value.isNotEmpty,
                     onPlayToggle: () =>
                         musicController.playOrPauseMusic(music),
                     onMore: () => showSongActions(
                       context,
                       music,
-                      removeLabel: '从播放队列移除',
+                      removeLabel: '从播放队列移除'.tr,
                       onRemove: () => musicController.dec(music),
                     ),
                   ),
@@ -112,7 +114,7 @@ class MusicChooseList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '播放队列',
+                      '播放队列'.tr,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -122,8 +124,9 @@ class MusicChooseList extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       count == 0
-                          ? '队列里还没有歌曲'
-                          : '共 $count 首 · 正在播放第 $current 首',
+                          ? '队列里还没有歌曲'.tr
+                          : '共 @count 首 · 正在播放第 @index 首'
+                              .trParams({'count': '$count', 'index': '$current'}),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -136,7 +139,7 @@ class MusicChooseList extends StatelessWidget {
               ),
               if (count > 0)
                 IconButton(
-                  tooltip: '清空队列',
+                  tooltip: '清空队列'.tr,
                   onPressed: () => _confirmClear(context, controller),
                   icon: Icon(
                     Icons.delete_sweep_outlined,
@@ -163,9 +166,9 @@ class MusicChooseList extends StatelessWidget {
                       ),
                     ),
                     icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                    label: const Text(
-                      '播放全部',
-                      style: TextStyle(
+                    label: Text(
+                      '播放全部'.tr,
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
@@ -201,21 +204,21 @@ class MusicChooseList extends StatelessWidget {
             controller,
             mode: PlayMode.loop,
             icon: Icons.repeat_rounded,
-            label: '列表循环',
+            label: '列表循环'.tr,
           ),
           _modeIcon(
             context,
             controller,
             mode: PlayMode.single,
             icon: Icons.repeat_one_rounded,
-            label: '单曲循环',
+            label: '单曲循环'.tr,
           ),
           _modeIcon(
             context,
             controller,
             mode: PlayMode.random,
             icon: Icons.shuffle_rounded,
-            label: '随机播放',
+            label: '随机播放'.tr,
           ),
         ],
       ),
@@ -276,7 +279,7 @@ class MusicChooseList extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              '播放队列为空，去每日推荐或歌单里挑几首吧',
+              '播放队列为空，去每日推荐或歌单里挑几首吧'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
             ),
@@ -292,16 +295,16 @@ class MusicChooseList extends StatelessWidget {
   ) async {
     final confirmed = await Get.dialog<bool>(
           AlertDialog(
-            title: const Text('清空播放队列'),
-            content: const Text('将停止播放并移除队列中的歌曲，曲库和歌单不会受影响。'),
+            title: Text('清空播放队列'.tr),
+            content: Text('将停止播放并移除队列中的歌曲，曲库和歌单不会受影响。'.tr),
             actions: [
               TextButton(
                 onPressed: () => Get.back(result: false),
-                child: const Text('取消'),
+                child: Text('取消'.tr),
               ),
               FilledButton(
                 onPressed: () => Get.back(result: true),
-                child: const Text('清空'),
+                child: Text('清空'.tr),
               ),
             ],
           ),

@@ -27,6 +27,12 @@ class MusicController extends GetxController {
   final player = AudioPlayer();
   Duration? totalDuration;
 
+  /// 正在为播放做缓存准备（首次播放需要下载）的歌曲，空字符串表示没有在准备。
+  /// 队列页/播放条据此显示「缓存中」，避免用户以为播放器卡死。
+  var loadingUrl = ''.obs;
+
+  bool get isBuffering => loadingUrl.value.isNotEmpty;
+
   final cacheManager = DefaultCacheManager();
   final NotificationHelper notificationHelper = NotificationHelper();
   int _randomSeed = DateTime.now().millisecondsSinceEpoch;
@@ -133,18 +139,43 @@ class MusicController extends GetxController {
     });
   }
 
+  void _setLoadingUrl(String url) {
+    if (loadingUrl.value == url) return;
+    loadingUrl.value = url;
+    update();
+  }
+
   Future<void> playCachedAudio(
     Music music, {
     bool recordHistory = true,
   }) async {
     await player.setVolume(volume.value);
-    if (_cacheFirst) {
-      // 已缓存时直接播放本地文件，未缓存时下载并写入缓存。
-      final file = await cacheManager.getSingleFile(music.url);
-      await player.play(UrlSource(file.path));
-    } else {
-      // 关闭缓存优先后直接播放地址，不主动写入音乐缓存。
-      await player.play(UrlSource(music.url));
+    try {
+      if (_cacheFirst) {
+        // 已缓存时直接播放本地文件；未缓存时先显示「缓存中」再下载并写入缓存。
+        final cached = await cacheManager.getFileFromCache(music.url);
+        if (cached != null) {
+          await player.play(UrlSource(cached.file.path));
+        } else {
+          _setLoadingUrl(music.url);
+          final file = await cacheManager.getSingleFile(music.url);
+          await player.play(UrlSource(file.path));
+        }
+      } else {
+        // 关闭缓存优先后直接播放地址，不主动写入音乐缓存。
+        await player.play(UrlSource(music.url));
+      }
+    } catch (error) {
+      isplay.value = false;
+      update();
+      Get.snackbar(
+        '播放失败',
+        '${music.songName} 暂时无法播放，请检查网络后重试',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    } finally {
+      _setLoadingUrl('');
     }
 
     if (recordHistory) {

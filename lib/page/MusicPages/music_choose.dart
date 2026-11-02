@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 import '../../components/MusicListCP/music_choose_list.dart';
 
@@ -14,7 +15,7 @@ class MusicChoose extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: '播放队列',
+      title: '播放队列'.tr,
       body: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(
           scrollbars: false,

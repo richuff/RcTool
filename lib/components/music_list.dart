@@ -134,7 +134,7 @@ class _MusicList extends State<MusicList> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        current?.songName ?? "您还未选择播放的歌曲",
+                        current?.songName ?? "您还未选择播放的歌曲".tr,
                         style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
@@ -144,22 +144,33 @@ class _MusicList extends State<MusicList> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 1),
-                      Text(
-                        current?.decoration ?? "未知歌手",
-                        style: TextStyle(
-                          color: scheme.onSurfaceVariant,
-                          fontSize: 11,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Builder(builder: (context) {
+                        final buffering = current != null &&
+                            current.url.isNotEmpty &&
+                            musicController.loadingUrl.value == current.url;
+                        return Text(
+                          buffering
+                              ? '缓存中 · 首次播放需要下载'.tr
+                              : (current?.decoration ?? "未知歌手"),
+                          style: TextStyle(
+                            color: buffering
+                                ? scheme.primary
+                                : scheme.onSurfaceVariant,
+                            fontSize: 11,
+                            fontWeight:
+                                buffering ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }),
                     ],
                   ),
                 ),
                 _ctrlButton(
                   scheme,
                   icon: Icons.skip_previous_rounded,
-                  tooltip: "上一首",
+                  tooltip: "上一首".tr,
                   onPressed: () => musicController.skipPrevious(),
                 ),
                 // 播放 / 暂停：实心主色圆钮
@@ -191,14 +202,26 @@ class _MusicList extends State<MusicList> {
                             duration: const Duration(milliseconds: 220),
                             transitionBuilder: (child, anim) =>
                                 ScaleTransition(scale: anim, child: child),
-                            child: Icon(
-                              isPlaying
-                                  ? Icons.pause_rounded
-                                  : Icons.play_arrow_rounded,
-                              key: ValueKey(isPlaying),
-                              color: scheme.onPrimary,
-                              size: 21,
-                            ),
+                            child: musicController.loadingUrl.value.isNotEmpty
+                                ? SizedBox(
+                                    key: const ValueKey('buffering'),
+                                    width: 17,
+                                    height: 17,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        scheme.onPrimary,
+                                      ),
+                                    ),
+                                  )
+                                : Icon(
+                                    isPlaying
+                                        ? Icons.pause_rounded
+                                        : Icons.play_arrow_rounded,
+                                    key: ValueKey(isPlaying),
+                                    color: scheme.onPrimary,
+                                    size: 21,
+                                  ),
                           ),
                         ),
                       ),
@@ -208,7 +231,7 @@ class _MusicList extends State<MusicList> {
                 _ctrlButton(
                   scheme,
                   icon: Icons.skip_next_rounded,
-                  tooltip: "下一首",
+                  tooltip: "下一首".tr,
                   onPressed: () => musicController.skipNext(),
                 ),
                 // 播放队列入口 + 数量角标
@@ -218,7 +241,7 @@ class _MusicList extends State<MusicList> {
                     _ctrlButton(
                       scheme,
                       icon: Icons.queue_music_rounded,
-                      tooltip: "播放队列",
+                      tooltip: "播放队列".tr,
                       onPressed: () => Get.toNamed(RoutePath.MUSICCHOOSE),
                     ),
                     if (count > 0)
