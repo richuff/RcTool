@@ -90,8 +90,11 @@ class _SearchWidget extends State<SearchWidget> {
     final height = MediaQuery.of(context).size.height;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(right: 15),
+      padding: const EdgeInsets.only(right: 2),
       child: IconButtonNoRipple(
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
           hoverColor: scheme.primaryContainer,
           focusColor: scheme.primaryContainer,
           highlightColor: scheme.secondaryContainer,

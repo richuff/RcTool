@@ -101,6 +101,9 @@ class _Album extends State<Album> {
       actions: [
         IconButton(
           tooltip: '新建歌单',
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
           onPressed: _showCreateDialog,
           icon: const Icon(Icons.add_rounded),
         ),
@@ -146,9 +149,9 @@ class _Album extends State<Album> {
                         children: [
                           if (playlists.isEmpty)
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                              padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
                               child: Text(
-                                '还没有自建歌单，点下面的「新建歌单」开始吧',
+                                '还没有自建歌单，点右上角的「+」新建一个吧',
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   color: scheme.onSurfaceVariant,
@@ -166,13 +169,6 @@ class _Album extends State<Album> {
                                 onDelete: () => _deletePlaylist(playlist),
                               ),
                             ),
-                          const Divider(height: 12, indent: 14, endIndent: 14),
-                          SettingsActionTile(
-                            icon: Icons.add_rounded,
-                            title: '新建歌单',
-                            subtitle: '创建后可以往里面添加歌曲',
-                            onTap: _showCreateDialog,
-                          ),
                         ],
                       ),
                     ),

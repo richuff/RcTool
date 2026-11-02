@@ -61,8 +61,8 @@ class AppScaffold extends StatelessWidget {
         centerTitle: false,
         actions: [
           const SearchWidget(),
-          const SizedBox(width: 4),
           ...?actions,
+          const SizedBox(width: 6),
         ],
       ),
       body: SizedBox.expand(
