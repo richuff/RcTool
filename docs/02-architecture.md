@@ -67,9 +67,9 @@ RcTool 采用"页面 / 视图 → 控制器 → 数据层"的轻量级分层，�
 
 | 常量 | 路径 | 页面 |
 | --- | --- | --- |
-| `HOME` | `/` | 首页（欢迎卡片 + 入口按钮，定义在 main.dart） |
+| `HOME` | `/` | 首页（欢迎卡片 + 快速开始 + 音乐库入口） |
 | `MUSIC` | `/music` | 音乐列表页 |
-| `MUSICCHOOSE` | `/musicchoose` | 选曲页 |
+| `MUSICCHOOSE` | `/musicchoose` | 播放队列（含播放模式图标、清空队列） |
 | `RECOMMEND` | `/recommend` | 每日推荐 |
 | `RANKING` | `/ranking` | 排行榜 |
 | `ALBUM` | `/album` | 歌单列表页 |
@@ -104,7 +104,7 @@ RcTool 采用"页面 / 视图 → 控制器 → 数据层"的轻量级分层，�
 为避免各页面重复编写脚手架与列表行，项目抽取了以下共享组件（`lib/widget/`）：
 
 - **`AppScaffold`**：统一页面外壳，封装 `Scaffold` + `Drawer`（主菜单）+ `AppBar`（菜单按钮 + 全局设置入口 `SearchWidget`）+ 背景装饰。音乐页、推荐、排行榜、歌单、歌单详情、选曲等均已改用它，消除了原本逐字重复的脚手架代码。
-- **`SongRow`**：统一的"渐变条 + 封面 + 标题 + 播放/移除"横向歌曲卡片，替换了推荐、选曲、歌单详情三处原本重复的"大行"实现，并修复了亮色主题下白色图标不可见的问题，播放/暂停图标带切换动画。
+- **`SongRow`**：统一的"渐变条 + 封面 + 标题 + 播放/移除"横向歌曲卡片，替换了推荐、选曲、歌单详情三处原本重复的"大行"实现，并修复了亮色主题下白色图标不可见的问题，播放/暂停图标带切换动画；传入 `index` 时会在封面左侧显示序号，供播放队列使用。
 - **`SlideFadeIn`**：列表/卡片入场动画（淡入 + 上滑，支持延迟形成错落效果），排行榜、每日推荐、关于作者等页面已使用。
 - **`SettingsSection` / `SettingsHeader` / `SettingsChoiceTile` / `SettingsSwitchTile` / `SettingsActionTile`**（`lib/widget/settings_ui.dart`）：设置界面通用组件。全局快捷面板（`search_widget`）、完整设置弹窗（`setting_dialog`）与设置页内容（`main_settings`）共用同一套分组卡片、图标容器与选中/开关样式，保证两处入口视觉完全一致。
 - **`NowPlayingBar`**（`lib/widget/now_playing_bar.dart`）：迷你播放条，固定在非播放页底部（每日推荐、首页、歌单详情已接入），展示当前歌曲封面、标题、实时进度与播放/暂停，队列为空时自动隐藏。

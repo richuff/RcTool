@@ -303,6 +303,16 @@ class MusicController extends GetxController {
     update();
   }
 
+  /// 清空播放队列：停止播放并重置进度，不影响曲库与歌单。
+  Future<void> clearQueue() async {
+    await player.stop();
+    musiclist.clear();
+    position.value = 0;
+    isplay.value = false;
+    totalDuration = null;
+    update();
+  }
+
   onPause(){
     isplay.value = false;
     player.pause();

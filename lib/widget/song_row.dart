@@ -16,6 +16,9 @@ class SongRow extends StatelessWidget {
   final Color? removeColor;
   final String? detail;
 
+  /// 队列序号（可选）。传入后在封面左侧显示序号，用于播放队列等有序场景。
+  final int? index;
+
   const SongRow({
     super.key,
     required this.music,
@@ -25,6 +28,7 @@ class SongRow extends StatelessWidget {
     this.removeIcon = Icons.close,
     this.removeColor,
     this.detail,
+    this.index,
   });
 
   @override
@@ -32,6 +36,11 @@ class SongRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final bool hasPlay = onPlayToggle != null;
     final bool hasRemove = onRemove != null;
+    final bool hasIndex = index != null;
+
+    // 序号占位宽度：信息条与封面的左偏移都据此让位
+    const double indexWidth = 24;
+    final double coverLeft = hasIndex ? indexWidth : 0;
 
     // 信息条与按钮共用的垂直中心：横条 40 高，按钮 38 高
     const double barTop = 18;
@@ -47,14 +56,34 @@ class SongRow extends StatelessWidget {
                 : 12;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+      margin: const EdgeInsets.fromLTRB(8, 6, 8, 8),
       child: SizedBox(
         height: 78,
         child: Stack(
           children: [
+            // 队列序号
+            if (hasIndex)
+              Positioned(
+                left: 0,
+                top: barTop,
+                width: indexWidth,
+                height: 40,
+                child: Center(
+                  child: Text(
+                    '${index! + 1}',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color:
+                          playing ? scheme.primary : scheme.onSurfaceVariant,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+              ),
             // 渐变信息条
             Positioned(
-              left: 0,
+              left: coverLeft,
               right: 0,
               top: barTop,
               height: 40,
@@ -92,7 +121,7 @@ class SongRow extends StatelessWidget {
             ),
             // 封面
             Positioned(
-              left: 0,
+              left: coverLeft,
               top: 0,
               child: Container(
                 width: 75,

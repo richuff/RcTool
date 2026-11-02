@@ -18,7 +18,7 @@
 - **播放列表**：`musiclist`（`RxList`）保存当前播放队列，支持追加、去重。
 - **播放 / 暂停**：`playLocal()` / `onPause()`；同一首歌再次点击会触发暂停。
 - **上一首 / 下一首**：`skipPrevious()` / `skipNext()`，结合播放模式计算目标索引。
-- **播放模式**（`enum PlayMode`）：
+- **播放模式**（`enum PlayMode`）：只在「播放队列」页以紧凑图标切换，设置页不再提供该项。
   - `loop`：列表循环
   - `single`：单曲循环
   - `random`：随机（线性同余生成器产生伪随机序列，避免相邻重复）
@@ -26,7 +26,7 @@
 - **缓存播放**：`playCachedAudio()` 默认先用 `flutter_cache_manager` 把音频 URL 下载到本地缓存文件，再交给 `audioplayers` 播放；关闭“缓存优先”后直接播放网络地址。
 - **缓存占用显示**：设置页的「缓存优先」与「清除音乐缓存」会显示当前缓存大小（`lib/utils/cache_size.dart` 直接统计缓存目录文件总大小，格式化后以 MB/KB 展示），清除后自动刷新为 0。
 - **完成监听**：`onPlayerComplete` 自动续播下一首（`playNextLocal()`）。
-- **播放设置**：音量、默认播放模式、通知开关、缓存优先都会持久化到 `SharedPreferences`，启动时由 `MusicController` 恢复。
+- **播放设置**：音量、播放模式、通知开关、缓存优先都会持久化到 `SharedPreferences`，启动时由 `MusicController` 恢复。
 
 > 数据模型上，一首 `Music` 持有 `url`（音频地址）、`imageUrl`（封面）、`songName`（歌名）、`decoration`（描述 / 歌手等），因此播放既支持远程 URL，也兼容本地路径。
 
@@ -87,7 +87,7 @@
 
 - **权限**：`lib/utils/PermissionRequest/` 统一申请通知、存储等权限，启动时申请通知权限。
 - **蓝牙耳机断连**：依赖 `headset_connection_event` 监听耳机状态，可在断连时自动暂停（与 `MusicController` 的播放状态联动）。
-- **设置**：`lib/views/main_settings.dart` 与 `lib/widget/setting_dialog.dart` 提供完整设置，包括主题、语言、默认播放模式、音量、通知、缓存、睡眠定时、清除缓存和恢复默认。
+- **设置**：`lib/views/main_settings.dart` 与 `lib/widget/setting_dialog.dart` 提供完整设置，包括主题、语言、音量、通知、缓存、睡眠定时、清除缓存和恢复默认；播放模式不在设置中，改由「播放队列」页顶部的图标切换。
 
 ## 8. 最近播放
 
