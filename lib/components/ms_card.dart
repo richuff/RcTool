@@ -37,7 +37,13 @@ class MSCard extends StatefulWidget {
 class _MSCard extends State<MSCard> {
   final NotificationHelper notificationHelper = NotificationHelper();
   final MusicController musicController = Get.put(MusicController());
-  final FavoriteController favoriteController = Get.put(FavoriteController());
+  final FavoriteController favoriteController =
+      Get.isRegistered<FavoriteController>()
+          ? Get.find<FavoriteController>()
+          : Get.put(FavoriteController(), permanent: true);
+
+  /// 本地收藏态：点击时立刻翻转，避免等待数据库与控制器刷新才变红。
+  bool _isFavorite = false;
 
   bool get _isEmpty =>
       widget.id == null && widget.url.isEmpty && widget.image.isEmpty;
@@ -45,9 +51,48 @@ class _MSCard extends State<MSCard> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      favoriteController.ensureLoaded();
+    _isFavorite = favoriteController.isFavorite(widget.id);
+    favoriteController.addListener(_syncFavorite);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await favoriteController.ensureLoaded();
+      _syncFavorite();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant MSCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id) {
+      _isFavorite = favoriteController.isFavorite(widget.id);
+    }
+  }
+
+  /// 控制器状态变化时同步（其它页面取消/新增收藏也能跟上）。
+  void _syncFavorite() {
+    if (!mounted) return;
+    final latest = favoriteController.isFavorite(widget.id);
+    if (latest != _isFavorite) {
+      setState(() => _isFavorite = latest);
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (widget.id == null) return;
+    final target = !_isFavorite;
+    setState(() => _isFavorite = target);
+    try {
+      await favoriteController.toggle(widget.id);
+      _syncFavorite();
+    } catch (e) {
+      if (mounted) setState(() => _isFavorite = !target);
+      Get.snackbar("收藏失败".tr, "$e", snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  @override
+  void dispose() {
+    favoriteController.removeListener(_syncFavorite);
+    super.dispose();
   }
 
   @override
@@ -109,47 +154,34 @@ class _MSCard extends State<MSCard> {
             Positioned(
               top: 12,
               right: 12,
-              child: GetBuilder<FavoriteController>(
-                builder: (controller) {
-                  final isFavorite = controller.isFavorite(widget.id);
-                  return Material(
-                    color: Colors.black.withOpacity(0.32),
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () async {
-                        if (widget.id == null) return;
-                        try {
-                          await controller.toggle(widget.id);
-                        } catch (e) {
-                          Get.snackbar("收藏失败".tr, "$e",
-                              snackPosition: SnackPosition.BOTTOM);
-                        }
-                      },
-                      child: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Center(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            transitionBuilder: (child, anim) =>
-                                ScaleTransition(scale: anim, child: child),
-                            child: Icon(
-                              isFavorite
-                                  ? Icons.favorite_rounded
-                                  : Icons.favorite_border_rounded,
-                              key: ValueKey(isFavorite),
-                              size: 21,
-                              color: isFavorite
-                                  ? scheme.error
-                                  : Colors.white.withOpacity(0.92),
-                            ),
-                          ),
+              child: Material(
+                color: Colors.black.withOpacity(0.32),
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: _toggleFavorite,
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (child, anim) =>
+                            ScaleTransition(scale: anim, child: child),
+                        child: Icon(
+                          _isFavorite
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          key: ValueKey(_isFavorite),
+                          size: 21,
+                          color: _isFavorite
+                              ? scheme.error
+                              : Colors.white.withOpacity(0.92),
                         ),
                       ),
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
           // 歌名 / 歌手
@@ -213,8 +245,9 @@ class _MSCard extends State<MSCard> {
     bool playing,
   ) {
     final scheme = Theme.of(context).colorScheme;
+    // 未播放态使用主题 surface（暗色下是深色底 + 主色图标），避免暗色主题里出现刺眼的白块
     return Material(
-      color: playing ? scheme.primary : Colors.white,
+      color: playing ? scheme.primary : scheme.surface,
       shape: const CircleBorder(),
       elevation: 4,
       shadowColor: Colors.black26,
@@ -238,12 +271,25 @@ class _MSCard extends State<MSCard> {
               duration: const Duration(milliseconds: 220),
               transitionBuilder: (child, anim) =>
                   ScaleTransition(scale: anim, child: child),
-              child: Icon(
-                playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                key: ValueKey(playing),
-                size: 26,
-                color: playing ? scheme.onPrimary : scheme.primary,
-              ),
+              child: controller.loadingUrl.value == widget.url &&
+                      widget.url.isNotEmpty
+                  ? SizedBox(
+                      key: const ValueKey('buffering'),
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          playing ? scheme.onPrimary : scheme.primary,
+                        ),
+                      ),
+                    )
+                  : Icon(
+                      playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      key: ValueKey(playing),
+                      size: 26,
+                      color: playing ? scheme.onPrimary : scheme.primary,
+                    ),
             ),
           ),
         ),

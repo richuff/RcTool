@@ -8,6 +8,7 @@ import 'package:rctool/utils/notification_helper.dart';
 import 'package:rctool/utils/PermissionRequest/Index.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'controller/favorite_controller.dart';
 import 'controller/is_dark_controller.dart';
 import 'feature/theme/type_value.dart';
 import 'feature/theme/app_theme.dart';
@@ -36,6 +37,11 @@ class MyApp extends StatefulWidget {
 class _MyApp extends State<MyApp> {
   final IsDarkController isDarkController =
       Get.put(IsDarkController(), permanent: true);
+
+  /// 收藏状态全局只保留一个实例：此前每个卡片各自 Get.put 会不断替换实例，
+  /// 导致 GetBuilder 监听的是已被丢弃的控制器，点收藏后图标不会立即刷新。
+  final FavoriteController favoriteController =
+      Get.put(FavoriteController(), permanent: true);
   Locale appLocale = const Locale('zh', 'CN');
 
   @override
