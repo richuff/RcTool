@@ -2,6 +2,7 @@
 
 ![Static Badge](https://img.shields.io/badge/flutter-3.24.1-blue)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/richuff/RcTool)
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/richuff/badge.svg)](https://hub.xerj.org/contributors/richuff)
 
 一个基于 **Flutter** 的音乐播放器及 Live2D 项目。
 
