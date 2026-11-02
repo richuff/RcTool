@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class Live2DWebView extends StatelessWidget {
   final String assetPath;
   final double zoom;
+  final bool lipSync;
 
   const Live2DWebView({
     super.key,
     required this.assetPath,
     this.zoom = 1.0,
+    this.lipSync = false,
   });
 
   @override

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/feature/theme/type_value.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
@@ -30,10 +31,46 @@ class _LiveTodState extends State<LiveTod> {
   bool _showTips = true;
   double _zoom = _defaultZoom;
 
+  final MusicController _musicController = Get.find<MusicController>();
+
+  /// 口型联动开关（默认开），只在播放时真正驱动嘴部
+  bool _lipSync = true;
+  bool _wasPlaying = false;
+
   @override
   void initState() {
     super.initState();
     _loadZoom();
+    _loadLipSync();
+    _wasPlaying = _musicController.isplay.value;
+    _musicController.addListener(_onMusicChanged);
+  }
+
+  @override
+  void dispose() {
+    _musicController.removeListener(_onMusicChanged);
+    super.dispose();
+  }
+
+  /// 只关心「播放 / 暂停」的切换，避免每秒几十次进度回调触发重建
+  void _onMusicChanged() {
+    final playing = _musicController.isplay.value;
+    if (playing == _wasPlaying) return;
+    _wasPlaying = playing;
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadLipSync() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(live2dLipSyncKey);
+    if (!mounted || saved == null) return;
+    setState(() => _lipSync = saved);
+  }
+
+  Future<void> _toggleLipSync() async {
+    setState(() => _lipSync = !_lipSync);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(live2dLipSyncKey, _lipSync);
   }
 
   Future<void> _loadZoom() async {
@@ -68,6 +105,7 @@ class _LiveTodState extends State<LiveTod> {
               key: ValueKey(_reloadToken),
               assetPath: 'assets/live2d/viewer/index.html',
               zoom: _zoom,
+              lipSync: _lipSync && _wasPlaying,
             ),
           ),
           // 顶部渐隐，让 WebView 与应用栏自然衔接
@@ -123,6 +161,12 @@ class _LiveTodState extends State<LiveTod> {
               ),
             ),
           ),
+          // 口型联动开关
+          Positioned(
+            right: 16,
+            top: 14,
+            child: _lipSyncChip(scheme),
+          ),
           // 底部：互动提示 + 缩放条
           Positioned(
             left: 16,
@@ -161,8 +205,68 @@ class _LiveTodState extends State<LiveTod> {
     );
   }
 
-  Widget _tipsCard(ColorScheme scheme) {
-    return ClipRRect(
+  /// 口型联动开关：开启且正在播放时，嘴型会跟着音乐开合
+  Widget _lipSyncChip(ColorScheme scheme) {
+    final active = _lipSync && _wasPlaying;
+    final color = _lipSync ? scheme.primary : scheme.onSurfaceVariant;
+    return Tooltip(
+      message: _lipSync
+          ? '播放音乐时 Haru 会跟着一起唱，点此关闭'.tr
+          : '点此开启口型联动'.tr,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: _toggleLipSync,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: scheme.surface.withOpacity(_lipSync ? 0.9 : 0.7),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: _lipSync
+                    ? scheme.primary.withOpacity(0.42)
+                    : scheme.outline.withOpacity(0.2),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  active ? Icons.graphic_eq_rounded : Icons.voice_over_off,
+                  size: 14,
+                  color: color,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '口型联动'.tr,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+                if (active) ...[
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: scheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tipsCard(ColorScheme scheme) {    return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),

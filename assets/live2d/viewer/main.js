@@ -16,6 +16,19 @@ var MIN_ZOOM = 0.45;
 var MAX_ZOOM = 1.8;
 var zoom = 1.0;
 
+/**
+ * 口型联动：音频由 Flutter 原生播放器解码，WebView 拿不到音频采样，
+ * 所以这里用「音节包络」模拟说话的张口节奏（快张慢合 + 乐句起伏），
+ * 在每帧模型更新前写入 ParamMouthOpenY，暂停时平滑归零。
+ */
+var lipSyncEnabled = false;
+var lipSyncIntensity = 0.9;
+var mouthValue = 0;
+var mouthPhase = 0;
+var phrasePhase = 0;
+var mouthAttached = false;
+var lastMouthAt = 0;
+
 function post(payload) {
   if (typeof window.__rcPost === 'function') {
     window.__rcPost(payload);
@@ -113,8 +126,60 @@ function setZoom(value) {
   return zoom;
 }
 
-function scheduleFit() {
-  if (fitScheduled) return;
+/** 每帧（模型更新前）写入嘴部开合；暂停时平滑回到闭合 */
+function applyMouth() {
+  if (!model || !model.internalModel) return;
+  var core = model.internalModel.coreModel;
+  if (!core || typeof core.setParameterValueById !== 'function') return;
+
+  var now =
+    typeof performance !== 'undefined' && performance.now
+      ? performance.now()
+      : Date.now();
+  var dt = lastMouthAt ? Math.min((now - lastMouthAt) / 1000, 0.1) : 0.016;
+  lastMouthAt = now;
+
+  if (!lipSyncEnabled) {
+    mouthValue += (0 - mouthValue) * Math.min(1, dt * 10);
+    if (mouthValue < 0.002) mouthValue = 0;
+    if (mouthValue === 0) return;
+    try {
+      core.setParameterValueById('ParamMouthOpenY', mouthValue);
+    } catch (e) {
+      /* 没有该参数时忽略 */
+    }
+    return;
+  }
+
+  // 音节节奏：主频随乐句轻微变化，叠加两层谐波，避免机械的等幅开合
+  mouthPhase += dt * (7.4 + 2.6 * Math.sin(now / 1900));
+  phrasePhase += dt;
+  var phrase = 0.74 + 0.26 * Math.sin(phrasePhase * 0.85);
+  var tone = Math.pow(Math.abs(Math.sin(mouthPhase)), 1.5);
+  var wobble = 0.16 * Math.sin(mouthPhase * 2.7 + 1.3);
+  var target = (0.1 + 0.8 * tone + wobble) * phrase * lipSyncIntensity;
+  target = Math.min(1, Math.max(0, target));
+
+  // 张口快、闭口慢，看起来更像在唱而不是在抖
+  var speed = target > mouthValue ? 18 : 9;
+  mouthValue += (target - mouthValue) * Math.min(1, dt * speed);
+
+  try {
+    core.setParameterValueById('ParamMouthOpenY', mouthValue);
+  } catch (e) {
+    /* 没有该参数时忽略 */
+  }
+}
+
+/** 把口型写入挂到模型的生命周期上（模型更新前，动作与物理都已算完） */
+function attachMouthHook() {
+  if (!model || !model.internalModel || mouthAttached) return;
+  if (typeof model.internalModel.on !== 'function') return;
+  model.internalModel.on('beforeModelUpdate', applyMouth);
+  mouthAttached = true;
+}
+
+function scheduleFit() {  if (fitScheduled) return;
   fitScheduled = true;
   requestAnimationFrame(function () {
     fitScheduled = false;
@@ -202,6 +267,7 @@ async function loadModel(path) {
       /* 旧模型清理失败可忽略 */
     }
     model = null;
+    mouthAttached = false;
   }
 
   var Live2DModel = getLive2DModelClass();
@@ -215,6 +281,7 @@ async function loadModel(path) {
   app.stage.addChild(model);
 
   bindInteractions();
+  attachMouthHook();
   fitModelToStage();
   // 首帧尺寸可能还是 0，等一帧再校准一次
   requestAnimationFrame(function () {
@@ -244,6 +311,17 @@ window.live2dBridge = {
   setZoom: setZoom,
   getZoom: function () {
     return zoom;
+  },
+  setLipSync: function (enabled, intensity) {
+    lipSyncEnabled = !!enabled;
+    if (typeof intensity === 'number' && isFinite(intensity)) {
+      lipSyncIntensity = Math.min(1, Math.max(0.2, intensity));
+    }
+    if (lipSyncEnabled) attachMouthHook();
+    return lipSyncEnabled;
+  },
+  getLipSync: function () {
+    return lipSyncEnabled;
   },
   refit: fitModelToStage
 };

@@ -20,10 +20,14 @@ class Live2DWebView extends StatefulWidget {
   /// 模型缩放倍率（1 表示完整贴合画面），由页面滑块控制。
   final double zoom;
 
+  /// 口型联动：播放音乐时让模型嘴部跟着节奏动
+  final bool lipSync;
+
   const Live2DWebView({
     super.key,
     required this.assetPath,
     this.zoom = 1.0,
+    this.lipSync = false,
   });
 
   @override
@@ -56,6 +60,9 @@ class _Live2DWebViewState extends State<Live2DWebView> {
     if (oldWidget.zoom != widget.zoom) {
       _applyZoom();
     }
+    if (oldWidget.lipSync != widget.lipSync) {
+      _applyLipSync();
+    }
   }
 
   /// 把缩放值推给页面脚本；页面尚未加载完成时静默忽略，
@@ -64,6 +71,14 @@ class _Live2DWebViewState extends State<Live2DWebView> {
     final value = widget.zoom.toStringAsFixed(3);
     await _runJavaScript(
       'window.live2dBridge && window.live2dBridge.setZoom($value);',
+    );
+  }
+
+  /// 同步口型联动开关
+  Future<void> _applyLipSync() async {
+    await _runJavaScript(
+      'window.live2dBridge && '
+      'window.live2dBridge.setLipSync(${widget.lipSync});',
     );
   }
 
@@ -216,8 +231,9 @@ class _Live2DWebViewState extends State<Live2DWebView> {
           _error = null;
           _progress = 1;
         });
-        // 模型就绪后再同步一次缩放，避免冷启动时滑块值丢失
+        // 模型就绪后再同步一次缩放与口型开关，避免冷启动时状态丢失
         _applyZoom();
+        _applyLipSync();
         break;
       case 'error':
         _timeoutTimer?.cancel();
