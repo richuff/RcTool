@@ -26,7 +26,7 @@ class NowPlayingBar extends StatefulWidget {
 }
 
 class _NowPlayingBarState extends State<NowPlayingBar> {
-  final MusicController controller = Get.put(MusicController());
+  final MusicController controller = Get.find<MusicController>();
   StreamSubscription<Duration>? _positionSubscription;
   double _progress = 0;
 
@@ -95,7 +95,7 @@ class _NowPlayingBarState extends State<NowPlayingBar> {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => Get.toNamed(RoutePath.MUSIC),
+                  onTap: () => Get.toNamed(RoutePath.PLAYER),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -113,18 +113,21 @@ class _NowPlayingBarState extends State<NowPlayingBar> {
                         padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
                         child: Row(
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: current.imageUrl.isNotEmpty
-                                  ? Image.network(
-                                      current.imageUrl,
-                                      width: 42,
-                                      height: 42,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
-                                          _coverFallback(scheme),
-                                    )
-                                  : _coverFallback(scheme),
+                            Hero(
+                              tag: 'now-playing-cover',
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: current.imageUrl.isNotEmpty
+                                    ? Image.network(
+                                        current.imageUrl,
+                                        width: 42,
+                                        height: 42,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) =>
+                                            _coverFallback(scheme),
+                                      )
+                                    : _coverFallback(scheme),
+                              ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(

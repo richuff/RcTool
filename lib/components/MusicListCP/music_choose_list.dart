@@ -12,7 +12,7 @@ import 'package:rctool/widget/song_row.dart';
 /// @Author richuff
 /// @Version 2.0
 class MusicChooseList extends StatelessWidget {
-  final MusicController musicController = Get.put(MusicController());
+  final MusicController musicController = Get.find<MusicController>();
 
   MusicChooseList({super.key});
 
@@ -22,39 +22,78 @@ class MusicChooseList extends StatelessWidget {
     return GetBuilder<MusicController>(
       builder: (controller) {
         final list = controller.musiclist.whereType<Music>().toList();
-        return ListView(
+        final header = _queueCard(context, controller, list);
+
+        if (list.isEmpty) {
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(6, 10, 6, 18),
+            children: [header, _emptyState(scheme)],
+          );
+        }
+
+        // 长按任意歌曲即可拖动排序；播放索引会跟随当前歌曲移动
+        return ReorderableListView.builder(
           padding: const EdgeInsets.fromLTRB(6, 10, 6, 18),
-          children: [
-            _queueCard(context, controller, list),
-            if (list.isEmpty)
-              _emptyState(scheme)
-            else
-              ...list.asMap().entries.map((entry) {
-                final music = entry.value;
-                return SlideFadeIn(
-                  delay:
-                      Duration(milliseconds: (entry.key * 30).clamp(0, 240)),
-                  offset: const Offset(0, 10),
-                  child: SongRow(
-                    music: music,
-                    index: entry.key,
-                    playing: controller.isPlayingMusic(music),
-                    loading: controller.loadingUrl.value == music.url &&
-                        controller.loadingUrl.value.isNotEmpty,
-                    onPlayToggle: () =>
-                        musicController.playOrPauseMusic(music),
-                    onMore: () => showSongActions(
-                      context,
-                      music,
-                      removeLabel: '从播放队列移除'.tr,
-                      onRemove: () => musicController.dec(music),
-                    ),
-                  ),
+          header: header,
+          buildDefaultDragHandles: false,
+          itemCount: list.length,
+          onReorder: controller.reorderQueue,
+          proxyDecorator: (child, index, animation) {
+            return AnimatedBuilder(
+              animation: animation,
+              builder: (context, _) {
+                final t = Curves.easeOut.transform(animation.value);
+                return Material(
+                  color: Colors.transparent,
+                  elevation: 8 * t,
+                  shadowColor: scheme.shadow.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(16),
+                  child: child,
                 );
-              }),
-          ],
+              },
+            );
+          },
+          itemBuilder: (context, index) {
+            final music = list[index];
+            return ReorderableDelayedDragStartListener(
+              key: ValueKey('queue-${music.url}-$index'),
+              index: index,
+              child: SongRow(
+                music: music,
+                index: index,
+                playing: controller.isPlayingMusic(music),
+                loading: controller.loadingUrl.value == music.url &&
+                    controller.loadingUrl.value.isNotEmpty,
+                onPlayToggle: () => controller.playOrPauseMusic(music),
+                onMore: () => showSongActions(
+                  context,
+                  music,
+                  removeLabel: '从播放队列移除'.tr,
+                  onRemove: () => _removeWithUndo(controller, music),
+                ),
+              ),
+            );
+          },
         );
       },
+    );
+  }
+
+  /// 移除后给出「撤销」入口，避免误删还要回去重新找歌
+  Future<void> _removeWithUndo(MusicController controller, Music music) async {
+    final index = controller.musiclist.indexOf(music);
+    if (index < 0) return;
+    final removed = controller.removeAt(index);
+    if (removed == null) return;
+    Get.snackbar(
+      '已从队列移除'.tr,
+      removed.songName,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 4),
+      mainButton: TextButton(
+        onPressed: () => controller.insertAt(index, removed),
+        child: Text('撤销'.tr),
+      ),
     );
   }
 
@@ -125,8 +164,8 @@ class MusicChooseList extends StatelessWidget {
                     Text(
                       count == 0
                           ? '队列里还没有歌曲'.tr
-                          : '共 @count 首 · 正在播放第 @index 首'
-                              .trParams({'count': '$count', 'index': '$current'}),
+                          : '共 @count 首 · 正在播放第 @index 首'.trParams(
+                              {'count': '$count', 'index': '$current'}),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -149,6 +188,24 @@ class MusicChooseList extends StatelessWidget {
                 ),
             ],
           ),
+          if (count > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.drag_indicator_rounded,
+                      size: 14, color: scheme.onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Text(
+                    '长按歌曲可拖动排序'.tr,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 12),
           Row(
             children: [

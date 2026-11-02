@@ -24,10 +24,9 @@ class Ranking extends StatefulWidget {
 }
 
 class _Ranking extends State<Ranking> {
-  final MusicController musicController =
-      Get.put(MusicController(), permanent: true);
+  final MusicController musicController = Get.find<MusicController>();
   final FavoriteController favoriteController =
-      Get.put(FavoriteController(), permanent: true);
+      Get.find<FavoriteController>();
 
   List<Music> allMusic = [];
 

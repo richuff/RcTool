@@ -28,6 +28,9 @@ class SongRow extends StatelessWidget {
   /// 是否正在为该歌曲准备缓存（首次播放需要下载）。
   final bool loading;
 
+  /// 搜索关键词：命中时在歌名里高亮显示（大小写不敏感）。
+  final String? highlight;
+
   const SongRow({
     super.key,
     required this.music,
@@ -40,6 +43,7 @@ class SongRow extends StatelessWidget {
     this.index,
     this.onMore,
     this.loading = false,
+    this.highlight,
   });
 
   @override
@@ -127,17 +131,17 @@ class SongRow extends StatelessWidget {
                               const SizedBox(width: 3),
                             ],
                             Expanded(
-                              child: Text(
-                                music.songName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
+                              child: _HighlightedTitle(
+                                text: music.songName,
+                                keyword: highlight,
+                                baseStyle: TextStyle(
                                   fontSize: 14.5,
                                   fontWeight: FontWeight.w700,
                                   color: playing
                                       ? scheme.primary
                                       : scheme.onSurface,
                                 ),
+                                highlightColor: scheme.onPrimaryContainer,
                               ),
                             ),
                           ],
@@ -374,6 +378,77 @@ class _GhostButton extends StatelessWidget {
         padding: const EdgeInsets.all(7),
         child: Icon(icon, size: 19, color: color),
       ),
+    );
+  }
+}
+
+
+/// 歌名按关键词高亮：命中部分用主色淡底胶囊标出，其余保持原样式。
+class _HighlightedTitle extends StatelessWidget {
+  final String text;
+  final String? keyword;
+  final TextStyle baseStyle;
+  final Color highlightColor;
+
+  const _HighlightedTitle({
+    required this.text,
+    required this.keyword,
+    required this.baseStyle,
+    required this.highlightColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final query = (keyword ?? '').trim();
+    if (query.isEmpty) {
+      return Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: baseStyle,
+      );
+    }
+
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final spans = <TextSpan>[];
+    var start = 0;
+
+    while (start < text.length) {
+      final index = lowerText.indexOf(lowerQuery, start);
+      if (index < 0) {
+        spans.add(TextSpan(text: text.substring(start)));
+        break;
+      }
+      if (index > start) {
+        spans.add(TextSpan(text: text.substring(start, index)));
+      }
+      spans.add(
+        TextSpan(
+          text: text.substring(index, index + query.length),
+          style: TextStyle(
+            color: highlightColor,
+            backgroundColor: highlightColor.withOpacity(0.16),
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+      start = index + query.length;
+    }
+
+    if (spans.isEmpty) {
+      return Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: baseStyle,
+      );
+    }
+
+    return Text.rich(
+      TextSpan(style: baseStyle, children: spans),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

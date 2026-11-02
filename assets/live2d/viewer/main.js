@@ -11,6 +11,11 @@ var app = null;
 var model = null;
 var fitScheduled = false;
 
+// 缩放：Flutter 侧滑块通过 setZoom 调整，1 表示「完整贴合画面」
+var MIN_ZOOM = 0.45;
+var MAX_ZOOM = 1.8;
+var zoom = 1.0;
+
 function post(payload) {
   if (typeof window.__rcPost === 'function') {
     window.__rcPost(payload);
@@ -89,12 +94,23 @@ function fitModelToStage() {
 
   var modelWidth = model.width || 1;
   var modelHeight = model.height || 1;
-  // 0.9 让模型在竖屏上也不会被裁到头发/脚
-  var scale = Math.min(size.width / modelWidth, size.height / modelHeight) * 0.9;
+  // 0.86 先留出边距，再乘以用户缩放；竖屏下也不会裁到头发/脚
+  var scale =
+    Math.min(size.width / modelWidth, size.height / modelHeight) * 0.86 * zoom;
 
   model.scale.set(scale);
   model.anchor.set(0.5, 0.5);
-  model.position.set(size.width / 2, size.height * 0.58);
+  // 缩放变小时模型仍以画面偏下位置为锚点，视觉上更居中
+  model.position.set(size.width / 2, size.height * (0.56 + (1 - zoom) * 0.04));
+}
+
+/** 设置缩放倍率（0.45 ~ 1.8），返回实际生效值 */
+function setZoom(value) {
+  var next = Number(value);
+  if (!isFinite(next)) return zoom;
+  zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+  fitModelToStage();
+  return zoom;
 }
 
 function scheduleFit() {
@@ -225,6 +241,10 @@ window.live2dBridge = {
   },
   playMotion: playMotion,
   setExpression: setExpression,
+  setZoom: setZoom,
+  getZoom: function () {
+    return zoom;
+  },
   refit: fitModelToStage
 };
 

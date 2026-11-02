@@ -17,9 +17,13 @@ import 'live2d_asset_server.dart';
 class Live2DWebView extends StatefulWidget {
   final String assetPath;
 
+  /// 模型缩放倍率（1 表示完整贴合画面），由页面滑块控制。
+  final double zoom;
+
   const Live2DWebView({
     super.key,
     required this.assetPath,
+    this.zoom = 1.0,
   });
 
   @override
@@ -44,6 +48,36 @@ class _Live2DWebViewState extends State<Live2DWebView> {
     super.initState();
     _startTimeout();
     _initWebView();
+  }
+
+  @override
+  void didUpdateWidget(covariant Live2DWebView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.zoom != widget.zoom) {
+      _applyZoom();
+    }
+  }
+
+  /// 把缩放值推给页面脚本；页面尚未加载完成时静默忽略，
+  /// 加载完成后会在 ready 回调里再同步一次。
+  Future<void> _applyZoom() async {
+    final value = widget.zoom.toStringAsFixed(3);
+    await _runJavaScript(
+      'window.live2dBridge && window.live2dBridge.setZoom($value);',
+    );
+  }
+
+  Future<void> _runJavaScript(String script) async {
+    try {
+      final windowsController = _windowsController;
+      if (windowsController != null) {
+        await windowsController.executeScript(script);
+        return;
+      }
+      await _systemController?.runJavaScript(script);
+    } catch (_) {
+      // 页面还没就绪时执行失败属正常，ready 后会补一次
+    }
   }
 
   void _startTimeout() {
@@ -182,6 +216,8 @@ class _Live2DWebViewState extends State<Live2DWebView> {
           _error = null;
           _progress = 1;
         });
+        // 模型就绪后再同步一次缩放，避免冷启动时滑块值丢失
+        _applyZoom();
         break;
       case 'error':
         _timeoutTimer?.cancel();

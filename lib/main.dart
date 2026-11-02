@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'controller/favorite_controller.dart';
 import 'controller/is_dark_controller.dart';
+import 'controller/music_controller.dart';
 import 'feature/theme/type_value.dart';
 import 'feature/theme/app_theme.dart';
 
@@ -18,6 +19,12 @@ void main() async {
   /// @brief 初始化通知(NotificationHelper)
   final notificationHelper = NotificationHelper();
   await notificationHelper.initialize();
+  /// @brief 全局控制器：只注册一次，页面统一用 Get.find 取用。
+  ///        之前各页面各自 Get.put 会不断替换实例，导致跨页面状态不同步。
+  Get.put(MusicController(), permanent: true);
+  Get.put(IsDarkController(), permanent: true);
+  Get.put(FavoriteController(), permanent: true);
+
   /// @brief 用户入口
   runApp(const MyApp());
 }
@@ -35,13 +42,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyApp extends State<MyApp> {
-  final IsDarkController isDarkController =
-      Get.put(IsDarkController(), permanent: true);
+  final IsDarkController isDarkController = Get.find<IsDarkController>();
 
   /// 收藏状态全局只保留一个实例：此前每个卡片各自 Get.put 会不断替换实例，
   /// 导致 GetBuilder 监听的是已被丢弃的控制器，点收藏后图标不会立即刷新。
-  final FavoriteController favoriteController =
-      Get.put(FavoriteController(), permanent: true);
+  final FavoriteController favoriteController = Get.find<FavoriteController>();
   Locale appLocale = const Locale('zh', 'CN');
 
   @override

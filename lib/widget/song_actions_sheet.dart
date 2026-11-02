@@ -245,9 +245,8 @@ class _PlaylistPickerSheet extends StatefulWidget {
 }
 
 class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
-  final FavoriteController favoriteController = Get.isRegistered<FavoriteController>()
-      ? Get.find<FavoriteController>()
-      : Get.put(FavoriteController());
+  final FavoriteController favoriteController =
+      Get.find<FavoriteController>();
 
   List<Playlist> _playlists = [];
   Set<int> _contained = {};

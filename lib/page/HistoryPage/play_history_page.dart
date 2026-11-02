@@ -17,8 +17,7 @@ class PlayHistoryPage extends StatefulWidget {
 }
 
 class _PlayHistoryPageState extends State<PlayHistoryPage> {
-  final MusicController musicController =
-      Get.put(MusicController(), permanent: true);
+  final MusicController musicController = Get.find<MusicController>();
   List<PlayHistory> history = [];
   bool loading = true;
 

@@ -20,8 +20,7 @@ class PlayStatsPage extends StatefulWidget {
 }
 
 class _PlayStatsPageState extends State<PlayStatsPage> {
-  final MusicController musicController =
-      Get.put(MusicController(), permanent: true);
+  final MusicController musicController = Get.find<MusicController>();
   Map<String, int> overview = const {'total': 0, 'unique': 0, 'today': 0};
   List<PlayedSongSummary> topSongs = [];
   List<int> dailyCounts = List.filled(7, 0);

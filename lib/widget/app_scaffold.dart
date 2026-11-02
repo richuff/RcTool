@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:rctool/feature/design/icon_button_no_ripple.dart';
+import 'package:rctool/routers/route_path.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/main_drawer.dart';
 import 'package:rctool/widget/search_widget.dart';
@@ -67,6 +69,22 @@ class AppScaffold extends StatelessWidget {
               ),
         centerTitle: false,
         actions: [
+          // 曲库搜索入口（歌名 / 歌手）
+          Padding(
+            padding: const EdgeInsets.only(right: 2),
+            child: IconButtonNoRipple(
+              hoverColor: scheme.primaryContainer,
+              focusColor: scheme.primaryContainer,
+              highlightColor: scheme.secondaryContainer,
+              tooltip: '搜索'.tr,
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+              onPressed: () => Get.toNamed(RoutePath.SEARCH),
+              icon: Icon(Icons.search_rounded,
+                  size: 22, color: scheme.onSurface),
+            ),
+          ),
           const SearchWidget(),
           ...?actions,
           const SizedBox(width: 6),

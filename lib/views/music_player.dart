@@ -23,7 +23,7 @@ class MusicPlayer extends StatefulWidget {
 }
 
 class _MusicCard extends State<MusicPlayer> {
-  MusicController musicController = Get.put(MusicController());
+  MusicController musicController = Get.find<MusicController>();
 
   List<Music> msList = [];
   bool isEmpty = true;

@@ -28,11 +28,8 @@ class EverydayList extends StatefulWidget {
 }
 
 class _EverydayList extends State<EverydayList> {
-  final MusicController musicController = Get.put(MusicController());
-  final FavoriteController favoriteController =
-      Get.isRegistered<FavoriteController>()
-          ? Get.find<FavoriteController>()
-          : Get.put(FavoriteController());
+  final MusicController musicController = Get.find<MusicController>();
+  final FavoriteController favoriteController = Get.find<FavoriteController>();
 
   /// 今日推荐的歌曲（已写入曲库，带真实 id），收藏/播放都基于它
   List<Music> _todayMusic = [];

@@ -27,6 +27,10 @@
 - **缓存占用显示**：设置页的「缓存优先」与「清除音乐缓存」会显示当前缓存大小（`lib/utils/cache_size.dart` 直接统计缓存目录文件总大小，格式化后以 MB/KB 展示），清除后自动刷新为 0。
 - **完成监听**：`onPlayerComplete` 自动续播下一首（`playNextLocal()`）。
 - **播放设置**：音量、播放模式、通知开关、缓存优先都会持久化到 `SharedPreferences`，启动时由 `MusicController` 恢复。
+- **控制器单例**：`MusicController` / `FavoriteController` / `IsDarkController` 在 `main()` 里各注册一次（`permanent: true`），页面统一 `Get.find`。此前各页面 `Get.put` 会替换实例，导致进度、收藏、队列跨页面不同步。
+- **全屏播放页**（`lib/page/PlayerPage/now_playing_page.dart`）：点迷你播放条进入，封面虚化取色做背景、大封面 Hero 过渡、进度可拖动、播放模式/上一首/播放暂停/下一首/队列一屏操作，下滑手势收起。
+- **队列拖拽排序**：播放队列用 `ReorderableListView`，长按任意歌曲即可拖动；`reorderQueue()` 会让播放索引跟随当前歌曲移动，不会串音。移除歌曲后 SnackBar 提供「撤销」（`removeAt` / `insertAt`）。
+- **曲库搜索**（`lib/page/SearchPage/search_page.dart`）：按歌名 / 歌手实时过滤本地曲库，命中关键词高亮（`SongRow.highlight`），记录最近搜索（最多 10 条，可清空），支持整组播放与单曲「…」操作。入口在每页 AppBar 的放大镜。
 
 > 数据模型上，一首 `Music` 持有 `url`（音频地址）、`imageUrl`（封面）、`songName`（歌名）、`decoration`（描述 / 歌手等），因此播放既支持远程 URL，也兼容本地路径。
 

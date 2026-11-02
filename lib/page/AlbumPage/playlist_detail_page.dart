@@ -30,11 +30,9 @@ class PlaylistDetailPage extends StatefulWidget {
 }
 
 class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
-  final MusicController musicController = Get.put(MusicController());
+  final MusicController musicController = Get.find<MusicController>();
   final FavoriteController favoriteController =
-      Get.isRegistered<FavoriteController>()
-          ? Get.find<FavoriteController>()
-          : Get.put(FavoriteController());
+      Get.find<FavoriteController>();
 
   List<Music> _musicList = [];
   bool _loading = true;

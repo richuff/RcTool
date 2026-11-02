@@ -6,3 +6,5 @@ const String countryCodeKey = "countryCodeKey";
 const String themeModeKey = "themeModeKey";
 const String playModeKey = "playModeKey";
 const String volumeKey = "volumeKey";
+const String live2dZoomKey = "live2dZoomKey";
+const String searchHistoryKey = "searchHistoryKey";

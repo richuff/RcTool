@@ -36,11 +36,9 @@ class MSCard extends StatefulWidget {
 
 class _MSCard extends State<MSCard> {
   final NotificationHelper notificationHelper = NotificationHelper();
-  final MusicController musicController = Get.put(MusicController());
+  final MusicController musicController = Get.find<MusicController>();
   final FavoriteController favoriteController =
-      Get.isRegistered<FavoriteController>()
-          ? Get.find<FavoriteController>()
-          : Get.put(FavoriteController(), permanent: true);
+      Get.find<FavoriteController>();
 
   /// 本地收藏态：点击时立刻翻转，避免等待数据库与控制器刷新才变红。
   bool _isFavorite = false;

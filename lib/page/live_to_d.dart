@@ -2,14 +2,16 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rctool/feature/theme/type_value.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 import 'package:rctool/widget/live2d/live2d_webview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// @ClassName LiveTod
-/// @Description Live2D 页：WebView 全屏展示模型，叠加模型信息、互动提示与重新加载入口。
+/// @Description Live2D 页：WebView 全屏展示模型，叠加模型信息、缩放条、互动提示与重新加载入口。
 /// @Author richuff
-/// @Version 2.0
+/// @Version 2.1
 class LiveTod extends StatefulWidget {
   const LiveTod({super.key});
 
@@ -18,9 +20,41 @@ class LiveTod extends StatefulWidget {
 }
 
 class _LiveTodState extends State<LiveTod> {
+  /// 默认缩放：整屏贴合会显得过大，留出边距看起来更自然
+  static const double _defaultZoom = 0.8;
+  static const double _minZoom = 0.45;
+  static const double _maxZoom = 1.6;
+
   /// 改变该值即可重建 WebView，实现「重新加载」。
   int _reloadToken = 0;
   bool _showTips = true;
+  double _zoom = _defaultZoom;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadZoom();
+  }
+
+  Future<void> _loadZoom() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getDouble(live2dZoomKey);
+    if (!mounted || saved == null) return;
+    setState(() {
+      _zoom = saved.clamp(_minZoom, _maxZoom).toDouble();
+    });
+  }
+
+  Future<void> _saveZoom() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(live2dZoomKey, _zoom);
+  }
+
+  void _setZoom(double value) {
+    final next = value.clamp(_minZoom, _maxZoom).toDouble();
+    if (next == _zoom) return;
+    setState(() => _zoom = next);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +67,7 @@ class _LiveTodState extends State<LiveTod> {
             child: Live2DWebView(
               key: ValueKey(_reloadToken),
               assetPath: 'assets/live2d/viewer/index.html',
+              zoom: _zoom,
             ),
           ),
           // 顶部渐隐，让 WebView 与应用栏自然衔接
@@ -67,8 +102,7 @@ class _LiveTodState extends State<LiveTod> {
                 decoration: BoxDecoration(
                   color: scheme.surface.withOpacity(0.86),
                   borderRadius: BorderRadius.circular(20),
-                  border:
-                      Border.all(color: scheme.outline.withOpacity(0.2)),
+                  border: Border.all(color: scheme.outline.withOpacity(0.2)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -89,115 +123,243 @@ class _LiveTodState extends State<LiveTod> {
               ),
             ),
           ),
-          // 互动提示卡
+          // 底部：互动提示 + 缩放条
           Positioned(
             left: 16,
             right: 16,
             bottom: 16,
-            child: AnimatedSlide(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeOutCubic,
-              offset: _showTips ? Offset.zero : const Offset(0, 1.2),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 220),
-                opacity: _showTips ? 1 : 0,
-                child: IgnorePointer(
-                  ignoring: !_showTips,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-                        decoration: BoxDecoration(
-                          color: scheme.surface.withOpacity(0.78),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: scheme.outline.withOpacity(0.22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.bottomCenter,
+                  child: _showTips
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _tipsCard(scheme),
+                            const SizedBox(height: 10),
+                          ],
+                        )
+                      : Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _tipsButton(scheme),
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: scheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(Icons.touch_app_outlined,
-                                  size: 20, color: scheme.onPrimaryContainer),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '互动提示'.tr,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: scheme.onSurface,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '拖动模型身体可以切换动作，视线会跟随指针'.tr,
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      height: 1.4,
-                                      color: scheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: '重新加载'.tr,
-                              onPressed: () {
-                                setState(() {
-                                  _reloadToken++;
-                                  _showTips = true;
-                                });
-                              },
-                              icon: Icon(Icons.refresh_rounded,
-                                  color: scheme.onSurfaceVariant),
-                            ),
-                            IconButton(
-                              tooltip: '收起提示'.tr,
-                              onPressed: () => setState(() => _showTips = false),
-                              icon: Icon(Icons.close_rounded,
-                                  size: 20, color: scheme.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
+                ),
+                _zoomBar(scheme),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tipsCard(ColorScheme scheme) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+          decoration: BoxDecoration(
+            color: scheme.surface.withOpacity(0.78),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: scheme.outline.withOpacity(0.22)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.touch_app_outlined,
+                    size: 20, color: scheme.onPrimaryContainer),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '互动提示'.tr,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '拖动模型身体可以切换动作，视线会跟随指针'.tr,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        height: 1.4,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: '重新加载'.tr,
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  setState(() {
+                    _reloadToken++;
+                    _showTips = true;
+                  });
+                },
+                icon: Icon(Icons.refresh_rounded,
+                    color: scheme.onSurfaceVariant),
+              ),
+              IconButton(
+                tooltip: '收起提示'.tr,
+                visualDensity: VisualDensity.compact,
+                onPressed: () => setState(() => _showTips = false),
+                icon: Icon(Icons.close_rounded,
+                    size: 20, color: scheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tipsButton(ColorScheme scheme) {
+    return Material(
+      color: scheme.surface.withOpacity(0.9),
+      shape: const CircleBorder(),
+      elevation: 3,
+      shadowColor: scheme.shadow,
+      child: IconButton(
+        tooltip: '互动提示'.tr,
+        visualDensity: VisualDensity.compact,
+        onPressed: () => setState(() => _showTips = true),
+        icon: Icon(Icons.help_outline_rounded, color: scheme.primary),
+      ),
+    );
+  }
+
+  /// 缩放条：− / 滑块 / ＋，右侧显示百分比（点击恢复默认大小）
+  Widget _zoomBar(ColorScheme scheme) {
+    final percent = (_zoom * 100).round();
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          height: 46,
+          padding: const EdgeInsets.fromLTRB(4, 0, 10, 0),
+          decoration: BoxDecoration(
+            color: scheme.surface.withOpacity(0.82),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: scheme.outline.withOpacity(0.2)),
+          ),
+          child: Row(
+            children: [
+              _zoomIconButton(
+                scheme,
+                icon: Icons.remove_rounded,
+                tooltip: '缩小'.tr,
+                onPressed: () {
+                  _setZoom(_zoom - 0.1);
+                  _saveZoom();
+                },
+              ),
+              Expanded(
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 3,
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 7),
+                    overlayShape:
+                        const RoundSliderOverlayShape(overlayRadius: 14),
+                    activeTrackColor: scheme.primary,
+                    inactiveTrackColor: scheme.surfaceContainerHighest,
+                    thumbColor: scheme.primary,
+                    overlayColor: scheme.primary.withOpacity(0.12),
+                  ),
+                  child: Slider(
+                    value: _zoom.clamp(_minZoom, _maxZoom).toDouble(),
+                    min: _minZoom,
+                    max: _maxZoom,
+                    onChanged: _setZoom,
+                    onChangeEnd: (_) => _saveZoom(),
+                  ),
+                ),
+              ),
+              _zoomIconButton(
+                scheme,
+                icon: Icons.add_rounded,
+                tooltip: '放大'.tr,
+                onPressed: () {
+                  _setZoom(_zoom + 0.1);
+                  _saveZoom();
+                },
+              ),
+              const SizedBox(width: 4),
+              Tooltip(
+                message: '恢复到默认大小'.tr,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    _setZoom(_defaultZoom);
+                    _saveZoom();
+                  },
+                  child: Container(
+                    width: 46,
+                    height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: scheme.primaryContainer.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$percent%',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: scheme.onPrimaryContainer,
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-          // 收起后的小提示按钮
-          if (!_showTips)
-            Positioned(
-              right: 16,
-              bottom: 16,
-              child: Material(
-                color: scheme.surface.withOpacity(0.9),
-                shape: const CircleBorder(),
-                elevation: 3,
-                shadowColor: scheme.shadow,
-                child: IconButton(
-                  tooltip: '互动提示'.tr,
-                  onPressed: () => setState(() => _showTips = true),
-                  icon: Icon(Icons.help_outline_rounded, color: scheme.primary),
-                ),
-              ),
-            ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _zoomIconButton(
+    ColorScheme scheme, {
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onPressed,
+        child: SizedBox(
+          width: 34,
+          height: 34,
+          child: Icon(icon, size: 19, color: scheme.onSurfaceVariant),
+        ),
       ),
     );
   }

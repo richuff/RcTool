@@ -15,17 +15,18 @@ class MusicPage extends StatefulWidget {
 }
 
 class _MusicPage extends State<MusicPage> {
-  final MusicController musicController =
-      Get.put(MusicController(), permanent: true);
+  final MusicController musicController = Get.find<MusicController>();
   bool? isPlayNow;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _readData();
-      _loadMusicList();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _init());
+  }
+
+  Future<void> _init() async {
+    await _readData();
+    await _loadMusicList();
   }
 
   Future<void> _readData() async {
@@ -34,8 +35,13 @@ class _MusicPage extends State<MusicPage> {
   }
 
   Future<void> _loadMusicList() async {
-    musicController.musiclist.value = await MusicConn.queryAll();
-    if (isPlayNow == true || musicController.isplay.isTrue) {
+    // 队列已存在时不再用曲库覆盖：否则用户排好的顺序、增删都会在进入页面时丢失
+    if (musicController.musiclist.isEmpty) {
+      musicController.musiclist.value = await MusicConn.queryAll();
+    }
+    if (musicController.isplay.isTrue) {
+      // 正在播放就保持现状，避免重进页面把当前歌曲从头再播一遍
+    } else if (isPlayNow == true) {
       musicController.playAway();
     } else {
       musicController.onPause();

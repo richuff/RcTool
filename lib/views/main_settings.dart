@@ -18,10 +18,8 @@ class MainSettings extends StatefulWidget {
 }
 
 class _MainSettingsState extends State<MainSettings> {
-  final IsDarkController themeController =
-      Get.put(IsDarkController(), permanent: true);
-  final MusicController musicController =
-      Get.put(MusicController(), permanent: true);
+  final IsDarkController themeController = Get.find<IsDarkController>();
+  final MusicController musicController = Get.find<MusicController>();
 
   bool autoPlay = false;
   bool musicNotification = true;

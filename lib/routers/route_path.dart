@@ -21,4 +21,10 @@ class RoutePath{
   static const String HISTORY = "/history";
 
   static const String STATS = "/stats";
+
+  /// 全屏播放页
+  static const String PLAYER = "/player";
+
+  /// 曲库搜索
+  static const String SEARCH = "/search";
 }

@@ -26,7 +26,7 @@ class SearchWidget extends StatefulWidget {
 }
 
 class _SearchWidget extends State<SearchWidget> {
-  IsDarkController isDarkController = Get.put(IsDarkController());
+  IsDarkController isDarkController = Get.find<IsDarkController>();
   bool autoPlay = false;
   bool musicNotification = true;
   bool cacheFirst = true;

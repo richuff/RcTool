@@ -222,6 +222,27 @@ class MyMessage extends Translations {
           '今日推荐还没有准备好，稍后再试': "今日推荐还没有准备好，稍后再试",
 
           '共 @count 首': "共 @count 首",
+
+          '@index / @count': "@index / @count",
+          '全部歌曲': "全部歌曲",
+          '去每日推荐或歌单里挑一首吧': "去每日推荐或歌单里挑一首吧",
+          '已从队列移除': "已从队列移除",
+          '恢复到默认大小': "恢复到默认大小",
+          '找到 @count 首': "找到 @count 首",
+          '搜索': "搜索",
+          '搜索歌名或歌手': "搜索歌名或歌手",
+          '撤销': "撤销",
+          '收起': "收起",
+          '放大': "放大",
+          '曲库里还没有歌曲': "曲库里还没有歌曲",
+          '更多操作': "更多操作",
+          '最近搜索': "最近搜索",
+          '正在播放': "正在播放",
+          '没有找到匹配的歌曲': "没有找到匹配的歌曲",
+          '缩小': "缩小",
+          '返回': "返回",
+
+          '长按歌曲可拖动排序': "长按歌曲可拖动排序",
         },
         'ja_JP': {
           // 通用
@@ -436,6 +457,27 @@ class MyMessage extends Translations {
           '今日推荐还没有准备好，稍后再试': "本日のおすすめはまだ準備中です",
 
           '共 @count 首': "@count songs",
+
+          '@index / @count': "@index / @count",
+          '全部歌曲': "すべての曲",
+          '去每日推荐或歌单里挑一首吧': "おすすめやプレイリストから選びましょう",
+          '已从队列移除': "キューから削除しました",
+          '恢复到默认大小': "既定のサイズに戻す",
+          '找到 @count 首': "@count 曲見つかりました",
+          '搜索': "検索",
+          '搜索歌名或歌手': "曲名・アーティストを検索",
+          '撤销': "元に戻す",
+          '收起': "閉じる",
+          '放大': "拡大",
+          '曲库里还没有歌曲': "ライブラリに曲がありません",
+          '更多操作': "その他の操作",
+          '最近搜索': "最近の検索",
+          '正在播放': "再生中",
+          '没有找到匹配的歌曲': "一致する曲が見つかりません",
+          '缩小': "縮小",
+          '返回': "戻る",
+
+          '长按歌曲可拖动排序': "長押しで並べ替え",
         },
         'en_US': {
           // Common
@@ -650,6 +692,27 @@ class MyMessage extends Translations {
           '今日推荐还没有准备好，稍后再试': "Today's picks aren't ready yet, try again later",
 
           '共 @count 首': "全 @count 曲",
+
+          '@index / @count': "@index / @count",
+          '全部歌曲': "All songs",
+          '去每日推荐或歌单里挑一首吧': "Pick one from daily picks or a playlist",
+          '已从队列移除': "Removed from queue",
+          '恢复到默认大小': "Reset to default size",
+          '找到 @count 首': "@count songs found",
+          '搜索': "Search",
+          '搜索歌名或歌手': "Search songs or artists",
+          '撤销': "Undo",
+          '收起': "Close",
+          '放大': "Zoom in",
+          '曲库里还没有歌曲': "Your library is empty",
+          '更多操作': "More actions",
+          '最近搜索': "Recent searches",
+          '正在播放': "Now playing",
+          '没有找到匹配的歌曲': "No matching songs found",
+          '缩小': "Zoom out",
+          '返回': "Back",
+
+          '长按歌曲可拖动排序': "Press and hold a song to reorder",
         }
       };
 }

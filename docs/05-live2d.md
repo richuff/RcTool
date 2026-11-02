@@ -49,12 +49,14 @@ export 'live2d_webview_stub.dart'
 ## 4. 交互与联动
 
 - **触摸交互**：用户点击 / 拖拽角色，触发对应 `motions` 动作或 `expressions` 表情。
+- **缩放控制**：`live_to_d.dart` 底部缩放条（− / 滑块 / ＋ / 百分比）把倍率传给 `Live2DWebView(zoom:)`，Flutter 侧通过 JS 桥调用 `window.live2dBridge.setZoom(value)`；`fitModelToStage()` 里以 `0.86 * zoom` 计算缩放，默认 0.8（整屏贴合会显得过大），范围 0.45–1.6，倍率持久化到 `SharedPreferences`（`live2dZoomKey`）。模型未加载完成时的调用会被忽略，`ready` 回调里会再同步一次。
+- **状态回传**：`window.__rcPost({type: progress|ready|error, ...})` 经 `RcLive2DBridge`（Android）或 `chrome.webview.postMessage`（Windows）回传，Flutter 据此显示进度浮层、失败原因与重试入口。
 - **音频联动**：播放页 / Live2D 页可将 `MusicController` 的播放状态、节奏信息传递给 Web 端，驱动角色动作随音乐变化（具体桥接逻辑见 `live_to_d.dart` 与 viewer 配置）。
 
 ## 5. 新增模型步骤
 
 1. 将新模型目录放到 `assets/live2d/models/<ModelName>/`，确保包含 `.model3.json` 及配套 `moc3 / 贴图 / motions / expressions`。
-2. 在 `pubspec.yaml` 的 `assets` 中确认 `assets/live2d/models/` 已声明（目录级声明即可包含子目录）。
+2. 在 `pubspec.yaml` 的 `assets` 中声明资源。**注意 Flutter 的目录声明只收该目录下的直接文件，不递归子目录**——必须把 `viewer/vendor/`、`models/<Model>/`、`<Model>.2048/`、`expressions/`、`motions/` 逐个列出，否则运行库与模型不会被打进 APK，页面只会报「运行库未加载」。
 3. 在 viewer 的模型清单（或页面层）中登记新模型，供多角色切换使用。
 4. 若涉及多角色切换 UI，可参考 `main.dart` 中"多角色切换"的产品目标，在 `/livetod` 页面扩展选择逻辑。
 

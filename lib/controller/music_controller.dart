@@ -326,12 +326,76 @@ class MusicController extends GetxController {
     return (position.value - 1 + musiclist.length) % musiclist.length;
   }
 
-  dec(Music music){
-    musiclist.remove(music);
-    if (position.value > 0){
+  /// 当前播放的歌曲（队列为空时返回 null）
+  Music? get currentMusic {
+    if (musiclist.isEmpty) return null;
+    final index = position.value;
+    if (index < 0 || index >= musiclist.length) return null;
+    final item = musiclist[index];
+    return item is Music ? item : null;
+  }
+
+  /// 按索引移除队列歌曲，返回被移除的对象（供「撤销」使用）。
+  /// 移除当前播放项时保持播放索引不越界。
+  Music? removeAt(int index) {
+    if (index < 0 || index >= musiclist.length) return null;
+    final item = musiclist[index];
+    if (item is! Music) return null;
+    final wasCurrent = index == position.value;
+    musiclist.removeAt(index);
+    if (musiclist.isEmpty) {
+      position.value = 0;
+    } else if (wasCurrent) {
+      position.value = index.clamp(0, musiclist.length - 1).toInt();
+    } else if (index < position.value) {
       position.value = position.value - 1;
     }
     update();
+    return item;
+  }
+
+  /// 把歌曲插回队列（撤销移除）；插到当前位置之前的项不会打断播放。
+  void insertAt(int index, Music music) {
+    final target = index.clamp(0, musiclist.length).toInt();
+    musiclist.insert(target, music);
+    if (target <= position.value && musiclist.length > 1) {
+      position.value = position.value + 1;
+    }
+    update();
+  }
+
+  /// 拖拽排序：调整队列顺序后，播放索引跟随原当前歌曲移动，不会串音。
+  void reorderQueue(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= musiclist.length) return;
+    var target = newIndex;
+    if (target > oldIndex) target -= 1;
+    target = target.clamp(0, musiclist.length - 1).toInt();
+    if (target == oldIndex) return;
+
+    final current = currentMusic;
+    final item = musiclist.removeAt(oldIndex);
+    musiclist.insert(target, item);
+    if (current != null) {
+      final newPosition = musiclist.indexOf(current);
+      if (newPosition >= 0) position.value = newPosition;
+    }
+    update();
+  }
+
+  dec(Music music) {
+    final index = musiclist.indexOf(music);
+    if (index < 0) return;
+    removeAt(index);
+  }
+
+  /// 按比例跳转播放进度（0~1）
+  Future<void> seekToFraction(double fraction) async {
+    final total = totalDuration;
+    if (total == null || total.inMilliseconds <= 0) return;
+    final target = Duration(
+      milliseconds: (total.inMilliseconds * fraction.clamp(0.0, 1.0)).round(),
+    );
+    await player.seek(target);
   }
 
   /// 清空播放队列：停止播放并重置进度，不影响曲库与歌单。
