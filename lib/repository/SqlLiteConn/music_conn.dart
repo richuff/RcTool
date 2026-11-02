@@ -24,21 +24,36 @@ class MusicConn {
       String songName,
       String decoration,
       ) async {
-    // 关键：id 传 null，让数据库自动生成
-    Music music = Music(null, url, imageUrl, songName, decoration);
-
-
     final db = await SqlLiteConn.dataBase;
-    final List<Map<String, Object?>> musicList = await db.query(
+
+    // 以音频 url 作为唯一标识去重：
+    // 同一首歌名可能对应不同音频，按 songName 去重会串音/覆盖；
+    // 同一首歌改了歌名又会被当成新歌重复导入。url 才是稳定的唯一键。
+    final List<Map<String, Object?>> existing = await db.query(
       'music',
-      where: 'songName = ?',
-      whereArgs: [songName],
+      where: 'url = ?',
+      whereArgs: [url],
+      limit: 1,
     );
 
-    if (musicList.isEmpty) {
-      return await insertMusic(music);
+    if (existing.isNotEmpty) {
+      final id = existing.first['id'] as int;
+      // 已存在则仅同步最新元数据（封面/歌名/描述），并复用原 id，避免产生重复行
+      await db.update(
+        'music',
+        {
+          'imageUrl': imageUrl,
+          'songName': songName,
+          'decoration': decoration,
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      return id;
     }
-    return musicList[0]['id'] as int;
+
+    // 不存在才插入，id 传 null 由数据库自增
+    return insertMusic(Music(null, url, imageUrl, songName, decoration));
   }
 
   static Future<List<Music>> queryByIds(List<int> ids) async {
@@ -53,7 +68,6 @@ class MusicConn {
       'music',
       where: 'id IN ($placeholders)',
       whereArgs: ids,
-      limit: 30,
     );
 
     return [
@@ -71,10 +85,8 @@ class MusicConn {
   static Future<List<Music>> queryAll() async {
     final db = await SqlLiteConn.dataBase;
 
-    final List<Map<String, Object?>> musicList = await db.query(
-      'music',
-      limit: 30,
-    );
+    // 查询全部歌曲，不再用 limit 截断，避免导入较多后被静默丢弃
+    final List<Map<String, Object?>> musicList = await db.query('music');
 
     return [
       for (final {

@@ -33,9 +33,10 @@ class FavoriteConn{
   static Future<List<Music>> queryFavoriteMusic() async {
     final db = await SqlLiteConn.dataBase;
 
+    // 收藏歌曲不再用 limit 截断，并按收藏时间倒序（最近收藏排在前面）
     final List<Map<String, Object?>> favoriteMusicList = await db.query(
       'favorite_music',
-      limit: 30,
+      orderBy: 'id DESC',
     );
     List<int> musicIds = [];
     for (var map in favoriteMusicList) {
