@@ -7,6 +7,7 @@ import 'package:rctool/controller/favorite_controller.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/routers/route_path.dart';
+import 'package:rctool/widget/lyric_view.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 
 /// @ClassName NowPlayingPage
@@ -26,6 +27,9 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
   final MusicController controller = Get.find<MusicController>();
 
   double _dragOffset = 0;
+
+  /// 封面 / 歌词两种视图：点封面看歌词，点歌词上的「封面」按钮切回
+  bool _showLyrics = false;
 
   Music? get _music => controller.currentMusic;
 
@@ -53,19 +57,24 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
     return Scaffold(
       backgroundColor: scheme.surface,
       body: GestureDetector(
-        onVerticalDragUpdate: (details) {
-          final next = _dragOffset + details.delta.dy;
-          if (next < 0) return;
-          setState(() => _dragOffset = next.clamp(0.0, 460.0));
-        },
-        onVerticalDragEnd: (details) {
-          final velocity = details.primaryVelocity ?? 0;
-          if (_dragOffset > 110 || velocity > 700) {
-            Get.back();
-            return;
-          }
-          setState(() => _dragOffset = 0);
-        },
+        // 歌词模式下竖直拖动交给列表滚动，避免和「下滑收起」抢手势
+        onVerticalDragUpdate: _showLyrics
+            ? null
+            : (details) {
+                final next = _dragOffset + details.delta.dy;
+                if (next < 0) return;
+                setState(() => _dragOffset = next.clamp(0.0, 460.0));
+              },
+        onVerticalDragEnd: _showLyrics
+            ? null
+            : (details) {
+                final velocity = details.primaryVelocity ?? 0;
+                if (_dragOffset > 110 || velocity > 700) {
+                  Get.back();
+                  return;
+                }
+                setState(() => _dragOffset = 0);
+              },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 140),
           curve: Curves.easeOut,
@@ -94,8 +103,26 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                     SafeArea(
                       child: Column(
                         children: [
-                          _topBar(scheme, music),
-                          Expanded(child: _cover(music, scheme)),
+                          _topBar(scheme),
+                          Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 260),
+                              switchInCurve: Curves.easeOut,
+                              switchOutCurve: Curves.easeIn,
+                              child: _showLyrics
+                                  ? LyricView(
+                                      key: ValueKey('lyrics-${music.url}'),
+                                      music: music,
+                                    )
+                                  : GestureDetector(
+                                      key: ValueKey('cover-${music.url}'),
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () => setState(
+                                          () => _showLyrics = true),
+                                      child: _cover(music, scheme),
+                                    ),
+                            ),
+                          ),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
                             child: _title(scheme, music),
@@ -138,7 +165,7 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
     );
   }
 
-  Widget _topBar(ColorScheme scheme, Music music) {
+  Widget _topBar(ColorScheme scheme) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
       child: Row(
@@ -177,9 +204,14 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
             ),
           ),
           IconButton(
-            tooltip: '更多操作'.tr,
-            onPressed: () => showSongActions(context, music),
-            icon: Icon(Icons.more_horiz_rounded, color: scheme.onSurface),
+            tooltip: _showLyrics ? '显示封面'.tr : '显示歌词'.tr,
+            onPressed: () => setState(() => _showLyrics = !_showLyrics),
+            icon: Icon(
+              _showLyrics
+                  ? Icons.album_rounded
+                  : Icons.lyrics_rounded,
+              color: _showLyrics ? scheme.primary : scheme.onSurface,
+            ),
           ),
           IconButton(
             tooltip: '播放队列'.tr,

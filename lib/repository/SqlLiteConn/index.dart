@@ -27,7 +27,7 @@ class SqlLiteConn {
 
       final db = await openDatabase(
         'music_database.db',
-        version: 6,
+        version: 7,
         // 外键是连接级会话设置，不会持久化，必须在每次打开连接时设置
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON;');
@@ -142,6 +142,16 @@ class SqlLiteConn {
     await db.execute('''
       CREATE INDEX IF NOT EXISTS idx_play_history_played_at
       ON play_history(playedAt DESC);
+    ''');
+
+    // 歌词按音频 url 存：同一首歌无论从曲库、歌单还是历史进入都能读到歌词。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS lyric (
+          url TEXT PRIMARY KEY,
+          content TEXT NOT NULL,
+          offsetMs INTEGER NOT NULL DEFAULT 0,
+          updatedAt INTEGER NOT NULL
+      );
     ''');
   }
 }
