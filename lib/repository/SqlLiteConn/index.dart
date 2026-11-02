@@ -27,7 +27,7 @@ class SqlLiteConn {
 
       final db = await openDatabase(
         'music_database.db',
-        version: 5,
+        version: 6,
         // 外键是连接级会话设置，不会持久化，必须在每次打开连接时设置
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON;');
@@ -126,6 +126,22 @@ class SqlLiteConn {
           ON DELETE CASCADE
           ON UPDATE CASCADE
       );
+    ''');
+
+    // 播放历史独立保存歌曲快照，即使歌曲之后从曲库删除，历史仍可查看和播放。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS play_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          url TEXT NOT NULL,
+          imageUrl TEXT NOT NULL,
+          songName TEXT NOT NULL,
+          decoration TEXT NOT NULL,
+          playedAt INTEGER NOT NULL
+      );
+    ''');
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_play_history_played_at
+      ON play_history(playedAt DESC);
     ''');
   }
 }
