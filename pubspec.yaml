@@ -49,5 +49,12 @@ flutter:
     - image/Mika.gif
     - image/ARoNa.png
     - image/Splash.png
+    # Flutter 的目录声明只包含该目录下的直接文件，子目录必须逐个列出，
+    # 否则 vendor 运行库与 Haru 模型不会被打进 APK。
     - assets/live2d/viewer/
+    - assets/live2d/viewer/vendor/
     - assets/live2d/models/
+    - assets/live2d/models/Haru/
+    - assets/live2d/models/Haru/Haru.2048/
+    - assets/live2d/models/Haru/expressions/
+    - assets/live2d/models/Haru/motions/

@@ -163,9 +163,16 @@ function bindInteractions() {
 async function loadModel(path) {
   var target = path || modelPath;
   setStatus('正在加载模型…');
-  post({ type: 'progress', value: 20 });
 
-  await waitForRuntime(15000);
+  // 脚本标签是同步执行的，此时运行库要么已就绪，要么永远不会有，直接报原因
+  var missing = missingRuntime();
+  if (missing.length) {
+    throw new Error('运行库未加载：' + missing.join('、') +
+      '（请确认 assets/live2d/viewer/vendor 已随 APK 打包）');
+  }
+
+  post({ type: 'progress', value: 20 });
+  await waitForRuntime(3000);
   post({ type: 'progress', value: 45 });
 
   if (!app) createApp();

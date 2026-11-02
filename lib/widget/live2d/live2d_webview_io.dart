@@ -278,7 +278,9 @@ class _Live2DOverlay extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final isError = error != null;
 
+    // 加载中挡住底层 WebView 的点击；失败时要放行，否则「重新加载」按钮点不动
     return AbsorbPointer(
+      absorbing: !isError,
       child: Container(
         color: scheme.surface.withOpacity(0.92),
         alignment: Alignment.center,
