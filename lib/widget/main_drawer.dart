@@ -51,11 +51,16 @@ class MainDrawer extends StatelessWidget {
                   ),
                   _DrawerSectionLabel(text: "音乐库"),
                   _DrawerItem(
-                    icon: Icons.favorite,
-                    title: '我的喜欢'.tr,
-                    route: RoutePath.MUSICLIKE,
+                    icon: Icons.history,
+                    title: '最近播放',
+                    route: RoutePath.HISTORY,
                     closeDrawer: closeDrawer,
-                    selectedColor: scheme.primaryContainer,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.insights,
+                    title: '播放统计',
+                    route: RoutePath.STATS,
+                    closeDrawer: closeDrawer,
                   ),
                   _DrawerItem(
                     icon: Icons.emoji_events,

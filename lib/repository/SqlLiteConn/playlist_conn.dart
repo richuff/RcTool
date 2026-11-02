@@ -13,6 +13,19 @@ class PlaylistConn {
     );
   }
 
+  /// 名称是否已被占用（用于新建歌单时避免重名）。
+  static Future<bool> existsByName(String name) async {
+    final db = await SqlLiteConn.dataBase;
+    final rows = await db.query(
+      'playlist',
+      columns: ['id'],
+      where: 'name = ?',
+      whereArgs: [name],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
+  }
+
   static Future<int> ensurePlaylist(String name) async {
     final db = await SqlLiteConn.dataBase;
     final rows = await db.query(

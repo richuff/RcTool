@@ -12,6 +12,12 @@ class FavoriteController extends GetxController {
   List<Playlist> favoritePlaylists = <Playlist>[];
   bool _loaded = false;
 
+  @override
+  void onInit() {
+    super.onInit();
+    ensureLoaded();
+  }
+
   bool isFavorite(int? musicId) {
     return musicId != null && _favoriteMusicIds.contains(musicId);
   }

@@ -2,17 +2,21 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rctool/controller/music_controller.dart';
-import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
+import 'package:rctool/constant/playlist_const.dart';
+import 'package:rctool/repository/SqlLiteConn/favorite_conn.dart';
 import 'package:rctool/repository/SqlLiteConn/playlist_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/repository/entity/playlist.dart';
-import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import 'package:rctool/routers/route_path.dart';
+import 'package:rctool/widget/app_scaffold.dart';
+import 'package:rctool/widget/settings_ui.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 
-import '../../feature/design/icon_button_no_ripple.dart';
-import '../../widget/main_drawer.dart';
-import '../../widget/search_widget.dart';
-
+/// @ClassName Album
+/// @Description 歌单列表页：新建走弹窗、删除需点击删除按钮并二次确认，
+///             点击歌单进入独立的歌单详情页；「我的喜欢」作为默认歌单置顶。
+/// @Author richuff
+/// @Version 3.0
 class Album extends StatefulWidget {
   const Album({super.key});
 
@@ -21,468 +25,376 @@ class Album extends StatefulWidget {
 }
 
 class _Album extends State<Album> {
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  final TextEditingController _nameController = TextEditingController();
-  final MusicController musicController =
-      Get.put(MusicController(), permanent: true);
-
   List<Playlist> playlists = [];
-  List<Music> selectedMusic = [];
-  List<Music> allMusic = [];
-  Playlist? selectedPlaylist;
+  int favoriteCount = 0;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
   Future<void> _loadData() async {
-    playlists = await PlaylistConn.queryPlaylists();
-    allMusic = await MusicConn.queryAll();
-    selectedPlaylist ??= playlists.isNotEmpty ? playlists.first : null;
-    if (selectedPlaylist != null) {
-      selectedMusic =
-          await PlaylistConn.queryMusicByPlaylist(selectedPlaylist!.id!);
-    } else {
-      selectedMusic = [];
-    }
-    if (mounted) setState(() {});
+    final all = await PlaylistConn.queryPlaylists();
+    final List<Music> favorites = await FavoriteConn.queryFavoriteMusic();
+    if (!mounted) return;
+    setState(() {
+      // 每日推荐生成的内部歌单不进入列表
+      playlists = all.where((item) => !isInternalPlaylist(item)).toList();
+      favoriteCount = favorites.length;
+      _loading = false;
+    });
   }
 
-  Future<void> _selectPlaylist(Playlist playlist) async {
-    selectedPlaylist = playlist;
-    selectedMusic = await PlaylistConn.queryMusicByPlaylist(playlist.id!);
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _createPlaylist() async {
-    final name = _nameController.text.trim();
-    if (name.isEmpty) return;
-    await PlaylistConn.insertPlaylist(name);
-    _nameController.clear();
+  Future<void> _openPlaylist(Playlist playlist) async {
+    await Get.toNamed(RoutePath.PLAYLIST, arguments: playlist);
+    // 从详情页返回后刷新歌曲数量
     await _loadData();
+  }
+
+  Future<void> _showCreateDialog() async {
+    final created = await Get.dialog<bool>(
+      const _CreatePlaylistDialog(),
+      barrierDismissible: true,
+    );
+    if (created == true) {
+      await _loadData();
+      Get.snackbar(
+        '已创建',
+        '新歌单已经建好了，点进去添加歌曲吧',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 
   Future<void> _deletePlaylist(Playlist playlist) async {
+    final confirmed = await Get.dialog<bool>(
+          AlertDialog(
+            title: const Text('删除歌单'),
+            content: Text('确定删除「${playlist.name}」吗？歌单中的歌曲不会从曲库移除。'),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () => Get.back(result: true),
+                child: const Text('删除'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) return;
     await PlaylistConn.deletePlaylist(playlist.id!);
-    if (selectedPlaylist?.id == playlist.id) {
-      selectedPlaylist = null;
-      selectedMusic = [];
-    }
     await _loadData();
+    Get.snackbar('已删除', '歌单「${playlist.name}」已删除',
+        snackPosition: SnackPosition.BOTTOM);
   }
 
-  Future<void> _showAddMusicDialog() async {
-    if (selectedPlaylist == null) return;
-    await showDialog(
-      context: context,
-      builder: (context) {
-        final scheme = Theme.of(context).colorScheme;
-        return AlertDialog(
-          title: const Text("添加歌曲"),
-          content: SizedBox(
-            width: 420,
-            height: 420,
-            child: allMusic.isEmpty
-                ? const Center(child: Text("暂无可添加歌曲"))
-                : ListView.builder(
-                    itemCount: allMusic.length,
-                    itemBuilder: (context, index) {
-                      final music = allMusic[index];
-                      return ListTile(
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Image.network(
-                            music.imageUrl,
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              width: 44,
-                              height: 44,
-                              color: scheme.surfaceVariant,
-                              child: Icon(
-                                Icons.music_note,
-                                color: scheme.onSurfaceVariant,
-                              ),
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AppScaffold(
+      title: '歌单'.tr,
+      actions: [
+        IconButton(
+          tooltip: '新建歌单',
+          onPressed: _showCreateDialog,
+          icon: const Icon(Icons.add_rounded),
+        ),
+      ],
+      body: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          scrollbars: false,
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+          },
+        ),
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: _loadData,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                  children: [
+                    SlideFadeIn(
+                      child: SettingsSection(
+                        title: '默认歌单',
+                        icon: Icons.favorite_rounded,
+                        children: [
+                          _PlaylistRow(
+                            icon: Icons.favorite_rounded,
+                            title: kFavoritePlaylistName,
+                            subtitle: '收藏的歌曲都会汇总到这里',
+                            count: favoriteCount,
+                            highlight: true,
+                            onTap: () => _openPlaylist(
+                              favoritePlaylist(musicCount: favoriteCount),
                             ),
                           ),
-                        ),
-                        title: Text(music.songName),
-                        subtitle: Text(music.decoration),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () async {
-                            await PlaylistConn.addMusic(
-                              selectedPlaylist!.id!,
-                              music.id!,
-                            );
-                            await _selectPlaylist(selectedPlaylist!);
-                            if (context.mounted) Navigator.of(context).pop();
-                          },
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      key: scaffoldKey,
-      drawerScrimColor: Colors.transparent,
-      drawer: MainDrawer(() {
-        scaffoldKey.currentState?.closeDrawer();
-      }),
-      appBar: AppBar(
-          backgroundColor: scheme.surface,
-          leading: Builder(builder: (context) {
-            return Column(children: [
-              const Padding(padding: EdgeInsets.only(top: 8)),
-              Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: IconButtonNoRipple(
-                  hoverColor: scheme.primaryContainer,
-                  focusColor: scheme.primaryContainer,
-                  highlightColor: scheme.secondaryContainer,
-                  alignment: Alignment.bottomCenter,
-                  icon: const Icon(
-                    Icons.menu,
-                    size: 26,
-                  ),
-                  color: scheme.onSurface,
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                ),
-              ),
-            ]);
-          }),
-          actions: const [SearchWidget()]),
-      body: Container(
-          width: double.infinity,
-          decoration: BackGroundEnum.musicBackGround.decoration,
-          child: ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context)
-                .copyWith(scrollbars: false, dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-            }),
-            child: LayoutBuilder(builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 760;
-              final content = [
-                _PlaylistPanel(
-                  playlists: playlists,
-                  selectedPlaylist: selectedPlaylist,
-                  nameController: _nameController,
-                  onCreate: _createPlaylist,
-                  onSelect: _selectPlaylist,
-                  onDelete: _deletePlaylist,
-                ),
-                _PlaylistDetail(
-                  playlist: selectedPlaylist,
-                  musicList: selectedMusic,
-                  onAddMusic: _showAddMusicDialog,
-                  onPlayAll: () =>
-                      musicController.addMusicListToQueue(selectedMusic),
-                  onRemoveMusic: (music) async {
-                    await PlaylistConn.removeMusic(
-                      selectedPlaylist!.id!,
-                      music.id!,
-                    );
-                    await _selectPlaylist(selectedPlaylist!);
-                  },
-                  onPlayMusic: (music) {
-                    musicController.playOrPauseMusic(
-                      music,
-                      list: selectedMusic,
-                      startIndex: selectedMusic.indexOf(music),
-                    );
-                  },
-                  isPlayingMusic: musicController.isPlayingMusic,
-                ),
-              ];
-
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: isWide
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(width: 300, child: content[0]),
-                          const SizedBox(width: 16),
-                          Expanded(child: content[1]),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          content[0],
-                          const SizedBox(height: 16),
-                          content[1],
                         ],
                       ),
-              );
-            }),
-          )),
-    );
-  }
-}
-
-class _PlaylistPanel extends StatelessWidget {
-  final List<Playlist> playlists;
-  final Playlist? selectedPlaylist;
-  final TextEditingController nameController;
-  final Future<void> Function() onCreate;
-  final Future<void> Function(Playlist playlist) onSelect;
-  final Future<void> Function(Playlist playlist) onDelete;
-
-  const _PlaylistPanel({
-    required this.playlists,
-    required this.selectedPlaylist,
-    required this.nameController,
-    required this.onCreate,
-    required this.onSelect,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.surface.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outline.withOpacity(0.35)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "歌单".tr,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    hintText: "新歌单名称",
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton.filled(
-                tooltip: "创建歌单",
-                onPressed: onCreate,
-                icon: const Icon(Icons.add),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (playlists.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: Text(
-                  "还没有歌单",
-                  style: TextStyle(color: scheme.onSurfaceVariant),
-                ),
-              ),
-            )
-          else
-            ...playlists.map((playlist) {
-              final selected = selectedPlaylist?.id == playlist.id;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? scheme.primaryContainer
-                      : scheme.surfaceVariant.withOpacity(0.75),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ListTile(
-                  selected: selected,
-                  title: Text(playlist.name),
-                  subtitle: Text("${playlist.musicCount} 首歌曲"),
-                  trailing: IconButton(
-                    tooltip: "删除歌单",
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () => onDelete(playlist),
-                  ),
-                  onTap: () => onSelect(playlist),
-                ),
-              );
-            }),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlaylistDetail extends StatelessWidget {
-  final Playlist? playlist;
-  final List<Music> musicList;
-  final VoidCallback onAddMusic;
-  final VoidCallback onPlayAll;
-  final Future<void> Function(Music music) onRemoveMusic;
-  final void Function(Music music) onPlayMusic;
-  final bool Function(Music music) isPlayingMusic;
-
-  const _PlaylistDetail({
-    required this.playlist,
-    required this.musicList,
-    required this.onAddMusic,
-    required this.onPlayAll,
-    required this.onRemoveMusic,
-    required this.onPlayMusic,
-    required this.isPlayingMusic,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.surface.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outline.withOpacity(0.35)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  playlist?.name ?? "请选择歌单",
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: scheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  "${musicList.length} 首",
-                  style: TextStyle(
-                    color: scheme.onSecondaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              IconButton.filledTonal(
-                tooltip: "添加歌曲",
-                onPressed: playlist == null ? null : onAddMusic,
-                icon: const Icon(Icons.library_add),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: musicList.isEmpty ? null : onPlayAll,
-                icon: const Icon(Icons.play_arrow),
-                label: const Text("播放"),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (playlist == null)
-            SizedBox(
-              height: 240,
-              child: Center(
-                child: Text(
-                  "创建或选择一个歌单",
-                  style: TextStyle(color: scheme.onSurfaceVariant),
-                ),
-              ),
-            )
-          else if (musicList.isEmpty)
-            SizedBox(
-              height: 240,
-              child: Center(
-                child: Text(
-                  "这个歌单还没有歌曲",
-                  style: TextStyle(color: scheme.onSurfaceVariant),
-                ),
-              ),
-            )
-          else
-            ...musicList.map((music) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceVariant.withOpacity(0.72),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Image.network(
-                      music.imageUrl,
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 48,
-                        height: 48,
-                        color: scheme.primaryContainer,
-                        child: Icon(
-                          Icons.music_note,
-                          color: scheme.onPrimaryContainer,
+                    ),
+                    SlideFadeIn(
+                      delay: const Duration(milliseconds: 90),
+                      child: SettingsSection(
+                        title: '我的歌单',
+                        icon: Icons.queue_music_rounded,
+                        children: [
+                          if (playlists.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                              child: Text(
+                                '还没有自建歌单，点下面的「新建歌单」开始吧',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            )
+                          else
+                            ...playlists.map(
+                              (playlist) => _PlaylistRow(
+                                icon: Icons.queue_music_rounded,
+                                title: playlist.name,
+                                subtitle: '创建于 ${_formatDate(playlist.createdAt)}',
+                                count: playlist.musicCount,
+                                onTap: () => _openPlaylist(playlist),
+                                onDelete: () => _deletePlaylist(playlist),
+                              ),
+                            ),
+                          const Divider(height: 12, indent: 14, endIndent: 14),
+                          SettingsActionTile(
+                            icon: Icons.add_rounded,
+                            title: '新建歌单',
+                            subtitle: '创建后可以往里面添加歌曲',
+                            onTap: _showCreateDialog,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        '歌单只保存在本机，歌曲从曲库中添加，不会重复占用存储。',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          height: 1.5,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                     ),
-                  ),
-                  title: Text(music.songName),
-                  subtitle: Text(music.decoration),
-                  trailing: Wrap(
-                    spacing: 4,
-                    children: [
-                      IconButton(
-                        tooltip: "播放歌曲",
-                        onPressed: () => onPlayMusic(music),
-                        icon: GetBuilder<MusicController>(
-                          builder: (_) {
-                            final playing = isPlayingMusic(music);
-                            return Icon(
-                              playing ? Icons.pause : Icons.play_arrow,
-                              color: playing ? scheme.primary : null,
-                            );
-                          },
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: "移出歌单",
-                        icon: const Icon(Icons.close),
-                        onPressed: () => onRemoveMusic(music),
-                      ),
-                    ],
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
+  String _formatDate(int millis) {
+    if (millis <= 0) return '-';
+    final date = DateTime.fromMillisecondsSinceEpoch(millis);
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+  }
+}
+
+/// 歌单行：与设置页的选项行保持同一套视觉
+class _PlaylistRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final int count;
+  final bool highlight;
+  final VoidCallback onTap;
+  final VoidCallback? onDelete;
+
+  const _PlaylistRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.count,
+    required this.onTap,
+    this.highlight = false,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ListTile(
+      contentPadding: const EdgeInsets.fromLTRB(14, 2, 8, 2),
+      onTap: onTap,
+      leading: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: highlight
+              ? scheme.error.withOpacity(0.14)
+              : scheme.primaryContainer.withOpacity(0.65),
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: highlight ? scheme.error : scheme.onPrimaryContainer,
+        ),
+      ),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        '$subtitle · $count 首',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (onDelete != null)
+            IconButton(
+              tooltip: '删除歌单',
+              visualDensity: VisualDensity.compact,
+              onPressed: onDelete,
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                size: 20,
+                color: scheme.error,
+              ),
+            ),
+          Icon(Icons.chevron_right_rounded, size: 20, color: scheme.outline),
+        ],
+      ),
+    );
+  }
+}
+
+/// 新建歌单弹窗：名称输入 + 重名校验，创建完成后返回 true
+class _CreatePlaylistDialog extends StatefulWidget {
+  const _CreatePlaylistDialog();
+
+  @override
+  State<_CreatePlaylistDialog> createState() => _CreatePlaylistDialogState();
+}
+
+class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
+  final TextEditingController _controller = TextEditingController();
+  String? _error;
+  bool _submitting = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_submitting) return;
+    final name = _controller.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = '请输入歌单名称');
+      return;
+    }
+    if (name.length > 30) {
+      setState(() => _error = '名称太长啦，30 个字以内');
+      return;
+    }
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    if (await PlaylistConn.existsByName(name)) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _error = '已经有同名歌单了，换个名字试试';
+      });
+      return;
+    }
+    await PlaylistConn.insertPlaylist(name);
+    if (!mounted) return;
+    Navigator.of(context).pop(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Dialog(
+      backgroundColor: scheme.surface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SettingsHeader(
+              icon: Icons.queue_music_rounded,
+              title: '新建歌单',
+              subtitle: '给这个歌单取一个名字',
+              onClose: () => Navigator.of(context).pop(false),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              textInputAction: TextInputAction.done,
+              maxLength: 30,
+              onSubmitted: (_) => _submit(),
+              onChanged: (_) {
+                if (_error != null) setState(() => _error = null);
+              },
+              decoration: InputDecoration(
+                labelText: '歌单名称',
+                hintText: '比如：深夜循环',
+                errorText: _error,
+                counterText: '',
+                filled: true,
+                fillColor: scheme.surfaceContainerHighest.withOpacity(0.5),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: scheme.primary, width: 1.4),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('取消'),
                   ),
                 ),
-              );
-            }),
-        ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _submitting ? null : _submit,
+                    child: Text(_submitting ? '创建中…' : '创建'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

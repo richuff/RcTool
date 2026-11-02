@@ -5,8 +5,6 @@ class RoutePath{
 
   static const String MUSICCHOOSE = "/musicchoose";
 
-  static const String MUSICLIKE = "/musiclike";
-
   static const String RECOMMEND = "/recommend";
 
   static const String ABOUT = "/about";
@@ -16,4 +14,11 @@ class RoutePath{
   static const String RANKING = "/ranking";
 
   static const String ALBUM = "/album";
+
+  /// 歌单详情（参数为 Playlist，我的喜欢用 id = -1 表示）
+  static const String PLAYLIST = "/playlist";
+
+  static const String HISTORY = "/history";
+
+  static const String STATS = "/stats";
 }
