@@ -60,7 +60,7 @@ class _Live2DModelSheetState extends State<Live2DModelSheet> {
   /// 在 App 内导入模型：选一个文件夹，自动复制进模型目录并选中
   Future<void> _importModel() async {
     if (_importing) return;
-    final dirPath = await FilePicker.getDirectoryPath(
+    final dirPath = await FilePicker.platform.getDirectoryPath(
       dialogTitle: '导入模型'.tr,
     );
     if (dirPath == null || dirPath.isEmpty) return;

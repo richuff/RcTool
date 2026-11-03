@@ -44,7 +44,7 @@ class _WallpaperPageState extends State<WallpaperPage> {
   /// 从系统文件选择器选一张图，复制进应用目录作为该槽位的壁纸
   Future<void> _import(BackGroundEnum slot) async {
     if (_busy) return;
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.platform.pickFiles(
       type: FileType.image,
       dialogTitle: '导入替换'.tr,
     );
