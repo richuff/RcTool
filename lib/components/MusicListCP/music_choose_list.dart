@@ -209,15 +209,13 @@ class MusicChooseList extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: PlayAllButton(
-                  count: count,
-                  onPressed: count == 0
-                      ? null
-                      : () => controller.playMusicList(list, startIndex: 0),
-                ),
+              PlayAllButton(
+                count: count,
+                onPressed: count == 0
+                    ? null
+                    : () => controller.playMusicList(list, startIndex: 0),
               ),
-              const SizedBox(width: 10),
+              const Spacer(),
               _modeSwitch(context, controller),
             ],
           ),
