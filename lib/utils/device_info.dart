@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import 'my_message.dart';
-
 /// @ClassName DeviceInfo
 /// @Description 设备信息快照（机型、系统、CPU、内存等），用于「全局设置 - 设备信息」面板。
 /// @Author richuff

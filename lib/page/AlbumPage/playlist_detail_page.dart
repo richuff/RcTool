@@ -76,6 +76,31 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
     );
   }
 
+  /// 歌单内拖动排序：先改内存里的顺序让列表立即生效，再写回 sortOrder。
+  /// 「我的喜欢」按收藏表 id 排序，没有可持久化的顺序字段，不支持拖动。
+  Future<void> _reorder(int oldIndex, int newIndex) async {
+    var target = newIndex;
+    if (target > oldIndex) target -= 1;
+    if (target == oldIndex ||
+        target < 0 ||
+        target >= _musicList.length ||
+        _isFavorite) {
+      return;
+    }
+    setState(() {
+      final item = _musicList.removeAt(oldIndex);
+      _musicList.insert(target, item);
+    });
+    try {
+      await PlaylistConn.saveMusicOrder(
+        _playlist.id!,
+        _musicList.map((m) => m.id!).toList(),
+      );
+    } catch (_) {
+      // 写库失败不回滚界面，下次进入按库里的顺序展示
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -146,35 +171,90 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
+            if (!_isFavorite) ...[
+              const SizedBox(width: 8),
+              Icon(
+                Icons.drag_handle_rounded,
+                size: 13,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurfaceVariant
+                    .withOpacity(0.55),
+              ),
+              const SizedBox(width: 3),
+              Text(
+                '长按拖动排序'.tr,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withOpacity(0.75),
+                ),
+              ),
+            ],
           ],
         ),
       ),
       GetBuilder<FavoriteController>(
         builder: (_) => GetBuilder<MusicController>(
-          builder: (controller) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: _musicList.asMap().entries.map((entry) {
-              final music = entry.value;
-              return SlideFadeIn(
-                delay: Duration(milliseconds: (entry.key * 35).clamp(0, 280)),
-                offset: const Offset(0, 12),
-                child: SongRow(
-                  music: music,
-                  playing: controller.isPlayingMusic(music),
-                  onPlayToggle: () => _playMusic(music),
-                  onMore: () => showSongActions(
-                    context,
-                    music,
-                    removeLabel: _isFavorite ? '从我的喜欢移除'.tr : '从歌单移除'.tr,
-                    onRemove: () => _removeMusic(music),
-                  ).then((_) => _load()),
+          builder: (controller) => _isFavorite
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _songRows(controller),
+                )
+              : ReorderableListView(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  buildDefaultDragHandles: false,
+                  onReorder: _reorder,
+                  padding: EdgeInsets.zero,
+                  proxyDecorator: (child, index, animation) => AnimatedBuilder(
+                    animation: animation,
+                    builder: (_, __) => Material(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(16),
+                      child: child,
+                    ),
+                  ),
+                  children: [
+                    for (final entry in _musicList.asMap().entries)
+                      ReorderableDelayedDragStartListener(
+                        key: ValueKey('p-${entry.key}-${entry.value.url}'),
+                        index: entry.key,
+                        child: _rowFor(controller, entry.value),
+                      ),
+                  ],
                 ),
-              );
-            }).toList(),
-          ),
         ),
       ),
     ];
+  }
+
+  List<Widget> _songRows(MusicController controller) {
+    return _musicList.asMap().entries.map((entry) {
+      return _rowFor(controller, entry.value);
+    }).toList();
+  }
+
+  Widget _rowFor(MusicController controller, Music music) {
+    return SlideFadeIn(
+      offset: const Offset(0, 12),
+      child: SongRow(
+        music: music,
+        playing: controller.isPlayingMusic(music),
+        onPlayToggle: () => _playMusic(music),
+        onMore: () => showSongActions(
+          context,
+          music,
+          removeLabel: _isFavorite ? '从我的喜欢移除'.tr : '从歌单移除'.tr,
+          onRemove: () => _removeMusic(music),
+        ).then((_) => _load()),
+      ),
+    );
   }
 
   Widget _emptyState(ColorScheme scheme) {

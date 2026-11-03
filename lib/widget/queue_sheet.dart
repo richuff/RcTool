@@ -93,19 +93,36 @@ class _QueueSheet extends StatelessWidget {
               Expanded(
                 child: list.isEmpty
                     ? _empty(scheme)
-                    : ListView.builder(
+                    : ReorderableListView.builder(
                         padding: const EdgeInsets.fromLTRB(10, 2, 10, 16),
+                        buildDefaultDragHandles: false,
                         itemCount: list.length,
+                        onReorder: controller.reorderQueue,
+                        // 拖起来的行只加一点点投影，不改变内容
+                        proxyDecorator: (child, index, animation) =>
+                            AnimatedBuilder(
+                          animation: animation,
+                          builder: (_, __) => Material(
+                            color:
+                                scheme.surfaceContainerHighest.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(14),
+                            child: child,
+                          ),
+                        ),
                         itemBuilder: (context, index) {
                           final music = list[index];
                           final playing = index == currentIndex;
-                          return _row(
-                            context,
-                            scheme,
-                            controller,
-                            music,
-                            index,
-                            playing,
+                          return ReorderableDelayedDragStartListener(
+                            key: ValueKey('q-$index-${music.url}'),
+                            index: index,
+                            child: _row(
+                              context,
+                              scheme,
+                              controller,
+                              music,
+                              index,
+                              playing,
+                            ),
                           );
                         },
                       ),
@@ -136,7 +153,8 @@ class _QueueSheet extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: () {
             // 点歌直接切过去，然后收起面板回到播放页
-            controller.playMusicList(controller.musiclist.whereType<Music>().toList(),
+            controller.playMusicList(
+                controller.musiclist.whereType<Music>().toList(),
                 startIndex: index);
             Get.back();
           },

@@ -119,6 +119,21 @@ class PlaylistConn {
     );
   }
 
+  /// 歌单内拖动排序后，按当前展示顺序重写 sortOrder。
+  static Future<void> saveMusicOrder(int playlistId, List<int> musicIds) async {
+    final db = await SqlLiteConn.dataBase;
+    final batch = db.batch();
+    for (int i = 0; i < musicIds.length; i++) {
+      batch.update(
+        'playlist_music',
+        {'sortOrder': i},
+        where: 'playlistId = ? AND musicId = ?',
+        whereArgs: [playlistId, musicIds[i]],
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
   /// 这首歌当前被哪些歌单收录（用于「…」菜单里显示勾选状态）。
   static Future<Set<int>> queryPlaylistIdsOfMusic(int musicId) async {
     final db = await SqlLiteConn.dataBase;

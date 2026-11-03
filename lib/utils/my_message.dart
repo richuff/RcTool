@@ -193,8 +193,8 @@ class MyMessage extends Translations {
           '清空历史': "清空历史",
           '还没有播放记录': "还没有播放记录",
           '开始播放后，歌曲会自动出现在这里': "开始播放后，歌曲会自动出现在这里",
-          '共 @count 条记录，按最近播放排序': "共 @count 条记录，按最近播放排序",
           '删除这条记录': "删除这条记录",
+          '长按拖动排序': "长按拖动排序",
           '今天 @time': "今天 @time",
           '昨天 @time': "昨天 @time",
 
@@ -615,8 +615,8 @@ class MyMessage extends Translations {
           '清空历史': "履歴を消去",
           '还没有播放记录': "再生履歴がありません",
           '开始播放后，歌曲会自动出现在这里': "再生するとここに表示されます",
-          '共 @count 条记录，按最近播放排序': "全 @count 件、新しい順",
           '删除这条记录': "この記録を削除",
+          '长按拖动排序': "長押しでドラッグして並べ替え",
           '今天 @time': "今日 @time",
           '昨天 @time': "昨日 @time",
 
@@ -1056,8 +1056,8 @@ class MyMessage extends Translations {
           '清空历史': "Clear history",
           '还没有播放记录': "No play history yet",
           '开始播放后，歌曲会自动出现在这里': "Start playing and songs will show up here",
-          '共 @count 条记录，按最近播放排序': "@count records, newest first",
           '删除这条记录': "Delete this record",
+          '长按拖动排序': "Long-press and drag to reorder",
           '今天 @time': "Today @time",
           '昨天 @time': "Yesterday @time",
 
