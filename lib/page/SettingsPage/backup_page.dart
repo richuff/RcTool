@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/favorite_controller.dart';
 import 'package:rctool/controller/wallpaper_controller.dart';
 import 'package:rctool/service/backup_service.dart';
+import 'package:rctool/service/folder_opener.dart';
 import 'package:rctool/utils/size_format.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 
@@ -141,12 +141,9 @@ class _BackupPageState extends State<BackupPage> {
     await _load();
   }
 
-  Future<void> _copyPath() async {
+  Future<void> _openDirectory() async {
     if (_directory.isEmpty) return;
-    await Clipboard.setData(ClipboardData(text: _directory));
-    Get.snackbar('已复制'.tr, _directory,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2));
+    await FolderOpener.open(_directory);
   }
 
   @override
@@ -269,36 +266,15 @@ class _BackupPageState extends State<BackupPage> {
             ),
           ),
           const SizedBox(height: 10),
-          InkWell(
-            borderRadius: BorderRadius.circular(10),
-            onTap: _copyPath,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.folder_outlined,
-                      size: 15, color: scheme.onSurfaceVariant),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _directory.isEmpty ? '正在解析目录…'.tr : _directory,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(Icons.copy_rounded, size: 14, color: scheme.outline),
-                ],
-              ),
+          OutlinedButton.icon(
+            onPressed: _openDirectory,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 40),
+              textStyle:
+                  const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
             ),
+            icon: const Icon(Icons.open_in_new_rounded, size: 17),
+            label: Text('打开备份目录'.tr),
           ),
         ],
       ),

@@ -1,15 +1,18 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/wallpaper_controller.dart';
+import 'package:rctool/service/folder_opener.dart';
+import 'package:rctool/service/resource_importer.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 
 /// @ClassName WallpaperPage
-/// @Description 壁纸管理：展示当前壁纸目录、每页正在用的图，并支持从外部目录
-///              热替换（放进文件 → 刷新即可，无需重新安装）。
+/// @Description 壁纸管理：每个页面槽位都支持在 App 内「导入替换」——
+///              从手机里选一张图自动存进应用目录并立即生效，无需手动拷文件；
+///              也可以用「打开目录」交给系统文件管理器查看。
 /// @Author richuff
-/// @Version 1.0
+/// @Version 2.0
 class WallpaperPage extends StatefulWidget {
   const WallpaperPage({super.key});
 
@@ -21,13 +24,12 @@ class _WallpaperPageState extends State<WallpaperPage> {
   final WallpaperController controller = Get.find<WallpaperController>();
 
   bool _busy = false;
+  String? _busySlot;
 
   Future<void> _refresh({bool toast = true}) async {
-    if (_busy) return;
-    setState(() => _busy = true);
     await controller.refresh();
     if (!mounted) return;
-    setState(() => _busy = false);
+    setState(() {});
     if (toast) {
       Get.snackbar(
         '壁纸已刷新'.tr,
@@ -39,11 +41,71 @@ class _WallpaperPageState extends State<WallpaperPage> {
     }
   }
 
-  Future<void> _copyPath() async {
+  /// 从系统文件选择器选一张图，复制进应用目录作为该槽位的壁纸
+  Future<void> _import(BackGroundEnum slot) async {
+    if (_busy) return;
+    final result = await FilePicker.pickFiles(
+      type: FileType.image,
+      dialogTitle: '导入替换'.tr,
+    );
+    final path = result?.files.single.path;
+    if (path == null) return;
+
+    if (!mounted) return;
+    setState(() {
+      _busy = true;
+      _busySlot = slot.slot;
+    });
+    try {
+      await ResourceImporter.importWallpaper(slot.slot, path);
+      await controller.refresh();
+      if (!mounted) return;
+      Get.snackbar(
+        '已导入壁纸'.tr,
+        '${slot.label.tr} · ${result!.files.single.name}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (error) {
+      Get.snackbar('壁纸导入失败'.tr, '$error', snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _busySlot = null;
+        });
+      }
+    }
+  }
+
+  /// 删除槽位的自定义壁纸，回到内置默认图
+  Future<void> _reset(BackGroundEnum slot) async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _busySlot = slot.slot;
+    });
+    try {
+      await ResourceImporter.resetWallpaper(slot.slot);
+      await controller.refresh();
+      if (!mounted) return;
+      Get.snackbar('已恢复默认壁纸'.tr, slot.label.tr,
+          snackPosition: SnackPosition.BOTTOM);
+    } catch (error) {
+      Get.snackbar('壁纸导入失败'.tr, '$error', snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _busySlot = null;
+        });
+      }
+    }
+  }
+
+  Future<void> _openDirectory() async {
     final path = controller.directoryPath;
     if (path == null) return;
-    await Clipboard.setData(ClipboardData(text: path));
-    Get.snackbar('已复制'.tr, path, snackPosition: SnackPosition.BOTTOM);
+    await FolderOpener.open(path);
   }
 
   Future<void> _requestAccess() async {
@@ -51,7 +113,7 @@ class _WallpaperPageState extends State<WallpaperPage> {
     if (!granted) {
       Get.snackbar(
         '未获得文件夹访问权限'.tr,
-        '将使用应用私有目录，仍可替换壁纸，但需要用文件管理器找到该路径'.tr,
+        '将使用应用私有目录，仍可在 App 内正常导入壁纸'.tr,
         snackPosition: SnackPosition.BOTTOM,
       );
     }
@@ -67,13 +129,7 @@ class _WallpaperPageState extends State<WallpaperPage> {
         IconButton(
           tooltip: '刷新壁纸'.tr,
           onPressed: _busy ? null : _refresh,
-          icon: _busy
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.refresh_rounded),
+          icon: const Icon(Icons.refresh_rounded),
         ),
       ],
       body: GetBuilder<WallpaperController>(
@@ -97,7 +153,7 @@ class _WallpaperPageState extends State<WallpaperPage> {
               ),
             ),
             for (final slot in BackGroundEnum.values) ...[
-              _slotCard(scheme, slot, wallpaper.revision),
+              _slotCard(scheme, slot, wallpaper),
               const SizedBox(height: 12),
             ],
           ],
@@ -107,7 +163,6 @@ class _WallpaperPageState extends State<WallpaperPage> {
   }
 
   Widget _folderCard(ColorScheme scheme, WallpaperController wallpaper) {
-    final path = wallpaper.directoryPath ?? '正在解析目录…'.tr;
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
       decoration: BoxDecoration(
@@ -147,8 +202,10 @@ class _WallpaperPageState extends State<WallpaperPage> {
                     const SizedBox(height: 2),
                     Text(
                       wallpaper.publicAccess
-                          ? '公共目录 · 文件管理器可直接访问'.tr
-                          : '应用私有目录 · 需要文件管理器进入 Android/data'.tr,
+                          ? '公共目录 · 已识别 @count 张自定义图片'.trParams({
+                              'count': '${wallpaper.fileCount}',
+                            })
+                          : '应用私有目录 · App 内导入不受影响'.tr,
                       style: TextStyle(
                         fontSize: 10.5,
                         color: scheme.onSurfaceVariant,
@@ -157,45 +214,32 @@ class _WallpaperPageState extends State<WallpaperPage> {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: '复制路径'.tr,
-                visualDensity: VisualDensity.compact,
-                onPressed: _copyPath,
-                icon: Icon(Icons.copy_rounded,
-                    size: 18, color: scheme.primary),
-              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest.withOpacity(0.7),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: SelectableText(
-              path,
-              style: TextStyle(
-                fontSize: 11,
-                height: 1.35,
-                fontFamily: 'monospace',
-                color: scheme.onSurfaceVariant,
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _openDirectory(),
+                  icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                  label:
+                      Text('打开壁纸目录'.tr, style: const TextStyle(fontSize: 12.5)),
+                ),
               ),
-            ),
+              if (!wallpaper.publicAccess) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _requestAccess,
+                    icon: const Icon(Icons.folder_shared_outlined, size: 16),
+                    label: Text('授予访问权限'.tr,
+                        style: const TextStyle(fontSize: 12.5)),
+                  ),
+                ),
+              ],
+            ],
           ),
-          if (!wallpaper.publicAccess) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _requestAccess,
-                icon: const Icon(Icons.folder_shared_outlined, size: 17),
-                label: Text('授予文件夹访问权限'.tr,
-                    style: const TextStyle(fontSize: 12.5)),
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -213,11 +257,10 @@ class _WallpaperPageState extends State<WallpaperPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome_rounded,
-                  size: 15, color: scheme.primary),
+              Icon(Icons.auto_awesome_rounded, size: 15, color: scheme.primary),
               const SizedBox(width: 6),
               Text(
-                '放图即换，无需重装'.tr,
+                '在 App 内选图即可，无需手动拷贝'.tr,
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,
@@ -228,8 +271,8 @@ class _WallpaperPageState extends State<WallpaperPage> {
           ),
           const SizedBox(height: 6),
           Text(
-            '把 jpg / png / webp 放进上面的目录，文件名用 home、live2d、music、about 分别对应四个页面；'
-                '放一张 default 则四个页面统一生效。回到这里点右上角刷新即可。'
+            '每个页面卡片都支持「导入替换」：从手机里选一张 jpg / png / webp，'
+                    '会自动存进应用目录并立即生效；「恢复默认」会删掉当前自定义图。'
                 .tr,
             style: TextStyle(
               fontSize: 11.5,
@@ -237,22 +280,19 @@ class _WallpaperPageState extends State<WallpaperPage> {
               color: scheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            '删掉文件就会恢复内置默认图。'.tr,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: scheme.primary,
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _slotCard(ColorScheme scheme, BackGroundEnum slot, int revision) {
+  Widget _slotCard(
+    ColorScheme scheme,
+    BackGroundEnum slot,
+    WallpaperController wallpaper,
+  ) {
     final custom = slot.isCustom;
+    final file = wallpaper.fileFor(slot.slot);
+    final busyHere = _busySlot == slot.slot;
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -273,7 +313,8 @@ class _WallpaperPageState extends State<WallpaperPage> {
               fit: StackFit.expand,
               children: [
                 Image(
-                  key: ValueKey('wp-preview-${slot.slot}-$revision'),
+                  key:
+                      ValueKey('wp-preview-${slot.slot}-${wallpaper.revision}'),
                   image: slot.imageProvider,
                   fit: BoxFit.cover,
                   opacity: const AlwaysStoppedAnimation<double>(0.9),
@@ -326,11 +367,11 @@ class _WallpaperPageState extends State<WallpaperPage> {
                   child: Text(
                     custom
                         ? '已使用自定义壁纸 · @name'.trParams({
-                            'name': '${slot.slot}.jpg',
+                            'name': file != null
+                                ? file.uri.pathSegments.last
+                                : slot.slot,
                           })
-                        : '使用内置壁纸 · 放入 @name 即可替换'.trParams({
-                            'name': '${slot.slot}.jpg',
-                          }),
+                        : '使用内置壁纸 · 导入一张图即可替换'.tr,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -339,6 +380,48 @@ class _WallpaperPageState extends State<WallpaperPage> {
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _busy ? null : () => _import(slot),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 36),
+                      textStyle: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w700),
+                    ),
+                    icon: busyHere
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.file_upload_outlined, size: 16),
+                    label: Text('导入替换'.tr),
+                  ),
+                ),
+                if (custom) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _busy ? null : () => _reset(slot),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 36),
+                        foregroundColor: scheme.error,
+                        side: BorderSide(color: scheme.error.withOpacity(0.4)),
+                        textStyle: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
+                      icon: const Icon(Icons.restart_alt_rounded, size: 16),
+                      label: Text('恢复默认'.tr),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
