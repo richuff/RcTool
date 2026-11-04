@@ -206,12 +206,13 @@ class _WelcomeCard extends StatelessWidget {
                 Container(
                   width: 62,
                   height: 62,
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(2.4),
                   decoration: BoxDecoration(
                     color: scheme.surface.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Image.asset('image/RcTool.png', fit: BoxFit.contain),
+                  child:
+                      Image.asset('image/RcToolIcon.png', fit: BoxFit.contain),
                 ),
                 const SizedBox(width: 14),
                 Expanded(

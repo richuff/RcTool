@@ -151,9 +151,9 @@ class _HeroCard extends StatelessWidget {
                   children: [
                     // 应用 Logo
                     Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(17),
                         color: scheme.surface.withOpacity(0.85),
                         boxShadow: [
                           BoxShadow(
@@ -163,9 +163,10 @@ class _HeroCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: ClipOval(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
                         child: Image.asset(
-                          'image/RcTool.png',
+                          'image/RcToolIcon.png',
                           width: 66,
                           height: 66,
                           fit: BoxFit.cover,

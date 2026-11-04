@@ -185,12 +185,13 @@ class _DrawerHeader extends StatelessWidget {
                   ],
                 ),
                 child: Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(2.4),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16.4),
                     color: scheme.surface.withOpacity(0.94),
                   ),
-                  child: Image.asset("image/RcTool.png", fit: BoxFit.contain),
+                  child:
+                      Image.asset("image/RcToolIcon.png", fit: BoxFit.contain),
                 ),
               ),
               const SizedBox(width: 13),
@@ -244,8 +245,8 @@ class _DrawerHeader extends StatelessWidget {
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.2,
-                              color: scheme.onPrimaryContainer
-                                  .withOpacity(0.86),
+                              color:
+                                  scheme.onPrimaryContainer.withOpacity(0.86),
                             ),
                           ),
                         ),
@@ -259,8 +260,8 @@ class _DrawerHeader extends StatelessWidget {
                               fontSize: 10.5,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.4,
-                              color: scheme.onPrimaryContainer
-                                  .withOpacity(0.66),
+                              color:
+                                  scheme.onPrimaryContainer.withOpacity(0.66),
                             ),
                           ),
                         ),
