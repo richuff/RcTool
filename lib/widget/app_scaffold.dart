@@ -14,8 +14,8 @@ import 'package:rctool/widget/wallpaper_image.dart';
 /// @Description 统一页面外壳：封装 Scaffold + Drawer + AppBar(菜单按钮 + 全局设置入口)
 ///             + 背景装饰，消除各页面重复的脚手架代码。
 /// @Author richuff
-/// @Version 2.0
-class AppScaffold extends StatelessWidget {
+/// @Version 2.1
+class AppScaffold extends StatefulWidget {
   final Widget body;
   final String? title;
   final List<Widget>? actions;
@@ -40,15 +40,25 @@ class AppScaffold extends StatelessWidget {
   });
 
   @override
+  State<AppScaffold> createState() => _AppScaffoldState();
+}
+
+class _AppScaffoldState extends State<AppScaffold> {
+  /// Scaffold 的 key 必须跟着 State 走。
+  /// 之前在 build 里 new GlobalKey：每次重建 key 都变，Flutter 会把整个 Scaffold
+  /// 子树当成新节点重建，入场动画被打回 0 重播（和页面切换动画叠成两个），
+  /// 列表滚动位置、输入框焦点也会一起丢。
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final scaffoldKey = GlobalKey<ScaffoldState>();
     return Scaffold(
-      key: scaffoldKey,
-      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-      extendBodyBehindAppBar: extendBodyBehindAppBar,
+      key: _scaffoldKey,
+      resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
+      extendBodyBehindAppBar: widget.extendBodyBehindAppBar,
       drawerScrimColor: Colors.transparent,
-      drawer: MainDrawer(() => scaffoldKey.currentState?.closeDrawer()),
+      drawer: MainDrawer(() => _scaffoldKey.currentState?.closeDrawer()),
       appBar: AppBar(
         backgroundColor: scheme.surface,
         elevation: 0,
@@ -67,10 +77,10 @@ class AppScaffold extends StatelessWidget {
             ),
           ),
         ),
-        title: title == null
+        title: widget.title == null
             ? null
             : Text(
-                title!,
+                widget.title!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style:
@@ -96,7 +106,7 @@ class AppScaffold extends StatelessWidget {
             ),
           ),
           const SearchWidget(),
-          ...?actions,
+          ...?widget.actions,
           const SizedBox(width: 6),
         ],
       ),
@@ -106,7 +116,10 @@ class AppScaffold extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               // 背景图按显示尺寸解码，换壁纸后 provider 变化会自动重载
-              WallpaperImage(slot: background, opacity: background.opacity),
+              WallpaperImage(
+                slot: widget.background,
+                opacity: widget.background.opacity,
+              ),
               // 暗色下给背景图压一层深色蒙层，避免亮图把整页照得发白
               if (Theme.of(context).brightness == Brightness.dark)
                 IgnorePointer(
@@ -117,16 +130,16 @@ class AppScaffold extends StatelessWidget {
               Column(
                 children: [
                   // 每次进入页面：先整体淡入，页面内的小组件再逐个错落出现
-                  Expanded(child: PageEnter(child: body)),
+                  Expanded(child: PageEnter(child: widget.body)),
                   // 迷你播放条：队列为空时不占位
-                  if (nowPlaying) const NowPlayingBar(),
+                  if (widget.nowPlaying) const NowPlayingBar(),
                 ],
               ),
             ],
           ),
         ),
       ),
-      floatingActionButton: floatingActionButton,
+      floatingActionButton: widget.floatingActionButton,
     );
   }
 }

@@ -7,6 +7,10 @@ import '../iconfont/rc_icon.dart';
 import '../routers/app_nav.dart';
 import '../routers/route_path.dart';
 
+/// 抽屉收起动画约 246ms。点击抽屉里的入口后要等它收完再切页，
+/// 否则「抽屉左滑收起」和「页面切换」两个动画会同时播放，看起来像抖了一下。
+const Duration kDrawerCloseDelay = Duration(milliseconds: 240);
+
 /// @ClassName MainDrawer
 /// @Description 主菜单窗口
 /// @Author richuff
@@ -343,12 +347,12 @@ class _DrawerItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: () {
+          onTap: () async {
             closeDrawer();
-            if (Get.currentRoute != route) {
-              // 顶层页面互斥：换页而不是压栈，否则页面栈会一直变长
-              AppNav.goTopLevel(route);
-            }
+            if (Get.currentRoute == route) return;
+            await Future.delayed(kDrawerCloseDelay);
+            // 顶层页面互斥：换页而不是压栈，否则页面栈会一直变长
+            AppNav.goTopLevel(route);
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
@@ -392,8 +396,9 @@ class _SettingsButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
-        onTap: () {
+        onTap: () async {
           closeDrawer();
+          await Future.delayed(kDrawerCloseDelay);
           Get.dialog(const SettingDialog());
         },
         child: Padding(
