@@ -6,6 +6,7 @@ import 'package:rctool/service/folder_opener.dart';
 import 'package:rctool/service/resource_importer.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
+import 'package:rctool/widget/wallpaper_image.dart';
 
 /// @ClassName WallpaperPage
 /// @Description 壁纸管理：每个页面槽位都支持在 App 内「导入替换」——
@@ -25,6 +26,16 @@ class _WallpaperPageState extends State<WallpaperPage> {
 
   bool _busy = false;
   String? _busySlot;
+
+  @override
+  void initState() {
+    super.initState();
+    // 每次进入都重新扫一遍目录：文件可能是在别的地方增删的，
+    // 只靠启动时那一次扫描会出现「第二次进来壁纸就没了」的错觉。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) controller.refresh();
+    });
+  }
 
   Future<void> _refresh({bool toast = true}) async {
     await controller.refresh();
@@ -312,12 +323,12 @@ class _WallpaperPageState extends State<WallpaperPage> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image(
-                  key:
-                      ValueKey('wp-preview-${slot.slot}-${wallpaper.revision}'),
-                  image: slot.imageProvider,
+                // 预览按卡片尺寸解码：原图直接上屏会吃掉几十 MB 内存
+                WallpaperImage(
+                  slot: slot,
                   fit: BoxFit.cover,
-                  opacity: const AlwaysStoppedAnimation<double>(0.9),
+                  opacity: 0.9,
+                  maxDecodeWidth: 1200,
                 ),
                 // 底部渐隐，让标题压在图上也清楚
                 Positioned(

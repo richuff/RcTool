@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import 'package:rctool/controller/locale_controller.dart';
+import 'package:rctool/controller/wallpaper_controller.dart';
 import 'package:rctool/repository/SqlLiteConn/play_history_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/service/live2d_model_library.dart';
@@ -247,5 +248,40 @@ void main() {
     expect(PlayHistoryConn.isDuplicatePlay(now - 300, now), isTrue);
     expect(PlayHistoryConn.isDuplicatePlay(now - 5000, now), isTrue);
     expect(PlayHistoryConn.isDuplicatePlay(now - 5001, now), isFalse);
+  });
+
+  test('壁纸文件名映射到页面槽位', () {
+    expect(WallpaperController.slotOfFile('home'), 'home');
+    expect(WallpaperController.slotOfFile('home-1700000000'), 'home');
+    expect(WallpaperController.slotOfFile('live2d-1'), 'live2d');
+    expect(WallpaperController.slotOfFile('music'), 'music');
+    expect(WallpaperController.slotOfFile('about-old'), 'about');
+    expect(WallpaperController.slotOfFile('default'), 'default');
+    expect(WallpaperController.slotOfFile('default-42'), 'default');
+    // 前缀相近但不同槽位的文件名不应该被误吞
+    expect(WallpaperController.slotOfFile('homeland'), isNull);
+    expect(WallpaperController.slotOfFile('aboutme-1'), isNull);
+  });
+
+  test('同一个槽位有多张图时取最新一张', () {
+    final t0 = DateTime(2026, 11, 4, 10);
+    final chosen = WallpaperController.pickSlots([
+      MapEntry('home', t0),
+      MapEntry('home-100', t0.add(const Duration(minutes: 5))),
+      MapEntry('home-50', t0.add(const Duration(minutes: 2))),
+      MapEntry('music', t0),
+      MapEntry('random', t0.add(const Duration(hours: 1))),
+    ]);
+    expect(chosen['home'], 'home-100');
+    expect(chosen['music'], 'music');
+    expect(chosen.containsKey('random'), isFalse);
+  });
+
+  test('只认图片扩展名', () {
+    expect(WallpaperController.isSupportedFile('/x/home.jpg'), isTrue);
+    expect(WallpaperController.isSupportedFile('/x/home.PNG'), isTrue);
+    expect(WallpaperController.isSupportedFile('/x/home.webp'), isTrue);
+    expect(WallpaperController.isSupportedFile('/x/home.gif'), isFalse);
+    expect(WallpaperController.isSupportedFile('/x/home'), isFalse);
   });
 }

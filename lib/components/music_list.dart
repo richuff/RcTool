@@ -112,8 +112,10 @@ class _MusicList extends State<MusicList> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap:
-                  current == null ? null : () => Get.toNamed(RoutePath.PLAYER),
+              onTap: current == null
+                  ? null
+                  : () =>
+                      Get.toNamed(RoutePath.PLAYER, preventDuplicates: true),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 8, 6, 2),
                 child: Row(

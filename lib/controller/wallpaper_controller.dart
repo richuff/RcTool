@@ -61,25 +61,28 @@ class WallpaperController extends GetxController {
       _directoryPath = dir.path;
       _publicAccess = storage.publicAccess;
 
-      final found = <String, File>{};
+      // 同一槽位可能有多张（手动放的 home.jpg + 导入的 home-1700000000.jpg），
+      // 一律取最新那张；空文件（复制中断留下的残片）直接跳过。
+      final candidates = <MapEntry<String, DateTime>>[];
+      final filesByName = <String, File>{};
       await for (final entity in dir.list(followLinks: false)) {
         if (entity is! File) continue;
-        final extension = p.extension(entity.path).toLowerCase();
-        if (!_extensions.contains(extension)) continue;
+        if (!isSupportedFile(entity.path)) continue;
         final name = p.basenameWithoutExtension(entity.path).toLowerCase();
-        // 同名多扩展名时按扩展名优先级取第一个（jpg 先于 png）
-        found.putIfAbsent(name, () => entity);
+        if (slotOfFile(name) == null) continue;
+
+        final stat = await entity.stat();
+        if (stat.size <= 0) continue;
+        candidates.add(MapEntry(name, stat.modified));
+        filesByName[name] = entity;
       }
 
+      final chosen = pickSlots(candidates);
       _files.clear();
       for (final slot in BackGroundEnum.values) {
-        final file = found[slot.slot] ?? found['default'];
+        final name = chosen[slot.slot] ?? chosen['default'];
+        final file = name == null ? null : filesByName[name];
         if (file != null) _files[slot.slot] = file;
-      }
-
-      // 同名文件换了内容也要立刻看到新图，先清掉图片缓存
-      for (final file in _files.values) {
-        FileImage(file).evict();
       }
 
       revision++;
@@ -87,10 +90,47 @@ class WallpaperController extends GetxController {
       _loaded = true;
       update();
     } catch (error) {
+      // 扫描失败保留上一次的壁纸，不要因为一次读取异常就变回内置图
       _error = '$error';
       _loaded = true;
       update();
     }
+  }
+
+  /// 是否是可用的壁纸文件（按扩展名判断）
+  static bool isSupportedFile(String fileName) {
+    return _extensions.contains(p.extension(fileName).toLowerCase());
+  }
+
+  /// 每个槽位挑最新的一张：入参是「文件名（不含扩展名，小写）+ 修改时间」，
+  /// 返回 槽位 -> 选中的文件名。抽成纯函数方便单测。
+  static Map<String, String> pickSlots(
+    Iterable<MapEntry<String, DateTime>> entries,
+  ) {
+    final best = <String, MapEntry<String, DateTime>>{};
+    for (final entry in entries) {
+      final slot = slotOfFile(entry.key);
+      if (slot == null) continue;
+      final previous = best[slot];
+      if (previous == null || entry.value.isAfter(previous.value)) {
+        best[slot] = entry;
+      }
+    }
+    return best.map((slot, entry) => MapEntry(slot, entry.key));
+  }
+
+  /// 文件名对应的槽位：`home.jpg` 与 `home-1700000000.png` 都属于 home，
+  /// `default` 作为四个页面统一兜底。
+  static String? slotOfFile(String baseName) {
+    for (final slot in BackGroundEnum.values) {
+      if (baseName == slot.slot || baseName.startsWith('${slot.slot}-')) {
+        return slot.slot;
+      }
+    }
+    if (baseName == 'default' || baseName.startsWith('default-')) {
+      return 'default';
+    }
+    return null;
   }
 
   /// 申请公共目录权限，成功后重新扫描
@@ -106,6 +146,8 @@ class WallpaperController extends GetxController {
   ImageProvider? customImage(String slot) {
     final file = _files[slot];
     if (file == null) return null;
+    // 文件被外部删除 / 存储被移除时直接回退内置图，避免解码失败画出空白
+    if (!file.existsSync()) return null;
     return FileImage(file);
   }
 

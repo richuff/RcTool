@@ -4,6 +4,7 @@ import 'package:rctool/widget/setting_dialog.dart';
 
 import '../constant/app_info.dart';
 import '../iconfont/rc_icon.dart';
+import '../routers/app_nav.dart';
 import '../routers/route_path.dart';
 
 /// @ClassName MainDrawer
@@ -345,7 +346,8 @@ class _DrawerItem extends StatelessWidget {
           onTap: () {
             closeDrawer();
             if (Get.currentRoute != route) {
-              Get.toNamed(route);
+              // 顶层页面互斥：换页而不是压栈，否则页面栈会一直变长
+              AppNav.goTopLevel(route);
             }
           },
           child: Padding(

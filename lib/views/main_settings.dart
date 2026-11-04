@@ -9,6 +9,7 @@ import '../controller/music_controller.dart';
 import '../controller/offline_controller.dart';
 import '../controller/wallpaper_controller.dart';
 import '../feature/theme/type_value.dart';
+import '../routers/app_nav.dart';
 import '../routers/route_path.dart';
 import '../service/live2d_model_library.dart';
 import '../utils/cache_size.dart';
@@ -125,7 +126,7 @@ class _MainSettingsState extends State<MainSettings> {
           TextButton(
             onPressed: () {
               Get.back();
-              Get.toNamed(RoutePath.LIVETOD);
+              AppNav.goTopLevel(RoutePath.LIVETOD);
             },
             child: Text('去 Live2D'.tr),
           ),
@@ -261,7 +262,7 @@ class _MainSettingsState extends State<MainSettings> {
                           'count': '${wallpaper.fileCount}',
                         })
                       : '支持放入图片快速替换，无需重新安装'.tr,
-                  onTap: () => Get.toNamed(RoutePath.WALLPAPER),
+                  onTap: () => AppNav.goTopLevel(RoutePath.WALLPAPER),
                 ),
                 SettingsActionTile(
                   icon: Icons.face_retouching_natural,
@@ -386,7 +387,7 @@ class _MainSettingsState extends State<MainSettings> {
                 icon: Icons.inventory_2_outlined,
                 title: '备份与恢复'.tr,
                 subtitle: '把歌单、收藏和设置导出成文件，换机时一键恢复'.tr,
-                onTap: () => Get.toNamed(RoutePath.BACKUP),
+                onTap: () => AppNav.goTopLevel(RoutePath.BACKUP),
               ),
               GetBuilder<OfflineController>(
                 builder: (offline) => SettingsActionTile(
@@ -397,7 +398,7 @@ class _MainSettingsState extends State<MainSettings> {
                     'size': formatBytes(offline.totalBytes.value),
                   }),
                   onTap: () async {
-                    await Get.toNamed(RoutePath.OFFLINE);
+                    await AppNav.goTopLevel(RoutePath.OFFLINE);
                     await _readCacheSize();
                   },
                 ),

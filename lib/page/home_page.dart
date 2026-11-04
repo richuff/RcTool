@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rctool/constant/app_info.dart';
 import 'package:rctool/constant/playlist_const.dart';
+import 'package:rctool/routers/app_nav.dart';
 import 'package:rctool/routers/route_path.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
@@ -299,7 +300,7 @@ class _EntryTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () => Get.toNamed(route),
+          onTap: () => AppNav.goTopLevel(route),
           child: Ink(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
@@ -461,7 +462,7 @@ class _MenuRow extends StatelessWidget {
         style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
       ),
       trailing: Icon(Icons.chevron_right_rounded, color: scheme.outline),
-      onTap: onTap ?? () => Get.toNamed(route!),
+      onTap: onTap ?? () => AppNav.goTopLevel(route!),
     );
   }
 }

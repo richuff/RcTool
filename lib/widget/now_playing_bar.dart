@@ -116,7 +116,8 @@ class _NowPlayingBarState extends State<NowPlayingBar> {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => Get.toNamed(RoutePath.PLAYER),
+                  onTap: () =>
+                      Get.toNamed(RoutePath.PLAYER, preventDuplicates: true),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

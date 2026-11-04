@@ -9,12 +9,15 @@ import 'external_storage.dart';
 /// @Description 在 App 内导入外部资源：把用户从系统文件选择器选中的图片 /
 ///              模型文件夹复制进应用资源目录，免去手动拷贝路径的操作。
 /// @Author richuff
-/// @Version 1.0
+/// @Version 1.1
 class ResourceImporter {
   ResourceImporter._();
 
-  /// 导入壁纸：复制成 `<wallpaper>/<slot><原扩展名>`，
-  /// 同时清掉同槽位旧文件（含其它扩展名，避免同名双图）。
+  /// 导入壁纸：复制成 `<wallpaper>/<slot>-<时间戳><原扩展名>`。
+  ///
+  /// 文件名带时间戳是有意的：图片缓存以「文件路径」为 key，如果一直覆盖
+  /// `<slot>.jpg`，换图后很容易读到缓存里的旧图；换成新名字则每次都是新 key，
+  /// 既不会显示旧图，也不会因为缓存失效而变成空白。旧文件在复制成功后才清理。
   static Future<File> importWallpaper(String slot, String sourcePath) async {
     final source = File(sourcePath);
     if (!await source.exists()) {
@@ -23,34 +26,44 @@ class ResourceImporter {
     final ext = p.extension(sourcePath).toLowerCase();
     final dir = await ExternalStorage.instance.wallpaperDir();
 
-    await for (final entity in dir.list(followLinks: false)) {
-      if (entity is! File) continue;
-      if (p.basenameWithoutExtension(entity.path).toLowerCase() == slot) {
-        try {
-          await entity.delete();
-        } catch (_) {
-          // 删不掉旧文件时忽略，覆盖写入仍然生效
-        }
-      }
-    }
-
-    final target = File(p.join(dir.path, '$slot$ext'));
+    final stamp = DateTime.now().millisecondsSinceEpoch;
+    final target = File(p.join(dir.path, '$slot-$stamp$ext'));
     await source.copy(target.path);
+
+    // 复制成功后再删旧文件，避免复制失败时用户原有的壁纸也没了
+    await _deleteSlotFiles(dir, slot, keep: target.path);
     return target;
   }
 
   /// 删除槽位的自定义壁纸，恢复内置默认图。
   static Future<void> resetWallpaper(String slot) async {
     final dir = await ExternalStorage.instance.wallpaperDir();
-    await for (final entity in dir.list(followLinks: false)) {
-      if (entity is! File) continue;
-      if (p.basenameWithoutExtension(entity.path).toLowerCase() == slot) {
-        try {
-          await entity.delete();
-        } catch (_) {
-          // 已不存在时忽略
+    await _deleteSlotFiles(dir, slot);
+  }
+
+  /// 清掉某个槽位的所有文件（`home.jpg`、`home-1700000000.png` 都算），
+  /// 可保留一个刚写入的新文件。
+  static Future<void> _deleteSlotFiles(
+    Directory dir,
+    String slot, {
+    String? keep,
+  }) async {
+    final keepPath = keep == null ? null : p.normalize(keep);
+    try {
+      await for (final entity in dir.list(followLinks: false)) {
+        if (entity is! File) continue;
+        if (keepPath != null && p.normalize(entity.path) == keepPath) continue;
+        final base = p.basenameWithoutExtension(entity.path).toLowerCase();
+        if (base == slot || base.startsWith('$slot-')) {
+          try {
+            await entity.delete();
+          } catch (_) {
+            // 删不掉时忽略：新文件已经写入，旧文件残留不影响显示
+          }
         }
       }
+    } catch (_) {
+      // 目录不可读时不阻塞导入流程
     }
   }
 

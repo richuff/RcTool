@@ -7,6 +7,7 @@ import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/main_drawer.dart';
 import 'package:rctool/widget/now_playing_bar.dart';
 import 'package:rctool/widget/search_widget.dart';
+import 'package:rctool/widget/wallpaper_image.dart';
 
 /// @ClassName AppScaffold
 /// @Description 统一页面外壳：封装 Scaffold + Drawer + AppBar(菜单按钮 + 全局设置入口)
@@ -87,7 +88,8 @@ class AppScaffold extends StatelessWidget {
               padding: EdgeInsets.zero,
               visualDensity: VisualDensity.compact,
               constraints: const BoxConstraints.tightFor(width: 40, height: 40),
-              onPressed: () => Get.toNamed(RoutePath.SEARCH),
+              onPressed: () =>
+                  Get.toNamed(RoutePath.SEARCH, preventDuplicates: true),
               icon:
                   Icon(Icons.search_rounded, size: 22, color: scheme.onSurface),
             ),
@@ -99,29 +101,26 @@ class AppScaffold extends StatelessWidget {
       ),
       body: SizedBox.expand(
         child: GetBuilder<WallpaperController>(
-          builder: (wallpaper) => DecoratedBox(
-            // 换壁纸后换 key，让 DecoratedBox 重新解码图片
-            key: ValueKey('bg-${background.slot}-${wallpaper.revision}'),
-            decoration: background.decoration,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // 暗色下给背景图压一层深色蒙层，避免亮图把整页照得发白
-                if (Theme.of(context).brightness == Brightness.dark)
-                  IgnorePointer(
-                    child: ColoredBox(
-                      color: scheme.surface.withOpacity(0.62),
-                    ),
+          builder: (_) => Stack(
+            fit: StackFit.expand,
+            children: [
+              // 背景图按显示尺寸解码，换壁纸后 provider 变化会自动重载
+              WallpaperImage(slot: background, opacity: background.opacity),
+              // 暗色下给背景图压一层深色蒙层，避免亮图把整页照得发白
+              if (Theme.of(context).brightness == Brightness.dark)
+                IgnorePointer(
+                  child: ColoredBox(
+                    color: scheme.surface.withOpacity(0.62),
                   ),
-                Column(
-                  children: [
-                    Expanded(child: body),
-                    // 迷你播放条：队列为空时不占位
-                    if (nowPlaying) const NowPlayingBar(),
-                  ],
                 ),
-              ],
-            ),
+              Column(
+                children: [
+                  Expanded(child: body),
+                  // 迷你播放条：队列为空时不占位
+                  if (nowPlaying) const NowPlayingBar(),
+                ],
+              ),
+            ],
           ),
         ),
       ),

@@ -6,6 +6,7 @@ import 'package:rctool/feature/theme/type_value.dart';
 import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
+import 'package:rctool/widget/wallpaper_image.dart';
 import 'package:rctool/widget/play_all_button.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
@@ -167,19 +168,19 @@ class _SearchPageState extends State<SearchPage> {
       ),
       body: SizedBox.expand(
         child: GetBuilder<WallpaperController>(
-          builder: (wallpaper) => DecoratedBox(
-            key: ValueKey('search-bg-${wallpaper.revision}'),
-            decoration: BackGroundEnum.musicBackGround.decoration,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (Theme.of(context).brightness == Brightness.dark)
-                  IgnorePointer(
-                    child: ColoredBox(color: scheme.surface.withOpacity(0.62)),
-                  ),
-                _body(scheme, hasQuery),
-              ],
-            ),
+          builder: (_) => Stack(
+            fit: StackFit.expand,
+            children: [
+              WallpaperImage(
+                slot: BackGroundEnum.musicBackGround,
+                opacity: BackGroundEnum.musicBackGround.opacity,
+              ),
+              if (Theme.of(context).brightness == Brightness.dark)
+                IgnorePointer(
+                  child: ColoredBox(color: scheme.surface.withOpacity(0.62)),
+                ),
+              _body(scheme, hasQuery),
+            ],
           ),
         ),
       ),
