@@ -26,90 +26,83 @@ class HomePage extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-              children: [
-                const SlideFadeIn(child: _WelcomeCard()),
+              children: stagger([
+                const _WelcomeCard(),
                 const SizedBox(height: 20),
                 _sectionLabel(context, '快速开始'.tr),
-                SlideFadeIn(
-                  delay: const Duration(milliseconds: 80),
-                  child: Row(
+                Row(
+                  children: [
+                    Expanded(
+                      child: _EntryTile(
+                        icon: Icons.music_note_rounded,
+                        title: '听音乐'.tr,
+                        subtitle: '曲库 · 队列 · 收藏'.tr,
+                        route: RoutePath.MUSIC,
+                        primary: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _EntryTile(
+                        icon: Icons.face_retouching_natural,
+                        title: 'Live2D'.tr,
+                        subtitle: '与 Haru 互动'.tr,
+                        route: RoutePath.LIVETOD,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _sectionLabel(context, '音乐库'.tr),
+                Container(
+                  decoration: BoxDecoration(
+                    color: scheme.surface.withOpacity(0.94),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: scheme.outline.withOpacity(0.2)),
+                  ),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: _EntryTile(
-                          icon: Icons.music_note_rounded,
-                          title: '听音乐'.tr,
-                          subtitle: '曲库 · 队列 · 收藏'.tr,
-                          route: RoutePath.MUSIC,
-                          primary: true,
+                      _MenuRow(
+                        icon: Icons.auto_awesome_rounded,
+                        title: '每日推荐'.tr,
+                        subtitle: '每天为你准备一组歌曲'.tr,
+                        route: RoutePath.RECOMMEND,
+                      ),
+                      _divider(scheme),
+                      _MenuRow(
+                        icon: Icons.emoji_events_rounded,
+                        title: '排行榜'.tr,
+                        subtitle: '看看哪些歌最热门'.tr,
+                        route: RoutePath.RANKING,
+                      ),
+                      _divider(scheme),
+                      _MenuRow(
+                        icon: Icons.favorite_rounded,
+                        title: '我的喜欢'.tr,
+                        subtitle: '默认歌单，收藏都汇总在这里'.tr,
+                        onTap: () => Get.toNamed(
+                          RoutePath.PLAYLIST,
+                          arguments: favoritePlaylist(),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _EntryTile(
-                          icon: Icons.face_retouching_natural,
-                          title: 'Live2D'.tr,
-                          subtitle: '与 Haru 互动'.tr,
-                          route: RoutePath.LIVETOD,
-                        ),
+                      _divider(scheme),
+                      _MenuRow(
+                        icon: Icons.queue_music_rounded,
+                        title: '歌单'.tr,
+                        subtitle: '整理自己的播放列表'.tr,
+                        route: RoutePath.ALBUM,
+                      ),
+                      _divider(scheme),
+                      _MenuRow(
+                        icon: Icons.insights_rounded,
+                        title: '播放统计'.tr,
+                        subtitle: '最近 7 天与常听榜单'.tr,
+                        route: RoutePath.STATS,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                _sectionLabel(context, '音乐库'.tr),
-                SlideFadeIn(
-                  delay: const Duration(milliseconds: 160),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: scheme.surface.withOpacity(0.94),
-                      borderRadius: BorderRadius.circular(16),
-                      border:
-                          Border.all(color: scheme.outline.withOpacity(0.2)),
-                    ),
-                    child: Column(
-                      children: [
-                        _MenuRow(
-                          icon: Icons.auto_awesome_rounded,
-                          title: '每日推荐'.tr,
-                          subtitle: '每天为你准备一组歌曲'.tr,
-                          route: RoutePath.RECOMMEND,
-                        ),
-                        _divider(scheme),
-                        _MenuRow(
-                          icon: Icons.emoji_events_rounded,
-                          title: '排行榜'.tr,
-                          subtitle: '看看哪些歌最热门'.tr,
-                          route: RoutePath.RANKING,
-                        ),
-                        _divider(scheme),
-                        _MenuRow(
-                          icon: Icons.favorite_rounded,
-                          title: '我的喜欢'.tr,
-                          subtitle: '默认歌单，收藏都汇总在这里'.tr,
-                          onTap: () => Get.toNamed(
-                            RoutePath.PLAYLIST,
-                            arguments: favoritePlaylist(),
-                          ),
-                        ),
-                        _divider(scheme),
-                        _MenuRow(
-                          icon: Icons.queue_music_rounded,
-                          title: '歌单'.tr,
-                          subtitle: '整理自己的播放列表'.tr,
-                          route: RoutePath.ALBUM,
-                        ),
-                        _divider(scheme),
-                        _MenuRow(
-                          icon: Icons.insights_rounded,
-                          title: '播放统计'.tr,
-                          subtitle: '最近 7 天与常听榜单'.tr,
-                          route: RoutePath.STATS,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ]),
             ),
           ),
           // 有正在播放的歌曲时出现

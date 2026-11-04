@@ -64,7 +64,7 @@ class _Ranking extends State<Ranking> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: stagger([
               Text(
                 "排行榜".tr,
                 style: Theme.of(context).textTheme.headlineSmall,
@@ -129,7 +129,7 @@ class _Ranking extends State<Ranking> {
                 },
                 isPlayingMusic: musicController.isPlayingMusic,
               ),
-            ],
+            ]),
           ),
         ),
       ),

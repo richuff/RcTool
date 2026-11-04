@@ -8,6 +8,7 @@ import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/wallpaper_image.dart';
 import 'package:rctool/widget/play_all_button.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -194,7 +195,7 @@ class _SearchPageState extends State<SearchPage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 12, 10, 24),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      children: [
+      children: stagger([
         if (!hasQuery && _history.isNotEmpty) _historySection(scheme),
         if (!hasQuery) _allSongsHeader(scheme),
         if (hasQuery) _resultHeader(scheme),
@@ -219,7 +220,7 @@ class _SearchPageState extends State<SearchPage> {
               onMore: () => showSongActions(context, music),
             );
           }),
-      ],
+      ]),
     );
   }
 

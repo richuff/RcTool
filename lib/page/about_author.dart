@@ -24,37 +24,28 @@ class AboutAuthor extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          SlideFadeIn(
-            child: _HeroCard(
+          ...stagger([
+            _HeroCard(
               name: 'richuff',
               role: 'Flutter Developer · RcTool 作者'.tr,
               tags: const ['Flutter', 'GetX', 'Live2D', 'SQLite'],
             ),
-          ),
-          const SizedBox(height: 16),
-          SlideFadeIn(
-            delay: const Duration(milliseconds: 80),
-            child: _InfoCard(
+            const SizedBox(height: 16),
+            _InfoCard(
               icon: Icons.person_outline_rounded,
               title: '关于作者'.tr,
               content: '一'.tr,
             ),
-          ),
-          const SizedBox(height: 12),
-          SlideFadeIn(
-            delay: const Duration(milliseconds: 160),
-            child: _InfoCard(
+            const SizedBox(height: 12),
+            _InfoCard(
               icon: Icons.favorite_rounded,
               title: '作者的话'.tr,
               content: '二'.tr,
               accentColor: scheme.primary,
             ),
-          ),
-          const SizedBox(height: 12),
-          const SlideFadeIn(
-            delay: Duration(milliseconds: 240),
-            child: _ProjectCard(version: _version, repoUrl: _repoUrl),
-          ),
+            const SizedBox(height: 12),
+            const _ProjectCard(version: _version, repoUrl: _repoUrl),
+          ]),
           const SizedBox(height: 22),
           Center(
             child: Row(

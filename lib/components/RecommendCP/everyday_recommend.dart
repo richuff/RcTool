@@ -78,9 +78,12 @@ class _EverydayList extends State<EverydayList> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _header(context),
+                SlideFadeIn(child: _header(context)),
                 const SizedBox(height: 14),
-                _actionBar(context),
+                SlideFadeIn(
+                  delay: const Duration(milliseconds: 70),
+                  child: _actionBar(context),
+                ),
                 const SizedBox(height: 14),
                 if (_preparing)
                   const Padding(

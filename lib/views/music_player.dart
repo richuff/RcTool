@@ -6,6 +6,7 @@ import 'package:rctool/constant/playlist_const.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/SqlLiteConn/music_conn.dart';
 import 'package:rctool/routers/route_path.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 
 import '../components/ms_card.dart';
 import '../components/music_list.dart';
@@ -62,11 +63,22 @@ class _MusicCard extends State<MusicPlayer> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _header(context),
-        _quickEntries(context),
+        SlideFadeIn(child: _header(context)),
+        SlideFadeIn(
+          delay: const Duration(milliseconds: 70),
+          child: _quickEntries(context),
+        ),
         const SizedBox(height: 10),
-        Expanded(child: _carousel(context)),
-        const MusicList(),
+        Expanded(
+          child: SlideFadeIn(
+            delay: const Duration(milliseconds: 130),
+            child: _carousel(context),
+          ),
+        ),
+        const SlideFadeIn(
+          delay: Duration(milliseconds: 200),
+          child: MusicList(),
+        ),
       ],
     );
   }
@@ -154,7 +166,13 @@ class _MusicCard extends State<MusicPlayer> {
         children: [
           for (var i = 0; i < entries.length; i++) ...[
             if (i > 0) const SizedBox(width: 8),
-            Expanded(child: _QuickEntry(data: entries[i])),
+            Expanded(
+              child: SlideFadeIn(
+                delay: Duration(milliseconds: 60 * i),
+                offset: const Offset(0, 12),
+                child: _QuickEntry(data: entries[i]),
+              ),
+            ),
           ],
         ],
       ),
@@ -208,7 +226,11 @@ class _MusicCard extends State<MusicPlayer> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(width: 12),
-                ...cards,
+                ...stagger(
+                  cards,
+                  step: const Duration(milliseconds: 55),
+                  offset: const Offset(24, 0),
+                ),
                 const SizedBox(width: 8),
               ],
             ),

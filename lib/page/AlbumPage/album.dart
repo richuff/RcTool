@@ -124,57 +124,52 @@ class _Album extends State<Album> {
                 onRefresh: _loadData,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-                  children: [
-                    SlideFadeIn(
-                      child: SettingsSection(
-                        title: '默认歌单'.tr,
-                        icon: Icons.favorite_rounded,
-                        children: [
-                          _PlaylistRow(
-                            icon: Icons.favorite_rounded,
-                            title: playlistDisplayName(kFavoritePlaylistName),
-                            subtitle: '收藏的歌曲都会汇总到这里'.tr,
-                            count: favoriteCount,
-                            highlight: true,
-                            onTap: () => _openPlaylist(
-                              favoritePlaylist(musicCount: favoriteCount),
+                  children: stagger([
+                    SettingsSection(
+                      title: '默认歌单'.tr,
+                      icon: Icons.favorite_rounded,
+                      children: [
+                        _PlaylistRow(
+                          icon: Icons.favorite_rounded,
+                          title: playlistDisplayName(kFavoritePlaylistName),
+                          subtitle: '收藏的歌曲都会汇总到这里'.tr,
+                          count: favoriteCount,
+                          highlight: true,
+                          onTap: () => _openPlaylist(
+                            favoritePlaylist(musicCount: favoriteCount),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SettingsSection(
+                      title: '我的歌单'.tr,
+                      icon: Icons.queue_music_rounded,
+                      children: [
+                        if (playlists.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                            child: Text(
+                              '还没有自建歌单，点右上角的「+」新建一个吧'.tr,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          )
+                        else
+                          ...playlists.map(
+                            (playlist) => _PlaylistRow(
+                              icon: Icons.queue_music_rounded,
+                              title: playlistDisplayName(playlist.name),
+                              subtitle: '创建于 @date'.trParams({
+                                'date': _formatDate(playlist.createdAt),
+                              }),
+                              count: playlist.musicCount,
+                              onTap: () => _openPlaylist(playlist),
+                              onDelete: () => _deletePlaylist(playlist),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    SlideFadeIn(
-                      delay: const Duration(milliseconds: 90),
-                      child: SettingsSection(
-                        title: '我的歌单'.tr,
-                        icon: Icons.queue_music_rounded,
-                        children: [
-                          if (playlists.isEmpty)
-                            Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 10, 16, 14),
-                              child: Text(
-                                '还没有自建歌单，点右上角的「+」新建一个吧'.tr,
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  color: scheme.onSurfaceVariant,
-                                ),
-                              ),
-                            )
-                          else
-                            ...playlists.map(
-                              (playlist) => _PlaylistRow(
-                                icon: Icons.queue_music_rounded,
-                                title: playlistDisplayName(playlist.name),
-                                subtitle: '创建于 @date'.trParams(
-                                    {'date': _formatDate(playlist.createdAt)}),
-                                count: playlist.musicCount,
-                                onTap: () => _openPlaylist(playlist),
-                                onDelete: () => _deletePlaylist(playlist),
-                              ),
-                            ),
-                        ],
-                      ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     Padding(
@@ -188,7 +183,7 @@ class _Album extends State<Album> {
                         ),
                       ),
                     ),
-                  ],
+                  ]),
                 ),
               ),
       ),

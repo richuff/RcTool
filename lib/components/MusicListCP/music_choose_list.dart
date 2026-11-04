@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/widget/play_all_button.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
 
@@ -27,7 +28,7 @@ class MusicChooseList extends StatelessWidget {
         if (list.isEmpty) {
           return ListView(
             padding: const EdgeInsets.fromLTRB(6, 10, 6, 18),
-            children: [header, _emptyState(scheme)],
+            children: stagger([header, _emptyState(scheme)]),
           );
         }
 
@@ -58,18 +59,24 @@ class MusicChooseList extends StatelessWidget {
             return ReorderableDelayedDragStartListener(
               key: ValueKey('queue-${music.url}-$index'),
               index: index,
-              child: SongRow(
-                music: music,
-                index: index,
-                playing: controller.isPlayingMusic(music),
-                loading: controller.loadingUrl.value == music.url &&
-                    controller.loadingUrl.value.isNotEmpty,
-                onPlayToggle: () => controller.playOrPauseMusic(music),
-                onMore: () => showSongActions(
-                  context,
-                  music,
-                  removeLabel: '从播放队列移除'.tr,
-                  onRemove: () => _removeWithUndo(controller, music),
+              child: SlideFadeIn(
+                delay: Duration(
+                  milliseconds: (index * 35).clamp(0, 300).toInt(),
+                ),
+                offset: const Offset(0, 14),
+                child: SongRow(
+                  music: music,
+                  index: index,
+                  playing: controller.isPlayingMusic(music),
+                  loading: controller.loadingUrl.value == music.url &&
+                      controller.loadingUrl.value.isNotEmpty,
+                  onPlayToggle: () => controller.playOrPauseMusic(music),
+                  onMore: () => showSongActions(
+                    context,
+                    music,
+                    removeLabel: '从播放队列移除'.tr,
+                    onRemove: () => _removeWithUndo(controller, music),
+                  ),
                 ),
               ),
             );

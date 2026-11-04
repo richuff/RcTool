@@ -6,6 +6,7 @@ import 'package:rctool/service/backup_service.dart';
 import 'package:rctool/service/folder_opener.dart';
 import 'package:rctool/utils/size_format.dart';
 import 'package:rctool/widget/app_scaffold.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 
 /// @ClassName BackupPage
 /// @Description 数据备份与恢复：把歌单、收藏、歌词和设置导出成 JSON，
@@ -160,7 +161,7 @@ class _BackupPageState extends State<BackupPage> {
       ],
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 28),
-        children: [
+        children: stagger([
           _introCard(scheme),
           const SizedBox(height: 12),
           _actionCard(scheme),
@@ -201,7 +202,7 @@ class _BackupPageState extends State<BackupPage> {
               _backupTile(scheme, backup),
               const SizedBox(height: 10),
             ],
-        ],
+        ]),
       ),
     );
   }

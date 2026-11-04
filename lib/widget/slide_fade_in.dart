@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// @ClassName SlideFadeIn
 /// @Description 列表/卡片入场动画：淡入 + 上滑，支持延迟形成错落效果。
 /// @Author richuff
-/// @Version 2.0
+/// @Version 2.1
 class SlideFadeIn extends StatefulWidget {
   final Widget child;
   final Duration delay;
@@ -62,4 +62,27 @@ class _SlideFadeIn extends State<SlideFadeIn>
       ),
     );
   }
+}
+
+/// 给一组小组件按顺序套上错落入场动画：
+/// 第一个先出现，之后每隔 [step] 出现下一个，累计延迟不超过 [maxDelay]。
+/// 直接用在 `ListView(children: stagger([...]))` 或 `Column(children: stagger([...]))` 里。
+List<Widget> stagger(
+  List<Widget> children, {
+  Duration step = const Duration(milliseconds: 45),
+  Duration maxDelay = const Duration(milliseconds: 360),
+  Duration duration = const Duration(milliseconds: 360),
+  Offset offset = const Offset(0, 16),
+}) {
+  return List<Widget>.generate(children.length, (index) {
+    final double delayMs = index * step.inMilliseconds.toDouble();
+    return SlideFadeIn(
+      delay: Duration(
+        milliseconds: delayMs.clamp(0, maxDelay.inMilliseconds).round(),
+      ),
+      duration: duration,
+      offset: offset,
+      child: children[index],
+    );
+  });
 }

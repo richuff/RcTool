@@ -8,6 +8,7 @@ import 'package:rctool/controller/music_controller.dart';
 import 'package:rctool/repository/entity/Music.dart';
 import 'package:rctool/widget/lyric_view.dart';
 import 'package:rctool/widget/queue_sheet.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 
 /// @ClassName NowPlayingPage
@@ -103,7 +104,7 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                     SafeArea(
                       child: Column(
                         children: [
-                          _topBar(scheme),
+                          SlideFadeIn(child: _topBar(scheme)),
                           Expanded(
                             child: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 260),
@@ -117,20 +118,34 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                                   : GestureDetector(
                                       key: ValueKey('cover-${music.url}'),
                                       behavior: HitTestBehavior.opaque,
-                                      onTap: () => setState(
-                                          () => _showLyrics = true),
-                                      child: _cover(music, scheme),
+                                      onTap: () =>
+                                          setState(() => _showLyrics = true),
+                                      child: SlideFadeIn(
+                                        delay: const Duration(milliseconds: 40),
+                                        duration:
+                                            const Duration(milliseconds: 420),
+                                        child: _cover(music, scheme),
+                                      ),
                                     ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
-                            child: _title(scheme, music),
+                          SlideFadeIn(
+                            delay: const Duration(milliseconds: 120),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+                              child: _title(scheme, music),
+                            ),
                           ),
                           const SizedBox(height: 8),
-                          const _PlayerProgress(),
+                          const SlideFadeIn(
+                            delay: Duration(milliseconds: 160),
+                            child: _PlayerProgress(),
+                          ),
                           const SizedBox(height: 2),
-                          _controls(scheme, music),
+                          SlideFadeIn(
+                            delay: const Duration(milliseconds: 200),
+                            child: _controls(scheme, music),
+                          ),
                           const SizedBox(height: 10),
                         ],
                       ),
@@ -308,7 +323,8 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
-                      color: buffering ? scheme.primary : scheme.onSurfaceVariant,
+                      color:
+                          buffering ? scheme.primary : scheme.onSurfaceVariant,
                     ),
                   );
                 },
@@ -534,8 +550,7 @@ class _PlayerProgressState extends State<_PlayerProgress> {
     super.initState();
     _duration = controller.totalDuration;
     _lastUrl = controller.currentMusic?.url;
-    _positionSub =
-        controller.player.onPositionChanged.listen((Duration value) {
+    _positionSub = controller.player.onPositionChanged.listen((Duration value) {
       if (!mounted) return;
       final url = controller.currentMusic?.url;
       setState(() {
@@ -614,8 +629,7 @@ class _PlayerProgressState extends State<_PlayerProgress> {
                 if (!mounted) return;
                 setState(() {
                   _seeking = false;
-                  _position =
-                      Duration(milliseconds: (totalMs * value).round());
+                  _position = Duration(milliseconds: (totalMs * value).round());
                 });
               },
             ),

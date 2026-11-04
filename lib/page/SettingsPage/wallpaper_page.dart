@@ -6,6 +6,7 @@ import 'package:rctool/service/folder_opener.dart';
 import 'package:rctool/service/resource_importer.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 import 'package:rctool/widget/wallpaper_image.dart';
 
 /// @ClassName WallpaperPage
@@ -146,7 +147,7 @@ class _WallpaperPageState extends State<WallpaperPage> {
       body: GetBuilder<WallpaperController>(
         builder: (wallpaper) => ListView(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 28),
-          children: [
+          children: stagger([
             _folderCard(scheme, wallpaper),
             const SizedBox(height: 12),
             _hintCard(scheme),
@@ -167,7 +168,7 @@ class _WallpaperPageState extends State<WallpaperPage> {
               _slotCard(scheme, slot, wallpaper),
               const SizedBox(height: 12),
             ],
-          ],
+          ]),
         ),
       ),
     );

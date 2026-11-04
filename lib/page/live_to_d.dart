@@ -9,6 +9,7 @@ import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 import 'package:rctool/widget/live2d/live2d_model_sheet.dart';
 import 'package:rctool/widget/live2d/live2d_webview.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// @ClassName LiveTod
@@ -181,45 +182,55 @@ class _LiveTodState extends State<LiveTod> {
           Positioned(
             left: 16,
             top: 14,
-            child: _modelChip(scheme),
+            child: SlideFadeIn(
+              delay: const Duration(milliseconds: 80),
+              child: _modelChip(scheme),
+            ),
           ),
           // 口型联动开关
           Positioned(
             right: 16,
             top: 14,
-            child: _lipSyncChip(scheme),
+            child: SlideFadeIn(
+              delay: const Duration(milliseconds: 140),
+              child: _lipSyncChip(scheme),
+            ),
           ),
           // 底部：互动提示 + 缩放条
           Positioned(
             left: 16,
             right: 16,
             bottom: 16,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 240),
-                  curve: Curves.easeOutCubic,
-                  alignment: Alignment.bottomCenter,
-                  child: _showTips
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _tipsCard(scheme),
-                            const SizedBox(height: 10),
-                          ],
-                        )
-                      : Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _tipsButton(scheme),
+            child: SlideFadeIn(
+              delay: const Duration(milliseconds: 200),
+              offset: const Offset(0, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 240),
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.bottomCenter,
+                    child: _showTips
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _tipsCard(scheme),
+                              const SizedBox(height: 10),
+                            ],
+                          )
+                        : Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: _tipsButton(scheme),
+                            ),
                           ),
-                        ),
-                ),
-                _zoomBar(scheme),
-              ],
+                  ),
+                  _zoomBar(scheme),
+                ],
+              ),
             ),
           ),
         ],
@@ -276,9 +287,7 @@ class _LiveTodState extends State<LiveTod> {
     final active = _lipSync && _wasPlaying;
     final color = _lipSync ? scheme.primary : scheme.onSurfaceVariant;
     return Tooltip(
-      message: _lipSync
-          ? '播放音乐时 Haru 会跟着一起唱，点此关闭'.tr
-          : '点此开启口型联动'.tr,
+      message: _lipSync ? '播放音乐时 Haru 会跟着一起唱，点此关闭'.tr : '点此开启口型联动'.tr,
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(20),
@@ -332,7 +341,8 @@ class _LiveTodState extends State<LiveTod> {
     );
   }
 
-  Widget _tipsCard(ColorScheme scheme) {    return ClipRRect(
+  Widget _tipsCard(ColorScheme scheme) {
+    return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
@@ -390,8 +400,8 @@ class _LiveTodState extends State<LiveTod> {
                     _showTips = true;
                   });
                 },
-                icon: Icon(Icons.refresh_rounded,
-                    color: scheme.onSurfaceVariant),
+                icon:
+                    Icon(Icons.refresh_rounded, color: scheme.onSurfaceVariant),
               ),
               IconButton(
                 tooltip: '收起提示'.tr,

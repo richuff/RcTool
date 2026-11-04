@@ -225,7 +225,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                       ReorderableDelayedDragStartListener(
                         key: ValueKey('p-${entry.key}-${entry.value.url}'),
                         index: entry.key,
-                        child: _rowFor(controller, entry.value),
+                        child: _rowFor(controller, entry.value, entry.key),
                       ),
                   ],
                 ),
@@ -236,12 +236,13 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
 
   List<Widget> _songRows(MusicController controller) {
     return _musicList.asMap().entries.map((entry) {
-      return _rowFor(controller, entry.value);
+      return _rowFor(controller, entry.value, entry.key);
     }).toList();
   }
 
-  Widget _rowFor(MusicController controller, Music music) {
+  Widget _rowFor(MusicController controller, Music music, [int index = 0]) {
     return SlideFadeIn(
+      delay: Duration(milliseconds: (index * 32).clamp(0, 288).toInt()),
       offset: const Offset(0, 12),
       child: SongRow(
         music: music,

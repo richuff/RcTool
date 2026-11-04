@@ -6,6 +6,7 @@ import 'package:rctool/controller/wallpaper_controller.dart';
 import 'package:rctool/widget/BackGround/back_ground_enum.dart';
 import 'package:rctool/widget/main_drawer.dart';
 import 'package:rctool/widget/now_playing_bar.dart';
+import 'package:rctool/widget/page_enter.dart';
 import 'package:rctool/widget/search_widget.dart';
 import 'package:rctool/widget/wallpaper_image.dart';
 
@@ -115,7 +116,8 @@ class AppScaffold extends StatelessWidget {
                 ),
               Column(
                 children: [
-                  Expanded(child: body),
+                  // 每次进入页面：先整体淡入，页面内的小组件再逐个错落出现
+                  Expanded(child: PageEnter(child: body)),
                   // 迷你播放条：队列为空时不占位
                   if (nowPlaying) const NowPlayingBar(),
                 ],

@@ -98,8 +98,8 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SlideFadeIn(child: _headerCard(scheme)),
+                        children: stagger([
+                          _headerCard(scheme),
                           const SizedBox(height: 16),
                           Row(
                             children: [
@@ -129,12 +129,12 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          SlideFadeIn(child: _weeklyCard(scheme)),
+                          _weeklyCard(scheme),
                           const SizedBox(height: 16),
-                          SlideFadeIn(child: _timeOfDayCard(scheme)),
+                          _timeOfDayCard(scheme),
                           const SizedBox(height: 16),
                           if (_topArtists.isNotEmpty) ...[
-                            SlideFadeIn(child: _artistCard(scheme)),
+                            _artistCard(scheme),
                             const SizedBox(height: 16),
                           ],
                           Row(
@@ -153,14 +153,10 @@ class _PlayStatsPageState extends State<PlayStatsPage> {
                             _emptyStats()
                           else
                             ...topSongs.take(5).toList().asMap().entries.map(
-                                  (entry) => SlideFadeIn(
-                                    delay:
-                                        Duration(milliseconds: entry.key * 60),
-                                    child: _topSongCard(
-                                        scheme, entry.key, entry.value),
-                                  ),
+                                  (entry) => _topSongCard(
+                                      scheme, entry.key, entry.value),
                                 ),
-                        ],
+                        ]),
                       ),
                     ),
                   ),

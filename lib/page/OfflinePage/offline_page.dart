@@ -6,6 +6,7 @@ import 'package:rctool/utils/size_format.dart';
 import 'package:rctool/widget/app_scaffold.dart';
 import 'package:rctool/widget/cache_limit_dialog.dart';
 import 'package:rctool/widget/now_playing_bar.dart';
+import 'package:rctool/widget/slide_fade_in.dart';
 import 'package:rctool/widget/song_actions_sheet.dart';
 import 'package:rctool/widget/song_row.dart';
 
@@ -106,7 +107,7 @@ class _OfflinePageState extends State<OfflinePage> {
                   ? const Center(child: CircularProgressIndicator())
                   : ListView(
                       padding: const EdgeInsets.fromLTRB(10, 10, 10, 18),
-                      children: [
+                      children: stagger([
                         _summaryCard(scheme, controller),
                         const SizedBox(height: 6),
                         if (_entries.isEmpty)
@@ -115,8 +116,8 @@ class _OfflinePageState extends State<OfflinePage> {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(8, 2, 8, 6),
                             child: Text(
-                              '共 @count 首'.trParams(
-                                  {'count': '${_entries.length}'}),
+                              '共 @count 首'
+                                  .trParams({'count': '${_entries.length}'}),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -128,10 +129,10 @@ class _OfflinePageState extends State<OfflinePage> {
                             final entry = item.value;
                             return SongRow(
                               music: entry.music,
-                              subtitle: '@size · 已下载'.trParams(
-                                  {'size': formatBytes(entry.bytes)}),
-                              playing: musicController
-                                  .isPlayingMusic(entry.music),
+                              subtitle: '@size · 已下载'
+                                  .trParams({'size': formatBytes(entry.bytes)}),
+                              playing:
+                                  musicController.isPlayingMusic(entry.music),
                               onPlayToggle: () => _play(item.key),
                               removeIcon: Icons.delete_outline_rounded,
                               onRemove: () => _remove(entry),
@@ -140,7 +141,7 @@ class _OfflinePageState extends State<OfflinePage> {
                             );
                           }),
                         ],
-                      ],
+                      ]),
                     ),
             ),
             const NowPlayingBar(),
@@ -217,8 +218,8 @@ class _OfflinePageState extends State<OfflinePage> {
                 child: OutlinedButton.icon(
                   onPressed: _pickLimit,
                   icon: const Icon(Icons.sd_storage_outlined, size: 17),
-                  label: Text('缓存上限'.tr,
-                      style: const TextStyle(fontSize: 12.5)),
+                  label:
+                      Text('缓存上限'.tr, style: const TextStyle(fontSize: 12.5)),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 36),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -230,8 +231,8 @@ class _OfflinePageState extends State<OfflinePage> {
                 child: OutlinedButton.icon(
                   onPressed: controller.cachedUrls.isEmpty ? null : _clearAll,
                   icon: const Icon(Icons.delete_sweep_outlined, size: 17),
-                  label: Text('清空缓存'.tr,
-                      style: const TextStyle(fontSize: 12.5)),
+                  label:
+                      Text('清空缓存'.tr, style: const TextStyle(fontSize: 12.5)),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 36),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
