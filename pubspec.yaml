@@ -2,7 +2,7 @@ name: rctool
 description: "RcTool"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+1
+version: 1.0.2+2
 
 environment:
   sdk: ^3.5.1
@@ -30,6 +30,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -59,3 +60,26 @@ flutter:
     - assets/live2d/models/Haru/Haru.2048/
     - assets/live2d/models/Haru/expressions/
     - assets/live2d/models/Haru/motions/
+
+flutter_launcher_icons:
+  # 主图：全出血方形（遮罩由系统做，不要自带圆角/白边）
+  image_path: "assets/icon/icon_full.png"
+  android: true
+  min_sdk_android: 21
+  # 安卓 8+ 自适应图标：前景缩到 74% 居中留在安全区，背景取图标边缘渐变色
+  adaptive_icon_background: "#B89A9C"
+  adaptive_icon_foreground: "assets/icon/icon_fg.png"
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/icon_full.png"
+    background_color: "#B89A9C"
+    theme_color: "#B89A9C"
+  windows:
+    generate: true
+    image_path: "assets/icon/icon_full.png"
+    icon_size: 48
+  macos:
+    generate: true
+    image_path: "assets/icon/icon_full.png"
