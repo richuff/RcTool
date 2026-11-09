@@ -1,32 +1,34 @@
-# 05 - Live2D 集成
+# 05 - Live2D Integration
 
-RcTool 在 `/livetod` 页面提供 Live2D 角色互动。整体方案是：**用 WebView 承载 Web 版 Live2D 运行时，加载打包在 `assets/live2d/` 内的模型**，从而以一份代码覆盖 Android / iOS / 桌面 / Web。
+> **Languages:** English · [简体中文](05-live2d.zh-CN.md)
 
-## 1. 资源布局
+RcTool offers Live2D character interaction on the `/livetod` page. The approach: **host the Web Live2D runtime in a WebView and load models bundled under `assets/live2d/`**, so a single codebase covers Android / iOS / desktop / Web.
+
+## 1. Asset layout
 
 ```
 assets/live2d/
-├── viewer/                 # Web 版 Live2D 运行时（HTML/JS，加载模型并渲染）
+├── viewer/                 # Web Live2D runtime (HTML/JS, loads and renders models)
 └── models/
-    ├── Haru/               # 当前内置模型
-    │   ├── Haru.model3.json      # 模型入口配置
-    │   ├── Haru.moc3              # 模型骨架
-    │   ├── Haru.physics3.json     # 物理（头发 / 飘带摆动等）
-    │   ├── Haru.pose3.json        # 姿势
-    │   ├── Haru.cdi3.json         # 可动参数说明
+    ├── Haru/               # Bundled model
+    │   ├── Haru.model3.json      # Model entry config
+    │   ├── Haru.moc3              # Model skeleton
+    │   ├── Haru.physics3.json     # Physics (hair / ribbon sway, etc.)
+    │   ├── Haru.pose3.json        # Poses
+    │   ├── Haru.cdi3.json         # Parameter documentation
     │   ├── Haru.userdata3.json
-    │   ├── Haru.2048/             # 贴图（texture_00/01.png）
-    │   ├── expressions/           # 表情（F01–F08.exp3.json）
-    │   ├── motions/               # 动作（idle / m01–m04）
-    │   └── sounds/                # 动作配套音效
+    │   ├── Haru.2048/             # Textures (texture_00/01.png)
+    │   ├── expressions/           # Expressions (F01–F08.exp3.json)
+    │   ├── motions/               # Motions (idle / m01–m04)
+    │   └── sounds/                # Sound effects for motions
     └── README.md
 ```
 
-> 资源已在 `pubspec.yaml` 的 `assets` 中声明（`assets/live2d/viewer/` 与 `assets/live2d/models/`），打包后随应用分发。
+> These assets are declared in the `assets` section of `pubspec.yaml` (`assets/live2d/viewer/` and `assets/live2d/models/`) and ship with the app.
 
-## 2. 平台适配
+## 2. Platform adaptation
 
-Live2D 渲染层位于 `lib/widget/live2d/`，采用 **条件导出** 做平台隔离：
+The rendering layer lives in `lib/widget/live2d/` and uses **conditional exports** for platform isolation:
 
 ```dart
 // live2d_webview.dart
@@ -34,50 +36,51 @@ export 'live2d_webview_stub.dart'
     if (dart.library.io) 'live2d_webview_io.dart';
 ```
 
-- `live2d_webview_stub.dart`：Web 端占位实现。
-- `live2d_webview_io.dart`：原生（Android / iOS / 桌面）实现，使用 `webview_flutter`（移动/Web）与 `webview_windows`（Windows 桌面）承载 viewer。
+- `live2d_webview_stub.dart`: Web placeholder implementation.
+- `live2d_webview_io.dart`: native (Android / iOS / desktop) implementation, hosting the viewer with `webview_flutter` (mobile/Web) and `webview_windows` (Windows desktop).
 
-这样上层 `live_to_d.dart` 页面只依赖统一的 `live2d_webview` 入口，无需关心具体平台。
+The `live_to_d.dart` page therefore only depends on the unified `live2d_webview` entry and does not care about the concrete platform.
 
-## 3. 渲染原理
+## 3. Rendering pipeline
 
-1. WebView 加载 `assets/live2d/viewer/` 中的 Web 页面。
-2. viewer 通过 `Haru.model3.json` 找到模型各部件、贴图、动作、表情。
-3. Web 端 Live2D 运行时（Cubism Web SDK）解析 `.moc3` 与 `.physics3.json`，实时渲染并应用物理 / 动作。
-4. Flutter 侧可通过 WebView 的 JS 桥与应用交互（例如：触摸事件、随音乐节奏切换动作 / 表情）。
+1. The WebView loads the web page in `assets/live2d/viewer/`.
+2. The viewer uses `Haru.model3.json` to locate model parts, textures, motions and expressions.
+3. The Web Live2D runtime (Cubism Web SDK) parses `.moc3` and `.physics3.json`, renders in real time and applies physics / motions.
+4. Flutter can interact with the page through the WebView's JS bridge (e.g. touch events, switching motions / expressions with the music).
 
-## 4. 交互与联动
+## 4. Interaction and synchronization
 
-- **触摸交互**：用户点击 / 拖拽角色，触发对应 `motions` 动作或 `expressions` 表情。
-- **缩放控制**：`live_to_d.dart` 底部缩放条（− / 滑块 / ＋ / 百分比）把倍率传给 `Live2DWebView(zoom:)`，Flutter 侧通过 JS 桥调用 `window.live2dBridge.setZoom(value)`；`fitModelToStage()` 里以 `0.86 * zoom` 计算缩放，默认 0.8（整屏贴合会显得过大），范围 0.45–1.6，倍率持久化到 `SharedPreferences`（`live2dZoomKey`）。模型未加载完成时的调用会被忽略，`ready` 回调里会再同步一次。
-- **状态回传**：`window.__rcPost({type: progress|ready|error, ...})` 经 `RcLive2DBridge`（Android）或 `chrome.webview.postMessage`（Windows）回传，Flutter 据此显示进度浮层、失败原因与重试入口。
-- **口型联动**：音频由 Flutter 原生播放器（`audioplayers`）解码，WebView 拿不到音频采样，因此 `main.js` 用「音节包络」模拟说话节奏（快张慢合 + 乐句起伏），在 `internalModel` 的 `beforeModelUpdate` 回调里写入 `ParamMouthOpenY`——此时动作与物理都已算完、`coreModel.update()` 尚未执行，写入才会真正生效。开关在页面右上角（`live2dLipSyncKey` 持久化），只在播放时驱动，暂停后平滑闭嘴。
-- **状态驱动**：`Live2DWebView(lipSync:)` 通过 `window.live2dBridge.setLipSync(bool)` 把播放状态推进页面，`ready` 回调里补一次同步，切换歌曲不会丢失状态。
+- **Touch interaction**: tapping / dragging the character triggers the corresponding `motions` or `expressions`.
+- **Zoom control**: the bottom zoom bar in `live_to_d.dart` (− / slider / ＋ / percentage) passes the factor to `Live2DWebView(zoom:)`, and Flutter calls `window.live2dBridge.setZoom(value)` through the JS bridge. `fitModelToStage()` computes scale as `0.86 * zoom`; the default is 0.8 (a full-screen fit looks too large), the range is 0.45–1.6, and the value is persisted to `SharedPreferences` (`live2dZoomKey`). Calls made before the model finishes loading are ignored, and the `ready` callback syncs once more.
+- **Status reporting**: `window.__rcPost({type: progress|ready|error, ...})` is sent back through `RcLive2DBridge` (Android) or `chrome.webview.postMessage` (Windows); Flutter uses it to show the progress overlay, failure reason and retry entry.
+- **Lip sync**: audio is decoded by Flutter's native player (`audioplayers`), so the WebView cannot access audio samples. `main.js` instead simulates speech rhythm with a "syllable envelope" (fast open, slow close + phrase contour), writing `ParamMouthOpenY` in the `internalModel`'s `beforeModelUpdate` callback — at that point motions and physics are computed but `coreModel.update()` has not yet run, so the write actually takes effect. The toggle is in the top right (`live2dLipSyncKey` persisted), drives the mouth only during playback, and closes it smoothly on pause.
+- **State pushing**: `Live2DWebView(lipSync:)` pushes playback state into the page via `window.live2dBridge.setLipSync(bool)`, syncing once more in the `ready` callback so switching songs does not lose the state.
 
-## 5. 新增模型
+## 5. Adding models
 
-### 5.1 外部目录（推荐，无需重新打包）
+### 5.1 External directory (recommended, no repackaging)
 
-1. 把模型文件夹（含 `.model3.json` 及其 `moc3 / 贴图 / motions / expressions / physics`）整个复制到 `<外部目录>/Live2D/` 下，支持多层子目录。
-2. 打开 `/livetod`，左上角模型徽标会自动列出扫描到的模型；点开 → 「重新扫描」即可看到新模型，选中后 WebView 以新 `?model=` 重新加载。
-3. 选择结果持久化到 `live2dModelKey`（存相对路径，不含端口，重启依旧有效）；模型被删掉时自动回退到内置 Haru。
+1. Copy the whole model folder (containing `.model3.json` plus `moc3 / textures / motions / expressions / physics`) into `<external dir>/Live2D/`; nested subdirectories are supported.
+2. Open `/livetod`; the model badge in the top left automatically lists scanned models. Open it → "Rescan" to see the new model; selecting it reloads the WebView with a new `?model=`.
+3. The selection is persisted in `live2dModelKey` (a relative path without the port, so it survives restarts); if the model disappears, the app falls back to the bundled Haru.
 
-实现要点：
+Implementation notes:
 
-- `Live2DModelLibrary.scan()` 递归查找 `*.model3.json`，跳过隐藏目录；展示名取文件名去掉后缀。
-- `Live2DAssetServer` 增加 `/ext/<相对路径>` 路由，直接读磁盘并校验 `p.isWithin`，防止 `../` 越权；响应带 `Cache-Control: no-store`，替换模型后不会读到旧缓存。
-- viewer 启动时读取 `location.search` 的 `model` 参数（`resolveInitialModel()`），没有参数才用内置相对路径 `../models/Haru/Haru.model3.json`。
+- `Live2DModelLibrary.scan()` recursively finds `*.model3.json` and skips hidden directories; the display name is the filename without its extension.
+- `Live2DAssetServer` adds an `/ext/<relative path>` route that reads from disk and validates `p.isWithin` to prevent `../` traversal; responses carry `Cache-Control: no-store` so replacing a model never serves stale content.
+- On startup the viewer reads the `model` parameter from `location.search` (`resolveInitialModel()`); only when it is absent does it use the built-in relative path `../models/Haru/Haru.model3.json`.
+- Models can also be imported from inside the app (`lib/service/resource_importer.dart`) instead of copying folders by hand.
 
-### 5.2 内置资源（随包发布）
+### 5.2 Bundled assets (shipped with the app)
 
-1. 将模型目录放到 `assets/live2d/models/<ModelName>/`。
-2. 在 `pubspec.yaml` 的 `assets` 中声明资源。**注意 Flutter 的目录声明只收该目录下的直接文件，不递归子目录**——必须把 `viewer/vendor/`、`models/<Model>/`、`<Model>.2048/`、`expressions/`、`motions/` 逐个列出，否则运行库与模型不会被打进 APK，页面只会报「运行库未加载」。
-3. 在 `Live2DModelLibrary.builtIn` 所在位置（或 `scan()` 里）登记新的内置模型，页面即可切换。
+1. Put the model directory under `assets/live2d/models/<ModelName>/`.
+2. Declare the assets in `pubspec.yaml`. **Note that a Flutter directory declaration only includes files directly inside that directory, not subdirectories** — you must list `viewer/vendor/`, `models/<Model>/`, `<Model>.2048/`, `expressions/` and `motions/` individually, otherwise the runtime and model will not be packed into the APK and the page will only report "runtime not loaded".
+3. Register the new built-in model where `Live2DModelLibrary.builtIn` is defined (or in `scan()`), and the page can switch to it.
 
-## 6. 调试与常见问题
+## 6. Debugging and common issues
 
-- **模型不显示**：检查 `pubspec.yaml` 资源声明是否包含 `assets/live2d/models/`；确认 `.model3.json` 内引用的子文件路径与实际一致。
-- **桌面端白屏**：Windows 走 `webview_windows`，需确认该平台依赖已正确引入且运行时可用；iOS / Android 走 `webview_flutter`。
-- **Web 端异常**：`live2d_webview_stub.dart` 仅为占位，Web 实际渲染仍由 `webview_flutter` 提供的 WebView 完成；若 Web 平台需特殊资源加载逻辑，应在 viewer 内处理相对路径。
+- **Model not showing**: check that `pubspec.yaml` declares `assets/live2d/models/` and that the sub-file paths referenced inside `.model3.json` match the files on disk.
+- **Blank screen on desktop**: Windows uses `webview_windows`, so confirm the platform dependency is present and its runtime is available; iOS / Android use `webview_flutter`.
+- **Web platform issues**: `live2d_webview_stub.dart` is only a placeholder; actual Web rendering still comes from the WebView provided by `webview_flutter`. If the Web platform needs special asset loading, handle relative paths inside the viewer.
 
-返回：[文档中心](./README.md)
+Back to: [Documentation Hub](./README.md)

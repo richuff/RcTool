@@ -1,37 +1,43 @@
-# RcTool 文档中心
+# RcTool Documentation Hub
 
-欢迎来到 **RcTool** 的官方文档。RcTool 是一个基于 Flutter 的跨平台音乐播放器，并集成了 Live2D 角色互动能力，支持 Android / iOS / Windows / macOS / Linux / Web 多端运行。
+> **Languages:** English · [简体中文](README.zh-CN.md)
 
-本目录下的文档帮助你从零了解项目、快速上手开发，并深入掌握各模块的设计细节。
+Welcome to the official documentation of **RcTool**, a Flutter-based cross-platform music player with an integrated Live2D character, targeting Android / iOS / Windows / macOS / Linux / Web.
 
-## 文档导航
+These documents take you from a fresh clone to a solid understanding of every module's design.
 
-| 文档 | 内容概要 | 适合人群 |
+## Navigation
+
+| Document | Summary | Best for |
 | --- | --- | --- |
-| [01 - 开发入门](./01-getting-started.md) | 环境搭建、依赖安装、目录结构、运行与构建 | 新接手项目的开发者 |
-| [02 - 整体架构](./02-architecture.md) | 分层设计、状态管理、路由、主题、国际化 | 需要理解全局结构的开发者 |
-| [03 - 功能模块](./03-features.md) | 音乐播放、收藏、推荐、排行榜、Live2D 等模块说明 | 想知道"能做什么"的人 |
-| [04 - 数据库设计](./04-database.md) | SQLite 表结构、实体类、数据访问层 | 涉及数据存储改动的开发者 |
-| [05 - Live2D 集成](./05-live2d.md) | 模型资源、WebView 承载方案、平台适配 | 维护 Live2D 互动的开发者 |
+| [01 - Getting Started](./01-getting-started.md) | Environment setup, dependencies, project layout, running and building | Developers new to the project |
+| [02 - Architecture](./02-architecture.md) | Layering, state management, routing, theming, i18n | Developers who need the big picture |
+| [03 - Features](./03-features.md) | Music playback, favorites, recommendations, rankings, Live2D, and more | Anyone asking "what can it do?" |
+| [04 - Database Design](./04-database.md) | SQLite schema, entities, data access layer | Developers touching persistence |
+| [05 - Live2D Integration](./05-live2d.md) | Model assets, the WebView hosting approach, platform adaptation | Developers maintaining the Live2D interaction |
 
-## 技术栈速览
+## Documentation languages
 
-- **框架**：Flutter（SDK `^3.5.1`）
-- **状态管理 & 路由**：GetX（`get ^4.6.1`）
-- **音频播放**：`audioplayers`（配合 `flutter_cache_manager` 做缓存播放）
-- **本地存储**：`sqflite` + `sqflite_common_ffi` / `sqflite_common_ffi_web`（桌面/Web 走 FFI）
-- **本地通知 / 锁屏控制**：`flutter_local_notifications`
-- **权限申请**：`permission_handler`
-- **蓝牙耳机断连检测**：`headset_connection_event`
-- **Live2D 渲染**：`webview_flutter` + `webview_windows`（基于 Web 的 Live2D）
-- **配置持久化**：`shared_preferences`
+Every document is published in two languages. The path without a suffix is English (the default); appending `.zh-CN` before `.md` gives the Chinese edition. For example, `03-features.md` and `03-features.zh-CN.md`. Each page links to its counterpart at the top, and all internal links stay within the same language.
 
-## 项目目标
+## Tech stack at a glance
 
-- 提供流畅的音乐播放与控制体验
-- 支持播放列表管理与多种播放模式
-- 集成 Live2D 角色互动（触摸、动画）
-- 通过通知栏与锁屏控制实现系统集成
-- 本地数据持久化（收藏、歌单、推荐历史）
+- **Framework**: Flutter (SDK `^3.5.1`)
+- **State management & routing**: GetX (`get ^4.6.1`)
+- **Audio playback**: `audioplayers`, with `flutter_cache_manager` for cached playback
+- **Local storage**: `sqflite` + `sqflite_common_ffi` / `sqflite_common_ffi_web` (FFI on desktop/Web)
+- **Local notifications / lock-screen controls**: `flutter_local_notifications`
+- **Permissions**: `permission_handler`
+- **Bluetooth headset disconnect detection**: `headset_connection_event`
+- **Live2D rendering**: `webview_flutter` + `webview_windows` (Web-based Live2D)
+- **Settings persistence**: `shared_preferences`
 
-> 更多背景可回到项目根目录的 [README](../README.md)。
+## Project goals
+
+- Smooth music playback and control
+- Playlist management and multiple play modes
+- Live2D character interaction (touch, animation)
+- OS integration through notification and lock-screen controls
+- Local persistence for favorites, playlists and recommendation history
+
+> Back to the root [README](../README.md).

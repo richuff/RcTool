@@ -1,101 +1,103 @@
-# 04 - 数据库设计
+# 04 - Database Design
 
-RcTool 使用 **SQLite** 做本地持久化，由 `sqflite` 系列库驱动，并通过平台适配实现全端可用：
+> **Languages:** English · [简体中文](04-database.zh-CN.md)
 
-- 移动 / Web：原生 `sqflite` / `sqflite_common_ffi_web`
-- 桌面（Windows / macOS / Linux）：`sqflite_common_ffi`（启动时调用 `sqfliteFfiInit()`）
+RcTool uses **SQLite** for local persistence, driven by the `sqflite` family of packages and adapted per platform:
 
-数据库文件名为 `music_database.db`，当前版本 `version: 6`。
+- Mobile / Web: native `sqflite` / `sqflite_common_ffi_web`
+- Desktop (Windows / macOS / Linux): `sqflite_common_ffi` (initialized via `sqfliteFfiInit()` at startup)
 
-## 1. 数据库初始化
+The database file is `music_database.db`; the current schema version is `version: 6` (migrations have reached version 7 in practice — see §6).
 
-入口在 `lib/repository/SqlLiteConn/index.dart`：
+## 1. Initialization
 
-- 使用单例 + `Completer` 保证只初始化一次。
-- `onConfigure` 中开启外键约束（`PRAGMA foreign_keys = ON;`）。
-- `onCreate` 首次建表；`onUpgrade` 用 `IF NOT EXISTS` 为老库补建缺失表，避免跨版本升级丢表。
-- 外键为会话级设置，每次打开连接都会重新开启。
+Entry point: `lib/repository/SqlLiteConn/index.dart`:
 
-## 2. 表结构
+- A singleton plus a `Completer` guarantees initialization happens only once.
+- `onConfigure` enables foreign keys (`PRAGMA foreign_keys = ON;`).
+- `onCreate` creates the tables on first run; `onUpgrade` uses `IF NOT EXISTS` to add missing tables to older databases, so upgrading never drops tables.
+- Foreign keys are a per-connection setting, so they are re-enabled on every open.
 
-### `music` — 音乐主表
-| 字段 | 类型 | 约束 |
+## 2. Tables
+
+### `music` — main music table
+| Column | Type | Constraints |
 | --- | --- | --- |
 | id | INTEGER | PK, AUTOINCREMENT |
-| url | TEXT | NOT NULL（音频地址） |
-| imageUrl | TEXT | NOT NULL（封面） |
-| songName | TEXT | NOT NULL（歌名） |
-| decoration | TEXT | NOT NULL（描述 / 歌手等） |
+| url | TEXT | NOT NULL (audio address) |
+| imageUrl | TEXT | NOT NULL (cover) |
+| songName | TEXT | NOT NULL (title) |
+| decoration | TEXT | NOT NULL (description / artist, etc.) |
 
-### `favorite_music` — 收藏歌曲
-| 字段 | 类型 | 约束 |
+### `favorite_music` — favorite songs
+| Column | Type | Constraints |
 | --- | --- | --- |
 | id | INTEGER | PK, AUTOINCREMENT |
 | musicId | INTEGER | NOT NULL, FK → music(id) ON DELETE/UPDATE CASCADE |
 
-### `playlist` — 歌单
-| 字段 | 类型 | 约束 |
+### `playlist` — playlists
+| Column | Type | Constraints |
 | --- | --- | --- |
 | id | INTEGER | PK, AUTOINCREMENT |
 | name | TEXT | NOT NULL |
-| createdAt | INTEGER | NOT NULL（创建时间戳） |
+| createdAt | INTEGER | NOT NULL (creation timestamp) |
 
-### `playlist_music` — 歌单-歌曲关联（含排序）
-| 字段 | 类型 | 约束 |
+### `playlist_music` — playlist-song association (ordered)
+| Column | Type | Constraints |
 | --- | --- | --- |
 | id | INTEGER | PK, AUTOINCREMENT |
 | playlistId | INTEGER | NOT NULL, FK → playlist(id) |
 | musicId | INTEGER | NOT NULL, FK → music(id) |
-| sortOrder | INTEGER | NOT NULL（排序） |
+| sortOrder | INTEGER | NOT NULL (ordering) |
 | — | — | UNIQUE(playlistId, musicId) |
 
-### `favorite_playlist` — 收藏歌单
-| 字段 | 类型 | 约束 |
+### `favorite_playlist` — favorite playlists
+| Column | Type | Constraints |
 | --- | --- | --- |
 | id | INTEGER | PK, AUTOINCREMENT |
 | playlistId | INTEGER | NOT NULL UNIQUE, FK → playlist(id) |
 
-### `recommend_history` — 每日推荐日期记录
-| 字段 | 类型 | 约束 |
+### `recommend_history` — daily recommendation dates
+| Column | Type | Constraints |
 | --- | --- | --- |
 | id | INTEGER | PK, AUTOINCREMENT |
-| recommendDate | TEXT | NOT NULL UNIQUE（日期，如 `yyyy-MM-dd`） |
+| recommendDate | TEXT | NOT NULL UNIQUE (date, e.g. `yyyy-MM-dd`) |
 | createdAt | INTEGER | NOT NULL |
 
-### `recommend_history_music` — 每日推荐的歌曲明细
-| 字段 | 类型 | 约束 |
+### `recommend_history_music` — daily recommendation detail
+| Column | Type | Constraints |
 | --- | --- | --- |
 | id | INTEGER | PK, AUTOINCREMENT |
 | historyId | INTEGER | NOT NULL, FK → recommend_history(id) |
 | musicId | INTEGER | NOT NULL, FK → music(id) |
-| sortOrder | INTEGER | NOT NULL（排序） |
+| sortOrder | INTEGER | NOT NULL (ordering) |
 | — | — | UNIQUE(historyId, musicId) |
 
-### `play_history` — 播放历史
-| 字段 | 类型 | 约束 |
+### `play_history` — playback history
+| Column | Type | Constraints |
 | --- | --- | --- |
 | id | INTEGER | PK, AUTOINCREMENT |
-| url | TEXT | NOT NULL（音频地址） |
-| imageUrl | TEXT | NOT NULL（封面快照） |
-| songName | TEXT | NOT NULL（歌名快照） |
-| decoration | TEXT | NOT NULL（描述快照） |
-| playedAt | INTEGER | NOT NULL（播放时间戳） |
+| url | TEXT | NOT NULL (audio address) |
+| imageUrl | TEXT | NOT NULL (cover snapshot) |
+| songName | TEXT | NOT NULL (title snapshot) |
+| decoration | TEXT | NOT NULL (description snapshot) |
+| playedAt | INTEGER | NOT NULL (playback timestamp) |
 
-`play_history.playedAt` 建立 `idx_play_history_played_at(playedAt DESC)` 索引，加速最近播放和按时间统计。该表**不设外键**，故意保留歌曲快照，使歌曲从曲库删除后历史仍可用。
+`play_history.playedAt` has an `idx_play_history_played_at(playedAt DESC)` index to speed up recently-played queries and time-based statistics. This table **has no foreign keys**: it deliberately keeps song snapshots so history remains usable after a song is deleted from the library. Recent-history queries group by `url` with `MAX(playedAt)` to collapse duplicates, and `record()` updates the existing row when the same song is played again within a 5-second window.
 
-### `lyric` — 本地歌词
-| 字段 | 类型 | 约束 |
+### `lyric` — local lyrics
+| Column | Type | Constraints |
 | --- | --- | --- |
-| url | TEXT | PK（音频地址，与 `music.url` 对应） |
-| content | TEXT | NOT NULL（LRC 原文） |
-| offsetMs | INTEGER | NOT NULL DEFAULT 0（用户微调的偏移） |
+| url | TEXT | PK (audio address, matching `music.url`) |
+| content | TEXT | NOT NULL (raw LRC text) |
+| offsetMs | INTEGER | NOT NULL DEFAULT 0 (user-adjusted offset) |
 | updatedAt | INTEGER | NOT NULL |
 
-以音频 url 作为主键，同一首歌无论从曲库、歌单还是历史进入播放，都能读到同一份歌词；解码与滚动逻辑在 `lib/utils/lrc_parser.dart` 与 `lib/widget/lyric_view.dart` 中完成，表里只存原文与偏移，方便用户随时改词。
+Using the audio URL as the primary key means the same lyrics are found no matter whether the song was opened from the library, a playlist or history. Decoding and scrolling live in `lib/utils/lrc_parser.dart` and `lib/widget/lyric_view.dart`; the table stores only raw text and the offset so users can edit freely.
 
-> 其余所有 `FK` 均配置 `ON DELETE CASCADE` / `ON UPDATE CASCADE`，删除歌曲或歌单时会级联清理关联行，保证引用完整性。
+> All other `FK`s are configured with `ON DELETE CASCADE` / `ON UPDATE CASCADE`, so deleting a song or playlist cascades to associated rows and preserves referential integrity.
 
-## 3. 关系图
+## 3. Relationship diagram
 
 ```
 music ──< favorite_music
@@ -104,38 +106,38 @@ music ──< favorite_music
   │
   └──< recommend_history_music >── recommend_history
 
-play_history（独立快照表，无外键）
+play_history (standalone snapshot table, no foreign keys)
 ```
 
-## 4. 实体类（Dart）
+## 4. Dart entities
 
-位于 `lib/repository/entity/`：
+Located in `lib/repository/entity/`:
 
-- `Music`：`id / url / imageUrl / songName / decoration`，重写 `==` 与 `toMap()`。
-- `FavoriteMusic`：`id / musicId`。
-- `Playlist`：`id / name / createdAt / musicCount`（构造时附带计数）。
-- `RecommendHistory`：推荐日期历史。
-- `PlayHistory`：播放历史快照，可转换为 `Music`；`PlayedSongSummary` 承载按歌曲聚合的播放次数。
-- `musicEntity/` 下为组合视图对象（如每日推荐列表、歌单列表），用于承载联表查询结果。
-- `MusicOld`：旧版实体（含 `isFavorite` 字段），已标记 `@Deprecated`，保留作兼容过渡。
+- `Music`: `id / url / imageUrl / songName / decoration`, with `==` and `toMap()` overridden.
+- `FavoriteMusic`: `id / musicId`.
+- `Playlist`: `id / name / createdAt / musicCount` (count included at construction).
+- `RecommendHistory`: recommendation date history.
+- `PlayHistory`: history snapshot convertible to `Music`; `PlayedSongSummary` carries per-song play counts.
+- `musicEntity/` holds composite view objects (e.g. daily recommendation lists, playlist lists) for join query results.
+- `MusicOld`: legacy entity (with `isFavorite`), marked `@Deprecated` and kept for compatibility.
 
-## 5. 数据访问层（DAO）
+## 5. Data access layer (DAO)
 
-位于 `lib/repository/SqlLiteConn/`：
+Located in `lib/repository/SqlLiteConn/`:
 
-- `index.dart`：数据库连接与建表（见上）。
-- `music_conn.dart`：音乐的增删查。
-- `favorite_conn.dart`：收藏歌曲的插入 / 删除 / 查询。
-- `playlist_conn.dart`：歌单与"收藏歌单"的查询 / 增删。
-- `recommend_history_conn.dart`：每日推荐历史与明细的读写。
-- `play_history_conn.dart`：播放历史写入、最近记录、聚合统计、单条删除与清空。
-- `lyric_conn.dart`：歌词按 `url` 的读取 / 保存 / 偏移更新 / 删除。
+- `index.dart`: connection and table creation (see above).
+- `music_conn.dart`: music CRUD.
+- `favorite_conn.dart`: insert / delete / query favorite songs.
+- `playlist_conn.dart`: playlist and "favorite playlist" queries / mutations, including `updateSortOrders` for drag sorting.
+- `recommend_history_conn.dart`: read/write recommendation history and detail rows.
+- `play_history_conn.dart`: write history, recent records, aggregated statistics, single-row deletion and clearing.
+- `lyric_conn.dart`: read / save / adjust offset / delete lyrics by `url`.
 
-> 业务逻辑（如"切换收藏"）封装在 `FavoriteController`，DAO 只负责 SQL 操作，职责清晰。
+> Business logic (such as "toggle favorite") is encapsulated in `FavoriteController`; the DAO only performs SQL, keeping responsibilities clear.
 
-## 6. 升级注意事项
+## 6. Upgrade notes
 
-- 数据库版本从 1 升到 7（v6 新增 `play_history` 及时间索引，v7 新增 `lyric`），每次发布迁移都应在 `onUpgrade` 中补建缺失表（当前实现已用 `IF NOT EXISTS` 兜底）。
-- 若需新增字段或修改约束，建议在 `_createTables` 中追加 `ALTER` 语句或在 `onUpgrade` 按 `oldVersion` 分支处理，并在本文档同步更新表结构。
+- The database version went from 1 to 7 (v6 added `play_history` and its time index, v7 added `lyric`); every released migration should add missing tables in `onUpgrade` (the current implementation uses `IF NOT EXISTS` as a safety net).
+- To add columns or change constraints, append `ALTER` statements in `_createTables` or branch on `oldVersion` in `onUpgrade`, and update the schema in this document — in both language versions.
 
-下一篇：[05 - Live2D 集成](./05-live2d.md)
+Next: [05 - Live2D Integration](./05-live2d.md)

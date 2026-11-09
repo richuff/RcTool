@@ -1,5 +1,7 @@
 # Live2D Models
 
+> **Languages:** English · [简体中文](README.zh-CN.md)
+
 Place Cubism `model3.json` model folders here.
 
 For a quick test model, run this from the repository root:

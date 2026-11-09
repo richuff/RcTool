@@ -1,126 +1,130 @@
-# 02 - 整体架构
+# 02 - Architecture
 
-本文档梳理 RcTool 的分层结构、状态管理、路由、主题与国际化设计。
+> **Languages:** English · [简体中文](02-architecture.zh-CN.md)
 
-## 1. 分层概览
+This document describes RcTool's layering, state management, routing, theming and internationalization.
 
-RcTool 采用"页面 / 视图 → 控制器 → 数据层"的轻量级分层，由 GetX 串联：
+## 1. Layers at a glance
+
+RcTool uses a lightweight "page / view → controller → data layer" structure wired together by GetX:
 
 ```
 ┌─────────────────────────────────────────────┐
-│  页面 / 视图 (page, views, widget, components) │  ← UI 层
+│  Pages / views (page, views, widget, comp.)  │  ← UI layer
 └───────────────┬─────────────────────────────┘
-                │ GetBuilder / .obs 响应式绑定
+                │ GetBuilder / .obs reactive bindings
 ┌───────────────▼─────────────────────────────┐
-│           控制器 (controller)                 │  ← 状态管理层 (GetxController)
-│   MusicController / FavoriteController /      │
-│   IsDarkController                            │
+│           Controllers (controller)           │  ← State layer (GetxController)
+│   MusicController / FavoriteController /     │
+│   IsDarkController                           │
 └───────────────┬─────────────────────────────┘
-                │ 调用
+                │ calls
 ┌───────────────▼─────────────────────────────┐
-│           数据层 (repository)                 │  ← 持久化层
-│   entity/* 实体 + SqlLiteConn/* 数据访问        │
+│           Data layer (repository)            │  ← Persistence layer
+│   entity/* models + SqlLiteConn/* DAOs        │
 └───────────────┬─────────────────────────────┘
-                │ 调用
+                │ calls
 ┌───────────────▼─────────────────────────────┐
-│   底层依赖：sqflite / audioplayers /           │
-│   flutter_local_notifications / shared_prefs  │
+│   Low-level deps: sqflite / audioplayers /   │
+│   flutter_local_notifications / shared_prefs │
 └─────────────────────────────────────────────┘
 ```
 
-## 2. 入口与启动流程
+## 2. Entry point and startup
 
-`lib/main.dart` 中的启动顺序：
+Startup order in `lib/main.dart`:
 
-1. `WidgetsFlutterBinding.ensureInitialized()` —— 初始化 Flutter 绑定。
-2. `NotificationHelper().initialize()` —— 创建 Android 通知通道（新歌发布、播放控制）。
-3. `runApp(const MyApp())` —— 进入应用。
+1. `WidgetsFlutterBinding.ensureInitialized()` — initialize Flutter bindings.
+2. `NotificationHelper().initialize()` — create Android notification channels (new releases, playback controls).
+3. `runApp(const MyApp())` — enter the app.
 
-`MyApp` 在 `initState` 中完成：
+`MyApp.initState` performs:
 
-- 启动淡入动画（`AnimationController` + `FadeTransition`）。
-- 读取 `SharedPreferences` 配置（语言、播放标记），据此设置 `appLocale`。
-- 调用 `PermissionRequest.requestNotificationPermission()` 申请通知权限。
-- 通过 `SystemChrome.setPreferredOrientations` 锁定为竖屏。
+- The startup fade-in (`AnimationController` + `FadeTransition`).
+- Reads `SharedPreferences` settings (language, playback flags) and sets `appLocale` accordingly.
+- Calls `PermissionRequest.requestNotificationPermission()` for the notification permission.
+- Locks the orientation to portrait via `SystemChrome.setPreferredOrientations`.
 
-`MyApp` 使用 `GetBuilder<IsDarkController>` 包裹 `GetMaterialApp`，实现亮 / 暗主题的实时切换；`themeMode` 由 `IsDarkController` 持有。
+`MyApp` wraps `GetMaterialApp` in `GetBuilder<IsDarkController>` so light / dark themes switch live; `themeMode` is owned by `IsDarkController`.
 
-## 3. 状态管理（GetX）
+## 3. State management (GetX)
 
-项目遵循 GetX 模式：
+The project follows the GetX pattern:
 
-- **响应式状态**：控制器继承 `GetxController`，可变状态用 `.obs`（如 `isplay`、`position`、`playMode`）。
-- **视图刷新**：UI 通过 `GetBuilder<Controller>` 或 `Obx` 订阅并自动重绘。
-- **依赖注入**：`Get.put(IsDarkController(), permanent: true)` 注册为常驻单例。
+- **Reactive state**: controllers extend `GetxController`; mutable state uses `.obs` (e.g. `isplay`, `position`, `playMode`).
+- **View refresh**: the UI subscribes through `GetBuilder<Controller>` or `Obx` and rebuilds automatically.
+- **Dependency injection**: `Get.put(IsDarkController(), permanent: true)` registers a permanent singleton.
 
-主要控制器：
+Main controllers:
 
-| 控制器 | 职责 |
+| Controller | Responsibility |
 | --- | --- |
-| `MusicController` | 播放列表、播放 / 暂停、上一首 / 下一首、播放模式（循环 / 单曲 / 随机）、进度、缓存播放、通知联动 |
-| `FavoriteController` | 收藏歌曲与收藏歌单的增删查、内存索引缓存 |
-| `IsDarkController` | 亮 / 暗主题模式管理 |
+| `MusicController` | Playlist, play / pause, previous / next, play mode (loop / single / shuffle), progress, cached playback, notification integration |
+| `FavoriteController` | CRUD for favorite songs and favorite playlists, in-memory index cache |
+| `IsDarkController` | Light / dark theme mode |
 
-## 4. 路由
+## 4. Routing
 
-路由集中在 `lib/routers/`，其中 `route_path.dart` 定义路径常量，`Index.dart` 定义 `GetPage` 列表（统一 `Transition.rightToLeft` 右滑进入）。
+Routes live in `lib/routers/`: `route_path.dart` defines the path constants, `Index.dart` defines the `GetPage` list (all using `Transition.rightToLeft`).
 
-| 常量 | 路径 | 页面 |
+| Constant | Path | Page |
 | --- | --- | --- |
-| `HOME` | `/` | 首页（欢迎卡片 + 快速开始 + 音乐库入口） |
-| `MUSIC` | `/music` | 音乐列表页 |
-| `MUSICCHOOSE` | `/musicchoose` | 播放队列（含播放模式图标、清空队列） |
-| `RECOMMEND` | `/recommend` | 每日推荐 |
-| `RANKING` | `/ranking` | 排行榜 |
-| `ALBUM` | `/album` | 歌单列表页 |
-| `PLAYLIST` | `/playlist` | 歌单详情页（`arguments` 传 `Playlist`；`id = -1` 表示「我的喜欢」） |
-| `HISTORY` | `/history` | 最近播放 |
-| `STATS` | `/stats` | 播放统计 |
-| `ABOUT` | `/about` | 关于作者 |
-| `LIVETOD` | `/livetod` | Live2D 互动页 |
+| `HOME` | `/` | Home (welcome card + quick start + music library entries) |
+| `MUSIC` | `/music` | Music list page |
+| `MUSICCHOOSE` | `/musicchoose` | Play queue (play mode icons, clear queue) |
+| `RECOMMEND` | `/recommend` | Daily recommendations |
+| `RANKING` | `/ranking` | Rankings |
+| `ALBUM` | `/album` | Playlist list |
+| `PLAYLIST` | `/playlist` | Playlist detail (passes a `Playlist` via `arguments`; `id = -1` means "My Favorites") |
+| `HISTORY` | `/history` | Recently played |
+| `STATS` | `/stats` | Playback statistics |
+| `ABOUT` | `/about` | About the author |
+| `LIVETOD` | `/livetod` | Live2D interaction page |
 
-导航示例：`Get.toNamed(RoutePath.MUSIC)`（或 `/music`）。
+Navigation example: `Get.toNamed(RoutePath.MUSIC)` (or `/music`).
 
-## 5. 主题系统
+Top-level pages are mutually exclusive: `AppNav.goTopLevel()` replaces the current top-level page instead of pushing, so the stack never grows without bound. Returning to the home page does not replay its entrance animation.
 
-主题定义在 `lib/feature/theme/`：
+## 5. Theming
 
-- `app_theme.dart`：基于 Material 3 的 `ColorScheme`，提供 `AppTheme.light` 与 `AppTheme.dark` 两套。
-- 主色为**淡粉色（玫瑰粉，`pink500` = `#C8567F`）**，按 60-30-10 原则组织色彩（中性 surface 打底，少量 primary 强调）。
-- `color_value.dart` / `type_value.dart`：集中存放颜色与类型常量，避免散落的硬编码。
-- `RcSemanticColors`：通过 `ThemeExtension` 补充 ColorScheme 缺省的 success / warning / info 语义色，使用方式 `Theme.of(context).extension<RcSemanticColors>()!.success`。
+Themes live in `lib/feature/theme/`:
 
-## 6. 国际化
+- `app_theme.dart`: Material 3 `ColorScheme` with `AppTheme.light` and `AppTheme.dark`.
+- The primary color is a **soft rose pink (`pink500` = `#C8567F`)**, organized by the 60-30-10 rule (neutral surfaces as the base, a little primary for emphasis).
+- `color_value.dart` / `type_value.dart`: centralized color and type constants, avoiding scattered hardcoded values.
+- `RcSemanticColors`: a `ThemeExtension` supplying the success / warning / info colors missing from `ColorScheme`, used as `Theme.of(context).extension<RcSemanticColors>()!.success`.
 
-`lib/utils/my_message.dart` 中的 `MyMessage` 继承 `Translations`，提供中（`zh_CN`）/ 英（`en_US`）/ 日（`ja_JP`）三套映射，键统一用中文原文（`'播放全部'.tr`），带参数时写 `@占位符` + `trParams`。
+## 6. Internationalization
 
-语言状态放在 `lib/controller/locale_controller.dart` 的 `LocaleController`：
+`MyMessage` in `lib/utils/my_message.dart` extends `Translations` and provides Chinese (`zh_CN`) / English (`en_US`) / Japanese (`ja_JP`) maps. Keys are the Chinese source strings (`'播放全部'.tr`); parameterized strings use `@placeholder` with `trParams`.
 
-- `locale` 是 `Rx<Locale>`，`MyApp` 用 `Obx` 包住 `GetMaterialApp` 并把它传给 `locale:`，切换语言时 MaterialApp 本身重建，路由与弹层的子树一定跟着刷新。
-- `change()` 先写 `Get.locale`（`.tr` 取值时读的就是它）再更新 Rx，最后持久化到 `SharedPreferences`（`languageCodeKey` / `countryCodeKey`）。
-- `restore()` 在 `main()` 里 await 一次，避免冷启动先闪一帧中文。
-- 只调用 `Get.updateLocale()` 是不够的：`Get.locale` 是普通字段，赋值不会通知任何 widget，只能依赖 `performReassemble()` 全树重刷，弹层/缓存页面容易漏刷。
+Language state is held by `LocaleController` in `lib/controller/locale_controller.dart`:
 
-`test/layout_smoke_test.dart` 里有两条守卫：三套语言包键集合必须完全一致且无空值；切换 `Get.locale` 后同一个键要取到不同语言的译文。
+- `locale` is an `Rx<Locale>`; `MyApp` wraps `GetMaterialApp` in `Obx` and passes it to `locale:`, so switching languages rebuilds MaterialApp itself and therefore every route and overlay subtree.
+- `change()` writes `Get.locale` first (`.tr` reads from it), then updates the Rx, and finally persists to `SharedPreferences` (`languageCodeKey` / `countryCodeKey`).
+- `restore()` is awaited once in `main()` to avoid a one-frame flash of Chinese on cold start.
+- Calling `Get.updateLocale()` alone is not enough: `Get.locale` is a plain field, so assigning it notifies no widget. It would have to rely on `performReassemble()` to rebuild the entire tree, which tends to miss overlays and cached pages.
 
-## 7. 资源与字体
+`test/layout_smoke_test.dart` has two guards: all three language bundles must have exactly the same key set with no empty values, and switching `Get.locale` must produce different translations for the same key.
 
-- 自定义字体图标：`fonts/iconfont.ttf`，在 `pubspec.yaml` 注册为 `RcIcon` 字体族，`lib/iconfont/rc_icon.dart` 进行封装。
-- 静态图片与 Live2D 资源：`image/`（背景、插画）与 `assets/live2d/`（模型 + viewer），均在 `pubspec.yaml` 的 `assets` 段声明。
+## 7. Assets and fonts
 
-## 8. 共享 UI 组件（重构后）
+- Custom icon font: `fonts/iconfont.ttf`, registered in `pubspec.yaml` as the `RcIcon` family and wrapped by `lib/iconfont/rc_icon.dart`.
+- Static images and Live2D assets: `image/` (wallpapers, illustrations) and `assets/live2d/` (models + viewer), both declared in the `assets` section of `pubspec.yaml`.
 
-为避免各页面重复编写脚手架与列表行，项目抽取了以下共享组件（`lib/widget/`）：
+## 8. Shared UI components (post-refactor)
 
-- **`AppScaffold`**：统一页面外壳，封装 `Scaffold` + `Drawer`（主菜单）+ `AppBar`（菜单按钮 + 全局设置入口 `SearchWidget`）+ 背景装饰。音乐页、推荐、排行榜、歌单、歌单详情、选曲等均已改用它，消除了原本逐字重复的脚手架代码。
-- **`SongRow`**：统一的"渐变条 + 封面 + 标题 + 播放/移除"横向歌曲卡片，替换了推荐、选曲、歌单详情三处原本重复的"大行"实现，并修复了亮色主题下白色图标不可见的问题，播放/暂停图标带切换动画；传入 `index` 时会在封面左侧显示序号，供播放队列使用；传入 `onMore` 时右侧多一个「…」按钮。
-- **`SongActionsSheet`**（`lib/widget/song_actions_sheet.dart`）：`showSongActions()` 打开歌曲操作面板，提供「添加到歌单」（列出「我的喜欢」与全部自建歌单，可直接新建）、「收藏 / 取消收藏」，并可按场景追加一项移除操作。推荐、队列、歌单详情、最近播放的「…」都用它。
-- **`SlideFadeIn`**：列表/卡片入场动画（淡入 + 上滑，支持延迟形成错落效果），排行榜、每日推荐、关于作者等页面已使用。
-- **`SettingsSection` / `SettingsHeader` / `SettingsChoiceTile` / `SettingsSwitchTile` / `SettingsActionTile`**（`lib/widget/settings_ui.dart`）：设置界面通用组件。全局快捷面板（`search_widget`）、完整设置弹窗（`setting_dialog`）与设置页内容（`main_settings`）共用同一套分组卡片、图标容器与选中/开关样式，保证两处入口视觉完全一致。
-- **`NowPlayingBar`**（`lib/widget/now_playing_bar.dart`）：迷你播放条，固定在非播放页底部（每日推荐、首页、歌单详情已接入），展示当前歌曲封面、标题、实时进度与播放/暂停，队列为空时自动隐藏。
-- **`PlaylistDetailPage`**（`lib/page/AlbumPage/playlist_detail_page.dart`）：歌单详情页，`id = -1` 时为内置「我的喜欢」默认歌单（数据来源 `favorite_music` 表），其余为普通歌单（`playlist_music` 表），两者共用同一套详情 UI。
-- **`DeviceInfoPanel`**（`lib/widget/device_info_panel.dart`）：设备信息卡，数据经 `lib/utils/device_info.dart` 汇总原生通道与 `/proc` 信息后展示。
-- **`AppInfo`**（`lib/constant/app_info.dart`）：应用名、版本、仓库地址、作者等常量，供首页 / 关于页 / 设备信息复用。
-- **动画与样式**：播放/暂停按钮采用 `AnimatedSwitcher` 缩放切换；`MSCard`（正在播放卡片）改为封面铺满 + 底部渐隐蒙层、尺寸随可用空间自适应；`music_list` 底部播放条压缩为单行紧凑布局（封面 42px + 细进度条），整体高度约为原来的一半。
+To avoid repeating scaffolding and list rows on every page, the project provides these shared components (`lib/widget/`):
 
-下一篇：[03 - 功能模块](./03-features.md)
+- **`AppScaffold`**: a common page shell wrapping `Scaffold` + `Drawer` (main menu) + `AppBar` (menu button and the global settings entry `SearchWidget`) + background decoration. Music, recommendations, rankings, playlists, playlist detail and song selection all use it, eliminating copy-pasted scaffolding. Its `ScaffoldState` key is held in the widget's `State`, so rebuilding does not remount the whole subtree (which would restart entrance animations and reset scroll positions).
+- **`SongRow`**: a shared "gradient bar + cover + title + play/remove" horizontal song card that replaced three duplicated large-row implementations (recommendations, song selection, playlist detail). It fixes white icons being invisible on light themes, animates play/pause icon swaps, shows an index left of the cover when `index` is passed (used by the queue), and adds a "…" button when `onMore` is passed.
+- **`SongActionsSheet`** (`lib/widget/song_actions_sheet.dart`): `showSongActions()` opens the song action sheet with "Add to playlist" (lists "My Favorites" and all custom playlists, and can create one inline), "Favorite / Unfavorite", and an optional contextual remove action. The "…" buttons in recommendations, the queue, playlist detail and recent history all use it.
+- **`SlideFadeIn`**: entrance animation for list rows / cards (fade + slide up, with optional delay for staggered reveals), used by rankings, daily recommendations, the about page and others. `stagger()` applies a stepped delay to a group of children; `PageEnter` wraps the whole page body.
+- **`SettingsSection` / `SettingsHeader` / `SettingsChoiceTile` / `SettingsSwitchTile` / `SettingsActionTile`** (`lib/widget/settings_ui.dart`): shared settings components. The global quick panel (`search_widget`), the full settings dialog (`setting_dialog`) and the settings page content (`main_settings`) all reuse the same grouped cards, icon containers and selected/switch styles, keeping both entry points visually identical.
+- **`NowPlayingBar`** (`lib/widget/now_playing_bar.dart`): a mini player pinned to the bottom of non-player pages (daily recommendations, home, playlist detail), showing cover, title, live progress and play/pause; hides itself when the queue is empty.
+- **`PlaylistDetailPage`** (`lib/page/AlbumPage/playlist_detail_page.dart`): playlist detail; `id = -1` is the built-in "My Favorites" playlist (backed by the `favorite_music` table), all others are regular playlists (`playlist_music`). Both share the same detail UI.
+- **`DeviceInfoPanel`** (`lib/widget/device_info_panel.dart`): device info card, fed by `lib/utils/device_info.dart`, which aggregates native channel data and `/proc` information.
+- **`AppInfo`** (`lib/constant/app_info.dart`): app name, version, repository URL, author and similar constants reused by home / about / device info.
+- **Animation and styling**: play/pause uses an `AnimatedSwitcher` scale transition; `MSCard` (now-playing card) uses a full-bleed cover with a bottom fade and a size that adapts to available space; the `music_list` bottom bar is a compact single row (42px cover + thin progress bar), roughly half its previous height.
+
+Next: [03 - Features](./03-features.md)

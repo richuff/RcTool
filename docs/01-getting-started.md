@@ -1,41 +1,43 @@
-# 01 - 开发入门
+# 01 - Getting Started
 
-本文档帮助你在本地把 RcTool 跑起来，并熟悉项目布局。
+> **Languages:** English · [简体中文](01-getting-started.zh-CN.md)
 
-## 1. 环境要求
+This guide gets RcTool running locally and walks you through the project layout.
 
-| 工具 | 版本建议 | 说明 |
+## 1. Requirements
+
+| Tool | Recommended version | Notes |
 | --- | --- | --- |
-| Flutter SDK | `^3.5.1`（README 标注 3.24.x 经验证可用） | 跨平台编译基础 |
-| Dart SDK | 随 Flutter 自带 | — |
-| 开发机 | Windows / macOS / Linux | 桌面端需要对应编译工具链 |
-| 设备 / 模拟器 | Android / iOS / 桌面 | 运行与调试目标 |
+| Flutter SDK | `^3.5.1` (the README badge marks 3.24.x as verified) | Cross-platform build foundation |
+| Dart SDK | Bundled with Flutter | — |
+| Host machine | Windows / macOS / Linux | Desktop targets need the matching toolchain |
+| Device / emulator | Android / iOS / desktop | Run and debug target |
 
-> 安装完 Flutter 后，请先执行 `flutter doctor` 确认环境无缺项（尤其是 Android SDK / Xcode / Visual Studio 等平台依赖）。
+> After installing Flutter, run `flutter doctor` first and make sure nothing is missing — especially Android SDK / Xcode / Visual Studio dependencies for the platforms you intend to build.
 
-## 2. 获取代码
+## 2. Get the code
 
 ```bash
 git clone https://github.com/richuff/RcTool.git
 cd rctool
 ```
 
-## 3. 安装依赖
+## 3. Install dependencies
 
 ```bash
 flutter pub get
 ```
 
-依赖清单见根目录 [`pubspec.yaml`](../pubspec.yaml)（核心库：`get`、`audioplayers`、`sqflite` 系列、`flutter_local_notifications`、`webview_flutter` / `webview_windows` 等）。
+See the root [`pubspec.yaml`](../pubspec.yaml) for the full dependency list (core libraries: `get`, `audioplayers`, the `sqflite` family, `flutter_local_notifications`, `webview_flutter` / `webview_windows`, and others).
 
-## 4. 运行项目
+## 4. Run the app
 
 ```bash
-# 连接设备 / 启动模拟器后
+# After connecting a device or starting an emulator
 flutter run
 ```
 
-指定平台运行示例：
+Target a specific platform:
 
 ```bash
 flutter run -d android
@@ -43,17 +45,17 @@ flutter run -d windows
 flutter run -d web
 ```
 
-## 5. 构建产物
+## 5. Build artifacts
 
 ```bash
 # Android APK / AppBundle
 flutter build apk
 flutter build appbundle
 
-# iOS（需 macOS + Xcode）
+# iOS (requires macOS + Xcode)
 flutter build ios
 
-# 桌面
+# Desktop
 flutter build windows
 flutter build macos
 flutter build linux
@@ -62,35 +64,37 @@ flutter build linux
 flutter build web
 ```
 
-## 6. 目录结构
+## 6. Project layout
 
 ```
 rctool/
-├── lib/                      # 应用源码（Dart）
-│   ├── main.dart             # 入口：GetMaterialApp、主题、权限、竖屏锁定
-│   ├── routers/              # 路由表（RoutePath 常量 + GetPage 列表）
-│   ├── controller/           # GetX 控制器（music / favorite / is_dark）
-│   ├── repository/           # 数据层：entity 实体 + SqlLiteConn 数据库访问
-│   ├── views/                # 业务视图（音乐播放器、设置）
-│   ├── page/                 # 页面（音乐、推荐、排行榜、专辑、关于、Live2D）
-│   ├── widget/               # 通用组件（抽屉、搜索、背景、Live2D、对话框）
-│   ├── components/           # 业务组件（歌曲列表、推荐卡片等）
-│   ├── feature/              # 主题、设计资产（调色板、图标按钮）
-│   ├── iconfont/             # 字体图标封装
-│   ├── constant/             # 常量（表名等）
-│   └── utils/                # 工具（通知、权限、国际化、通用方法）
-├── assets/                   # 静态资源（live2d 模型与 viewer、JSON 配置）
-├── image/                    # 背景图、图标、插画
-├── fonts/                    # 自定义字体（iconfont.ttf）
-├── android/ ios/ macos/ windows/ linux/ web/   # 各平台工程
-└── pubspec.yaml              # 依赖与资源声明
+├── lib/                      # Application source (Dart)
+│   ├── main.dart             # Entry: GetMaterialApp, theme, permissions, portrait lock
+│   ├── routers/              # Route table (RoutePath constants + GetPage list)
+│   ├── controller/           # GetX controllers (music / favorite / is_dark)
+│   ├── repository/           # Data layer: entity models + SqlLiteConn database access
+│   ├── views/                # Business views (music player, settings)
+│   ├── page/                 # Pages (music, recommend, ranking, album, about, Live2D)
+│   ├── widget/               # Shared widgets (drawer, search, background, Live2D, dialogs)
+│   ├── components/           # Business components (song list, recommendation cards, ...)
+│   ├── feature/              # Theming and design assets (palette, icon buttons)
+│   ├── iconfont/             # Icon font wrapper
+│   ├── constant/             # Constants (table names, etc.)
+│   └── utils/                # Utilities (notifications, permissions, i18n, helpers)
+├── assets/                   # Static assets (Live2D models and viewer, JSON configs)
+├── image/                    # Wallpapers, icons, illustrations
+├── fonts/                    # Custom fonts (iconfont.ttf)
+├── android/ ios/ macos/ windows/ linux/ web/   # Platform projects
+└── pubspec.yaml              # Dependencies and asset declarations
 ```
 
-## 7. 常见问题
+> The platform projects (`android/`, `web/`, `windows/`, `macos/`, ...) are gitignored in this repository. Regenerate them locally with `flutter create .` if they are missing.
 
-- **首次启动白屏 / 黑屏**：确认 `assets/live2d/viewer/` 与 `assets/live2d/models/` 已随 `pubspec.yaml` 正确声明并打包。
-- **桌面端数据库异常**：项目已通过 `sqflite_common_ffi` 在桌面端初始化 FFI，若仍报错请确认目标平台为 Windows / macOS / Linux 之一。
-- **通知不显示**：Android 需授予通知权限（`permission_handler` 已在启动期申请）；锁屏控制通道已随 `NotificationHelper.initialize()` 创建。
-- **权限被拒**：`headset_connection_event`、`permission_handler` 等需要在各平台工程的 `Info.plist` / `AndroidManifest.xml` 中声明对应权限。
+## 7. Troubleshooting
 
-下一篇：[02 - 整体架构](./02-architecture.md)
+- **Blank white / black screen on first launch**: make sure `assets/live2d/viewer/` and `assets/live2d/models/` are declared in `pubspec.yaml` and actually bundled.
+- **Desktop database errors**: the project initializes FFI via `sqflite_common_ffi` on desktop; if it still fails, confirm the target is one of Windows / macOS / Linux.
+- **Notifications not showing**: Android requires the notification permission (`permission_handler` requests it at startup); the lock-screen control channel is created by `NotificationHelper.initialize()`.
+- **Permission denied**: `headset_connection_event`, `permission_handler` and similar plugins need the corresponding entries in each platform project's `Info.plist` / `AndroidManifest.xml`.
+
+Next: [02 - Architecture](./02-architecture.md)

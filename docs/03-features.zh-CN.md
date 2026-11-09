@@ -1,0 +1,216 @@
+# 03 - 功能模块
+
+> **语言：** 简体中文 · [English](03-features.md)
+
+本文档逐一介绍 RcTool 的业务功能及其实现要点。
+
+## 0. 首页
+
+`/`（`lib/page/home_page.dart`，`main.dart` 只负责 `home: const HomePage()`）由三部分组成：
+
+- **渐变欢迎卡**：应用 Logo、欢迎语、副标题与版本号（`AppInfo.version`）。
+- **快速开始**：听音乐 / Live2D 两张渐变大卡，点击直达对应页面。
+- **音乐库**：每日推荐、排行榜、我的喜欢、歌单、播放统计五个入口，使用统一的分组卡片。
+- 底部 `NowPlayingBar`：有播放队列时常驻，可直接暂停/切歌并进入播放页。
+
+进入页面时，以上元素通过 `SlideFadeIn` / `stagger()` 依次错落淡入。
+
+## 1. 音乐播放
+
+核心由 `MusicController`（`lib/controller/music_controller.dart`）驱动，关键能力：
+
+- **播放列表**：`musiclist`（`RxList`）保存当前播放队列，支持追加、去重。
+- **播放 / 暂停**：`playLocal()` / `onPause()`；同一首歌再次点击会触发暂停。
+- **上一首 / 下一首**：`skipPrevious()` / `skipNext()`，结合播放模式计算目标索引。
+- **播放模式**（`enum PlayMode`）：只在「播放队列」页以紧凑图标切换，设置页不再提供该项。
+  - `loop`：列表循环
+  - `single`：单曲循环
+  - `random`：随机（线性同余生成器产生伪随机序列，避免相邻重复）
+- **进度控制**：`setPosition(double)` 将 0–100 的滑块值映射为 `Duration` 并 `seek`。
+- **缓存播放**：`playCachedAudio()` 默认先用 `flutter_cache_manager` 把音频 URL 下载到本地缓存文件，再交给 `audioplayers` 播放；关闭“缓存优先”后直接播放网络地址。
+- **缓存占用显示**：设置页的「缓存优先」与「清除音乐缓存」会显示当前缓存大小（`lib/utils/cache_size.dart` 直接统计缓存目录文件总大小，格式化后以 MB/KB 展示），清除后自动刷新为 0。
+- **完成监听**：`onPlayerComplete` 自动续播下一首（`playNextLocal()`）。
+- **播放设置**：音量、播放模式、通知开关、缓存优先都会持久化到 `SharedPreferences`，启动时由 `MusicController` 恢复。
+- **控制器单例**：`MusicController` / `FavoriteController` / `IsDarkController` 在 `main()` 里各注册一次（`permanent: true`），页面统一 `Get.find`。此前各页面 `Get.put` 会替换实例，导致进度、收藏、队列跨页面不同步。
+- **全屏播放页**（`lib/page/PlayerPage/now_playing_page.dart`）：点迷你播放条任意空白处进入，封面虚化取色做背景、大封面 Hero 过渡、进度可拖动、播放模式/上一首/播放暂停/下一首/当前歌单一屏操作，下滑手势收起。右上角只保留「歌词 / 更多」；「正在播放 x/x」这类计数已去掉，避免与底部信息重复。
+- **当前歌单面板**（`lib/widget/queue_sheet.dart`）：播放页「下一首」右侧按钮直接弹底部面板，不跳页。点任意一首立即切歌，右侧按钮移出队列，歌曲数量与当前项实时同步。
+- **收藏即时反馈**：`FavoriteController.toggle()` 先改内存集合并 `update()`，再落库；写入失败回滚。播放页与列表卡片的爱心因此点下即变色，不再等数据库回查。
+- **队列拖拽排序**：播放队列用 `ReorderableListView`，长按任意歌曲即可拖动；`reorderQueue()` 会让播放索引跟随当前歌曲移动，不会串音。移除歌曲后 SnackBar 提供「撤销」（`removeAt` / `insertAt`）。
+- **曲库搜索**（`lib/page/SearchPage/search_page.dart`）：按歌名 / 歌手实时过滤本地曲库，命中关键词高亮（`SongRow.highlight`），记录最近搜索（最多 10 条，可清空），支持整组播放与单曲「…」操作。入口在每页 AppBar 的放大镜。
+- **页面切换**：打开很多页面也不会无限压栈，`AppNav.goTopLevel()` 让顶层页面互斥，栈深度保持恒定。
+
+> 数据模型上，一首 `Music` 持有 `url`（音频地址）、`imageUrl`（封面）、`songName`（歌名）、`decoration`（描述 / 歌手等），因此播放既支持远程 URL，也兼容本地路径。
+
+## 2. 收藏
+
+`FavoriteController`（`lib/controller/favorite_controller.dart`）管理两类收藏：
+
+- **收藏歌曲**：`toggle/add/remove` 操作 `favorite_music` 表，并维护内存集合 `_favoriteMusicIds` 加速判断。
+- **收藏歌单**：`togglePlaylist/addPlaylist/removePlaylist` 操作 `favorite_playlist` 表。
+- **懒加载**：`ensureLoaded()` 保证首次使用前从数据库刷新；所有写操作后调用 `refresh()` 同步内存与 UI。
+
+相关页面：**「我的喜欢」是内置的默认歌单**，不再单独占用一个页面，在歌单列表置顶展示，点进去与其他歌单共用同一个详情页（`/playlist`，`id = -1` 时数据源为 `favorite_music`）。
+
+## 3. 每日推荐
+
+`/recommend`（每日推荐）基于 `recommend_history` 与 `recommend_history_music` 两张表记录"某天推荐了哪些歌"，避免重复推荐。组件层见 `lib/components/RecommendCP/everyday_recommend.dart`。
+
+页面细节：
+
+- **操作栏**：播放全部 / 历史 / 收藏三个按钮统一为 `46px` 高度，通过 `SizedBox` 固定高度解决此前"带文字按钮比图标按钮高"的错位问题。
+- **爱心收藏**：点击后**爱心图标本身变红填充**（按钮底色保持主题表面色，仅描边转为主色/红色），再次点击取消收藏。收藏语义是"把今日推荐这批歌曲加入「我的喜欢」默认歌单"，判断标准为这批歌是否全部已在收藏中。
+- **底部播放条**：页面底部常驻 `NowPlayingBar`（`lib/widget/now_playing_bar.dart`），点击任意歌曲开始播放后出现，显示封面、歌名、实时进度与播放/暂停、下一首；队列为空时自动隐藏。
+- **入场动画**：歌曲行使用 `SlideFadeIn` 错落淡入。
+
+## 4. 排行榜 / 歌单
+
+- `/ranking`（排行榜）：聚合热度 / 排序展示。
+- `/album`（歌单列表）：与设置页同一套分组卡片样式。
+  - **新建**：点右上角 `+`（紧邻全局设置按钮），弹出输入框（含名称必填、重名校验），确认后创建。
+  - **删除**：每个歌单行右侧的删除按钮才会触发删除，并需二次确认（输入框不再内嵌在列表里）。
+  - **不展示歌曲**：列表只显示歌单名、创建日期与歌曲数；点击整行进入 `/playlist` 歌单详情页（歌单信息卡 + `SongRow` 歌曲列表 + 底部 `NowPlayingBar`）。
+  - **添加歌曲**：详情页不再有「添加歌曲」入口，改由任意歌曲行右侧的「…」打开操作面板，直接把这首歌加入「我的喜欢」或任意自建歌单（再点一次移出）。
+  - **我的喜欢**：作为默认歌单固定置顶，不可删除。
+  - 每日推荐生成的内部歌单（`每日推荐 yyyy-MM-dd`）不会出现在列表中。
+
+两者页面分别位于 `lib/page/RankingPage/` 与 `lib/page/AlbumPage/`。
+
+## 5. 全局快捷面板
+
+页面 `AppBar` 右侧挂载 `SearchWidget`（`lib/widget/search_widget.dart`），底部卡片包含：
+
+- **设备信息**（`lib/widget/device_info_panel.dart`）：机型、Android 版本/API、CPU 核心数与最高主频、ABI、内存占用、屏幕分辨率、应用版本，可手动刷新。
+- **主题 / 语言 / 播放**设置项，以及「完整设置」入口。
+
+设备数据优先通过 Android 原生通道 `rctool/device_info`（`MainActivity.kt`）读取 `Build`、`ActivityManager`、`Runtime` 信息；CPU 型号、主频与内存总量再用 `/proc/cpuinfo`、`/sys/.../cpuinfo_max_freq`、`/proc/meminfo` 兜底，不依赖第三方插件。
+
+两处设置界面共用 `lib/widget/settings_ui.dart` 中的组件（`SettingsSection` / `SettingsHeader` / `SettingsChoiceTile` / `SettingsSwitchTile` / `SettingsActionTile` / `SettingsInfoTile`），因此分组卡片、图标容器、选中标记与开关配色完全一致：全局面板为可滚动底部卡片，完整设置为居中弹窗，二者仅在展示形式上不同。
+
+## 6. 通知与锁屏控制
+
+`NotificationHelper`（`lib/utils/notification_helper.dart`）：
+
+- 两个 Android 通知通道：`new_music_channel`（high，信息推送）、`playback_control_channel`（low，播放控制）。
+- **常驻播放通知**：`showPlaybackNotification()` 显示当前曲目与歌手，带三颗动作按钮（上一首 / 暂停·播放 / 下一首），`ongoing + onlyAlertOnce + 不发声`，不会每次切歌都响。
+- 按钮点击经 `initialize(onDidReceiveNotificationResponse:)` 回到 `MusicController._handleNotificationAction()`，动作 id 为 `rctool.prev / rctool.toggle / rctool.next`。
+- 触发时机：开始播放、暂停、切歌、清空队列、开关「播放通知」。
+- 限制：项目没有接入 `audio_service` 前台服务，按钮依赖应用进程存活（后台、息屏均可用）；进程被系统回收后通知只剩展示能力。
+
+## 7. 系统集成
+
+- **权限**：`lib/utils/PermissionRequest/` 统一申请通知、存储等权限，启动时申请通知权限。
+- **蓝牙耳机断连**：依赖 `headset_connection_event` 监听耳机状态，可在断连时自动暂停（与 `MusicController` 的播放状态联动）。
+- **设置**：`lib/views/main_settings.dart` 与 `lib/widget/setting_dialog.dart` 提供完整设置，包括主题、语言、音量、通知、缓存、睡眠定时、清除缓存和恢复默认；播放模式不在设置中，改由「播放队列」页顶部的图标切换。
+- **应用内导入**：壁纸与 Live2D 模型可直接在 App 内导入替换（`lib/service/resource_importer.dart`），不必手动往目录里拷文件；「打开目录」通过 MethodChannel 发出 `ACTION_VIEW` 选择器 Intent，让用户自己挑文件管理器。
+
+## 8. 最近播放
+
+`/history`（`lib/page/HistoryPage/play_history_page.dart`）按时间倒序展示播放历史：
+
+- `MusicController.playCachedAudio()` 在真正开始播放时写入 `play_history`，暂停后继续不会重复记录。
+- 支持播放历史中的歌曲、删除单条记录、清空全部记录和下拉刷新。
+- 历史保存歌曲快照，即使歌曲之后从曲库删除，记录仍可查看。
+- 同一首歌的重复记录会按 `url` 分组、取最新 `playedAt` 合并；`record()` 在 5 秒重复窗口内只更新同一行，避免一次点击写出两条。
+
+## 9. 播放统计
+
+`/stats`（`lib/page/StatsPage/play_stats_page.dart`）基于播放历史生成本地统计：
+
+- 概览：总播放次数、不同歌曲数、今日播放次数。
+- 近 7 天播放柱状图（含日均次数）。
+- 听歌时段分布：凌晨 / 上午 / 下午 / 晚上（按历史 `playedAt` 的小时分组）。
+- 常听歌手（由常听歌曲聚合前 4 位）。
+- 播放次数最多的前 5 首歌曲，可直接点击播放。
+- 页面使用 `LayoutBuilder` + `ConstrainedBox(minHeight)`，内容不足时也铺满可视区域，下拉刷新在整个页面范围内可用。
+- 所有统计只来自本机历史，不上传网络。
+
+## 10. 睡眠定时
+
+睡眠定时由 `MusicController` 管理，可在“设置 → 播放 → 睡眠定时”中开启：
+
+- 可选 15 / 30 / 45 / 60 分钟后自动暂停。
+- 设置页实时显示 `mm:ss` 倒计时，可随时修改或取消。
+- 到时调用 `onPause()` 暂停播放并给出提示。
+
+## 11. Live2D 互动
+
+详见 [05 - Live2D 集成](./05-live2d.zh-CN.md)。简要特性：
+
+- `/livetod` 进入 Live2D 页面，通过 WebView 加载 `assets/live2d/viewer/` 中的 Web 版 Live2D 运行时。
+- 当前内置模型为 **Haru**（`assets/live2d/models/Haru/`），含表情（expressions）、动作（motions）、物理（physics）与贴图。
+- 支持触摸交互触发角色动作；播放音乐时可由「口型联动」开关驱动角色嘴型（`main.js` 内的音节包络 + `ParamMouthOpenY`）。
+- 右下角缩放条（0.45–1.6，默认 0.8）与右上角口型开关都会持久化到 `SharedPreferences`。
+- 页面叠加：左上角模型徽标（点开切换模型）、顶部渐隐遮罩、底部毛玻璃「互动提示」卡（可收起），并提供**重新加载**按钮（通过更换 `ValueKey` 重建 WebView）。
+- **模型自动扫描**：`Live2DModelLibrary` 递归扫描 `<外部目录>/Live2D` 下所有 `*.model3.json`，与内置 Haru 合并成列表；选择面板支持重新扫描、复制目录，选择结果存 `live2dModelKey`。
+
+## 12. 主题与多语言
+
+- 跟随系统 / 亮色 / 暗色主题由 `IsDarkController` 控制并持久化，UI 实时响应（见 [02 - 整体架构](./02-architecture.zh-CN.md)）。
+- 多语言通过 `MyMessage` + `.tr` 实现：中 / 英 / 日三套各 390 个键，键集合完全一致（有单测守着）。
+- **语言单一来源** `LocaleController`：切换时先改 `Get.locale`，再改 `Rx<Locale>`，`MyApp` 里的 `Obx` 让 `GetMaterialApp` 直接换 `locale`。只靠 `Get.updateLocale()` 时，`Get.locale` 是普通字段、不会通知任何 widget，只能靠 `performReassemble()` 全树重刷，弹层与已缓存页面容易漏刷——这正是「切了语言还有文案没变」的根因。
+- 代码里不再出现硬编码中文（内置歌单名、歌曲元数据、`日本語` 这类专有名词除外）：数据库存的是「我的喜欢」「每日推荐 2024-01-01」这样的原名，展示时统一走 `playlistDisplayName()` 随语言切换。
+
+## 13. 歌词
+
+全屏播放页（`/player`）点封面或右上角「歌词」图标即可在封面与歌词之间切换：
+
+- LRC 解析在 `lib/utils/lrc_parser.dart`：支持一行多个时间戳、`[offset:]`、`[ti:]` 等元信息，纯文本歌词也能保存（此时不滚动、不高亮）。
+- 歌词按音频 `url` 存在 `lyric` 表（`LyricConn`），换页面 / 换歌单进入同一首歌都能读到。
+- 当前行高亮并自动居中；点击任意行跳转到该句；手动滚动后暂停跟随并出现「回到当前」。
+- 「编辑歌词」面板：粘贴剪贴板内容、编辑原文、±0.5 秒偏移微调、删除歌词；空状态给出导入入口与格式示例。面板会按键盘让位差额补齐布局，输入框不会被顶出屏幕。
+
+## 14. 离线缓存
+
+`OfflineController`（`lib/controller/offline_controller.dart`）统一管理下载状态：
+
+- 已下载的歌曲在列表行副标题尾部显示离线角标（`SongRow` 内部订阅，状态一变立刻刷新）。
+- 歌曲「…」面板新增「下载到本地 / 删除离线缓存」，显示单曲占用大小。
+- `/offline` 离线管理页：汇总已下载数量与占用、单曲试听 / 删除、清空缓存、调整缓存上限。
+- 缓存上限可选 不限 / 200MB / 500MB / 1GB / 2GB，超出后按下载时间自动清理最旧的音频（设置页与离线页共用同一个选择弹窗）。
+- 音频与封面共用 `DefaultCacheManager`，上限只统计音频文件，避免误删封面后列表全是占位图。
+
+## 15. 壁纸与外部资源
+
+页面背景不再写死在代码里，而是「外部目录优先、内置图兜底」：
+
+- 根目录由 `ExternalStorage`（`lib/service/external_storage.dart`）解析：Android 优先 `/storage/emulated/0/RcTool`（需要「所有文件访问权限」，文件管理器可直接进），未授权时退到应用专属目录；桌面端为 `<文档>/RcTool`。解析结果会持久化到 `SharedPreferences`，避免下次启动在公共/私有目录之间抖动。
+- 壁纸放在 `RcTool/wallpaper/`，按文件名映射页面：`home` / `live2d` / `music` / `about`，放一张 `default` 则四页统一生效；支持 jpg / jpeg / png / webp / bmp。每个槽位取 mtime 最新的匹配文件。
+- `WallpaperController` 扫描目录后按槽位匹配，`BackGroundEnum.imageProvider` 在运行期返回 `FileImage` 或内置 `AssetImage`，`AppScaffold` 用 `GetBuilder` 跟随刷新；换图后连同图片缓存一起 `evict`，同名文件改内容也能立刻看到。
+- 图片通过 `ResizeImage` 按显示尺寸解码，避免大图全尺寸解码导致 OOM 闪退。
+- `/wallpaper` 管理页：显示目录路径（可复制）、是否公共目录、授权入口、四个页面的预览与当前状态；右上角刷新。删掉文件即恢复内置图。
+- 目录结构：
+
+```
+RcTool/
+├── wallpaper/      # home.jpg / live2d.png / music.webp / about.jpg / default.jpg
+└── Live2D/         # 每个模型一个文件夹，内含 xxx.model3.json
+```
+
+## 16. 断点续播
+
+`MusicController` 会把「队列 + 当前索引 + 播放进度」写进 `SharedPreferences`：
+
+- 播放中每 4 秒落一次盘，暂停、切歌、启动播放、清空队列时立即落盘，退出应用最多丢 4 秒。
+- 启动时 `_restoreSession()` 还原队列与索引，并停在原进度（`isplay = false`，不自动出声）；迷你播放条副标题显示「上次播到 12:34」。
+- 用户点播放时 `playCachedAudio()` 匹配 `_resumeUrl`，用 `player.seek()` 回到上次的位置，之后清空断点。
+- `MusicController.ready` 暴露一个 Future，曲库页先 `await` 它再判断「队列是否为空」，避免刚启动时用曲库把恢复的队列顶掉。
+
+## 17. 备份与恢复
+
+`BackupService`（`lib/service/backup_service.dart`）+ `/backup` 页面：
+
+- 导出：按行 dump `music / playlist / playlist_music / favorite_music / lyric` 五张表，外加一份设置快照（主题、语言、播放模式、音量、缓存上限、Live2D 缩放与口型、壁纸模型选择），写到 `<外部目录>/backup/rcbackup-yyyyMMdd-HHmmss.json`（缩进过的 JSON，可直接看/手改）。
+- 恢复：列目录里的备份，显示时间、大小、歌单数与收藏数；确认后在一个事务里 `INSERT OR IGNORE`，同名歌单按名字合并，**不删除本机已有数据**。单行失败（版本差异）只跳过该行。
+- 设置项按类型写回 `SharedPreferences`，恢复后自动刷新收藏与壁纸控制器。
+- 备份不含音频文件，歌单只保存对曲库歌曲的引用。
+
+## 18. 关于作者
+
+`/about`（`lib/page/about_author.dart`）使用 `AppScaffold` + `aboutBackGround` 背景，包含：
+
+- 顶部渐变个人卡：应用 Logo（`image/RcToolIcon.png`）、作者名、技术标签。
+- 「关于作者」「作者的话」两张信息卡。
+- 项目信息卡：版本、技术栈、主要功能，以及**一键复制仓库地址**（`Clipboard` + Snackbar 提示）。
+- 卡片使用 `SlideFadeIn` 依次淡入。
+
+下一篇：[04 - 数据库设计](./04-database.zh-CN.md)

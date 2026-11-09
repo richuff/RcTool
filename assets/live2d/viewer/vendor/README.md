@@ -1,5 +1,7 @@
 # Live2D Viewer Vendor Files
 
+> **Languages:** English · [简体中文](README.zh-CN.md)
+
 The viewer loads these files locally:
 
 ```text
